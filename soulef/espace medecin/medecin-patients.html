@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des patients - MédiConnex</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .patients-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid #00d4ff33;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(0,212,255,0.2);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            color: #00d4ff;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-add {
+            background: rgba(0,212,255,0.1);
+            border: 2px solid #00d4ff;
+            border-radius: 40px;
+            padding: 12px 25px;
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-add:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+            box-shadow: 0 0 30px #00d4ff;
+        }
+
+        .search-section {
+            background: rgba(0,212,255,0.03);
+            border: 1px solid #00d4ff33;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .search-field label {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .search-field input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #00d4ff33;
+            border-radius: 10px;
+            color: #fff;
+        }
+
+        .search-field input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .search-btn {
+            background: rgba(0,212,255,0.1);
+            border: 2px solid #00d4ff;
+            border-radius: 40px;
+            padding: 12px 25px;
+            color: #00d4ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            height: 45px;
+        }
+
+        .search-btn:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 15px 10px;
+            color: #00d4ff;
+            border-bottom: 2px solid #00d4ff33;
+            font-weight: 500;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #00d4ff22;
+        }
+
+        tr:hover td {
+            background: rgba(0,212,255,0.05);
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-icons i {
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .action-icons i:hover {
+            color: #00d4ff;
+        }
+
+        .action-icons .fa-trash:hover {
+            color: #ff3366;
+        }
+
+        /* ===== PAGINATION AMÉLIORÉE ===== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,212,255,0.05);
+            border: 1px solid #00d4ff33;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .page-btn.active {
+            background: #00d4ff22;
+            border-color: #00d4ff;
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .page-btn:hover:not(.active):not(.disabled) {
+            border-color: #00d4ff;
+            background: rgba(0,212,255,0.1);
+        }
+
+        .page-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-btn.nav {
+            padding: 0 15px;
+            border-radius: 40px;
+            min-width: auto;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patients-wrapper">
+        <!-- En-tête -->
+        <div class="page-header">
+            <h1><i class="fa-solid fa-users"></i> Liste des patients</h1>
+            <a href="medecin-ajout-patient.html" class="btn-add">
+                <i class="fa-solid fa-plus"></i> Ajouter un patient
+            </a>
+        </div>
+
+        <!-- Recherche -->
+        <div class="search-section">
+            <div class="search-grid">
+                <div class="search-field">
+                    <label>Nom</label>
+                    <input type="text" id="searchNom" placeholder="Ex: Benali" onkeyup="filtrerPatients()">
+                </div>
+                <div class="search-field">
+                    <label>ID patient</label>
+                    <input type="text" id="searchId" placeholder="Ex: DZ-2503-042" onkeyup="filtrerPatients()">
+                </div>
+                <div class="search-field">
+                    <label>Téléphone</label>
+                    <input type="text" id="searchTel" placeholder="Ex: 0550 12 34 56" onkeyup="filtrerPatients()">
+                </div>
+                <button class="search-btn" onclick="filtrerPatients()">Rechercher</button>
+            </div>
+        </div>
+
+        <!-- Tableau des patients -->
+        <div class="table-container">
+            <table id="patientsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Téléphone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="patientsBody">
+                    <!-- Les lignes seront générées par JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <!-- MODAL DE MODIFICATION -->
+    <div id="modalModif" class="modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#16213e; border:2px solid #00d4ff; border-radius:30px; padding:30px; z-index:1000; width:90%; max-width:400px;">
+        <h2 style="color:#00d4ff; margin-bottom:20px;">Modifier patient</h2>
+        <div style="margin-bottom:15px;">
+            <label style="color:#aaa;">ID</label>
+            <input type="text" id="modifId" readonly style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #00d4ff33; border-radius:10px; color:#fff; margin-top:5px;">
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="color:#aaa;">Nom</label>
+            <input type="text" id="modifNom" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #00d4ff33; border-radius:10px; color:#fff; margin-top:5px;">
+        </div>
+        <div style="margin-bottom:15px;">
+            <label style="color:#aaa;">Prénom</label>
+            <input type="text" id="modifPrenom" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #00d4ff33; border-radius:10px; color:#fff; margin-top:5px;">
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="color:#aaa;">Téléphone</label>
+            <input type="text" id="modifTel" style="width:100%; padding:10px; background:rgba(255,255,255,0.05); border:1px solid #00d4ff33; border-radius:10px; color:#fff; margin-top:5px;">
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="enregistrerModification()" style="flex:1; padding:10px; background:rgba(0,212,255,0.1); border:2px solid #00d4ff; border-radius:30px; color:#00d4ff; cursor:pointer;">Enregistrer</button>
+            <button onclick="fermerModal()" style="flex:1; padding:10px; background:rgba(255,51,102,0.1); border:2px solid #ff3366; border-radius:30px; color:#ff3366; cursor:pointer;">Annuler</button>
+        </div>
+    </div>
+
+    <script>
+        // Données initiales des patients
+        const patientsData = [
+            { id: 'DZ-2503-042', nom: 'Benali', prenom: 'Sarah', tel: '0550 12 34 56' },
+            { id: 'DZ-2502-156', nom: 'Amine', prenom: 'Mohamed', tel: '0551 23 45 67' },
+            { id: 'DZ-2501-234', nom: 'Zahra', prenom: 'Fatima', tel: '0552 34 56 78' },
+            { id: 'DZ-2502-089', nom: 'Bensalem', prenom: 'Karim', tel: '0553 45 67 89' },
+            { id: 'DZ-2501-178', nom: 'Mansouri', prenom: 'Leila', tel: '0554 56 78 90' },
+            { id: 'DZ-2503-101', nom: 'Khelifi', prenom: 'Ahmed', tel: '0555 67 89 01' },
+            { id: 'DZ-2502-202', nom: 'Boualem', prenom: 'Said', tel: '0556 78 90 12' },
+            { id: 'DZ-2501-303', nom: 'Hadj', prenom: 'Nadia', tel: '0557 89 01 23' },
+            { id: 'DZ-2503-404', nom: 'Messaoudi', prenom: 'Ali', tel: '0558 90 12 34' },
+            { id: 'DZ-2502-505', nom: 'Cherif', prenom: 'Samia', tel: '0559 01 23 45' },
+            { id: 'DZ-2501-606', nom: 'Benali', prenom: 'Youcef', tel: '0560 12 34 56' },
+            { id: 'DZ-2503-707', nom: 'Taleb', prenom: 'Karima', tel: '0561 23 45 67' },
+        ];
+
+        let patientsFiltres = [...patientsData];
+        let currentPage = 1;
+        const rowsPerPage = 5;
+
+        function afficherPatients(page) {
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const patientsPage = patientsFiltres.slice(start, end);
+
+            const tbody = document.getElementById('patientsBody');
+            tbody.innerHTML = '';
+
+            patientsPage.forEach(p => {
+                const ligne = document.createElement('tr');
+                ligne.setAttribute('data-id', p.id);
+                ligne.setAttribute('data-nom', p.nom);
+                ligne.setAttribute('data-prenom', p.prenom);
+                ligne.setAttribute('data-tel', p.tel);
+                ligne.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>${p.nom}</td>
+                    <td>${p.prenom}</td>
+                    <td>${p.tel}</td>
+                    <td class="action-icons">
+                        <i class="fa-solid fa-eye" title="Voir dossier" onclick="voirDossier('${p.id}')"></i>
+                        <i class="fa-solid fa-pen" title="Modifier" onclick="ouvrirModal(this)"></i>
+                        <i class="fa-solid fa-trash" title="Supprimer" onclick="supprimerPatient(this)"></i>
+                    </td>
+                `;
+                tbody.appendChild(ligne);
+            });
+
+            afficherPagination();
+        }
+
+        function afficherPagination() {
+            const totalPages = Math.ceil(patientsFiltres.length / rowsPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            // Bouton Précédent
+            const prevBtn = document.createElement('div');
+            prevBtn.className = `page-btn nav ${currentPage === 1 ? 'disabled' : ''}`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i> Précédent';
+            if (currentPage > 1) {
+                prevBtn.onclick = () => {
+                    currentPage--;
+                    afficherPatients(currentPage);
+                };
+            }
+            pagination.appendChild(prevBtn);
+
+            // Numéros de page
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('div');
+                pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    afficherPatients(currentPage);
+                };
+                pagination.appendChild(pageBtn);
+            }
+
+            // Bouton Suivant
+            const nextBtn = document.createElement('div');
+            nextBtn.className = `page-btn nav ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextBtn.innerHTML = 'Suivant <i class="fa-solid fa-chevron-right"></i>';
+            if (currentPage < totalPages) {
+                nextBtn.onclick = () => {
+                    currentPage++;
+                    afficherPatients(currentPage);
+                };
+            }
+            pagination.appendChild(nextBtn);
+        }
+
+        // Fonctions d'action
+        window.voirDossier = function(id) {
+            window.location.href = 'medecin-dossier.html?id=' + id;
+        };
+
+        window.supprimerPatient = function(icone) {
+            if (confirm('🗑️ Supprimer ce patient ?')) {
+                const ligne = icone.closest('tr');
+                const id = ligne.getAttribute('data-id');
+                patientsData = patientsData.filter(p => p.id !== id);
+                patientsFiltres = patientsFiltres.filter(p => p.id !== id);
+                afficherPatients(currentPage);
+            }
+        };
+
+        // Modification
+        let ligneEnCours = null;
+
+        window.ouvrirModal = function(icone) {
+            ligneEnCours = icone.closest('tr');
+            document.getElementById('modifId').value = ligneEnCours.getAttribute('data-id');
+            document.getElementById('modifNom').value = ligneEnCours.getAttribute('data-nom');
+            document.getElementById('modifPrenom').value = ligneEnCours.getAttribute('data-prenom');
+            document.getElementById('modifTel').value = ligneEnCours.getAttribute('data-tel');
+            document.getElementById('modalModif').style.display = 'block';
+        };
+
+        window.fermerModal = function() {
+            document.getElementById('modalModif').style.display = 'none';
+            ligneEnCours = null;
+        };
+
+        window.enregistrerModification = function() {
+            if (!ligneEnCours) return;
+
+            const newNom = document.getElementById('modifNom').value.trim();
+            const newPrenom = document.getElementById('modifPrenom').value.trim();
+            const newTel = document.getElementById('modifTel').value.trim();
+
+            if (!newNom || !newPrenom || !newTel) {
+                alert('Tous les champs sont requis');
+                return;
+            }
+
+            const id = ligneEnCours.getAttribute('data-id');
+            const patient = patientsData.find(p => p.id === id);
+            if (patient) {
+                patient.nom = newNom;
+                patient.prenom = newPrenom;
+                patient.tel = newTel;
+            }
+
+            ligneEnCours.setAttribute('data-nom', newNom);
+            ligneEnCours.setAttribute('data-prenom', newPrenom);
+            ligneEnCours.setAttribute('data-tel', newTel);
+            ligneEnCours.cells[1].innerText = newNom;
+            ligneEnCours.cells[2].innerText = newPrenom;
+            ligneEnCours.cells[3].innerText = newTel;
+
+            fermerModal();
+        };
+
+        // Filtrage
+        window.filtrerPatients = function() {
+            const searchNom = document.getElementById('searchNom').value.toLowerCase();
+            const searchId = document.getElementById('searchId').value.toLowerCase();
+            const searchTel = document.getElementById('searchTel').value.toLowerCase();
+
+            patientsFiltres = patientsData.filter(p => {
+                const matchNom = searchNom === '' || p.nom.toLowerCase().includes(searchNom);
+                const matchId = searchId === '' || p.id.toLowerCase().includes(searchId);
+                const matchTel = searchTel === '' || p.tel.includes(searchTel);
+                return matchNom && matchId && matchTel;
+            });
+
+            currentPage = 1;
+            afficherPatients(currentPage);
+        };
+
+        // Initialisation
+        afficherPatients(1);
+        function voirDossier(id) {
+    window.location.href = 'medecin-dossier.html?id=' + id;
+}
+    </script>
+</body>
+</html>

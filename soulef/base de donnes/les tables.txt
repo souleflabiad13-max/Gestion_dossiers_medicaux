@@ -1,0 +1,166 @@
+-- ============================================
+-- BASE DE DONNÉES : mediconnex_db
+-- ============================================
+
+CREATE DATABASE IF NOT EXISTS mediconnex_db;
+USE mediconnex_db;
+
+-- ============================================
+-- 1. TABLE wilayas
+-- ============================================
+CREATE TABLE wilayas (
+    id_wilaya INT PRIMARY KEY AUTO_INCREMENT,
+    nom_wilaya VARCHAR(100) NOT NULL
+);
+
+-- ============================================
+-- 2. TABLE hopitaux
+-- ============================================
+CREATE TABLE hopitaux (
+    id_hopital INT PRIMARY KEY AUTO_INCREMENT,
+    nom_hopital VARCHAR(150) NOT NULL,
+    adresse VARCHAR(255),
+    telephone VARCHAR(20),
+    id_wilaya INT,
+    FOREIGN KEY (id_wilaya) REFERENCES wilayas(id_wilaya)
+);
+
+-- ============================================
+-- 3. TABLE specialites
+-- ============================================
+CREATE TABLE specialites (
+    id_specialite INT PRIMARY KEY AUTO_INCREMENT,
+    nom_specialite VARCHAR(100) NOT NULL
+);
+
+-- ============================================
+-- 4. TABLE medecins
+-- ============================================
+CREATE TABLE medecins (
+    id_medecin INT PRIMARY KEY AUTO_INCREMENT,
+    code_medecin VARCHAR(50) UNIQUE NOT NULL,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE,
+    telephone VARCHAR(20),
+    mot_de_passe VARCHAR(255) NOT NULL,
+    id_specialite INT,
+    id_hopital INT,
+    id_wilaya INT,
+    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_specialite) REFERENCES specialites(id_specialite),
+    FOREIGN KEY (id_hopital) REFERENCES hopitaux(id_hopital),
+    FOREIGN KEY (id_wilaya) REFERENCES wilayas(id_wilaya)
+);
+
+-- ============================================
+-- 5. TABLE patients
+-- ============================================
+CREATE TABLE patients (
+    id_patient INT PRIMARY KEY AUTO_INCREMENT,
+    id_national VARCHAR(50) UNIQUE NOT NULL,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    date_naissance DATE,
+    age INT,
+    sexe ENUM('M', 'F'),
+    telephone VARCHAR(20),
+    email VARCHAR(150),
+    adresse VARCHAR(255),
+    id_wilaya INT,
+    groupe_sanguin VARCHAR(5),
+    allergies TEXT,
+    maladies_chroniques TEXT,
+    antecedents TEXT,
+    notes TEXT,
+    id_medecin_traitant INT,
+    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_wilaya) REFERENCES wilayas(id_wilaya),
+    FOREIGN KEY (id_medecin_traitant) REFERENCES medecins(id_medecin)
+);
+
+-- ============================================
+-- 6. TABLE consultations
+-- ============================================
+CREATE TABLE consultations (
+    id_consultation INT PRIMARY KEY AUTO_INCREMENT,
+    id_patient INT NOT NULL,
+    id_medecin INT NOT NULL,
+    date_consultation DATETIME DEFAULT CURRENT_TIMESTAMP,
+    motif VARCHAR(255),
+    symptomes TEXT,
+    diagnostic TEXT NOT NULL,
+    traitement TEXT,
+    notes TEXT,
+    FOREIGN KEY (id_patient) REFERENCES patients(id_patient),
+    FOREIGN KEY (id_medecin) REFERENCES medecins(id_medecin)
+);
+
+-- ============================================
+-- 7. TABLE prescriptions
+-- ============================================
+CREATE TABLE prescriptions (
+    id_prescription INT PRIMARY KEY AUTO_INCREMENT,
+    id_consultation INT NOT NULL,
+    medicament VARCHAR(150) NOT NULL,
+    dosage VARCHAR(100),
+    frequence VARCHAR(100),
+    duree VARCHAR(100),
+    instructions TEXT,
+    FOREIGN KEY (id_consultation) REFERENCES consultations(id_consultation)
+);
+
+-- ============================================
+-- 8. TABLE documents
+-- ============================================
+CREATE TABLE documents (
+    id_document INT PRIMARY KEY AUTO_INCREMENT,
+    id_patient INT NOT NULL,
+    id_consultation INT,
+    type_document ENUM('analyse', 'radio', 'ordonnance', 'certificat', 'arret') NOT NULL,
+    nom_fichier VARCHAR(255) NOT NULL,
+    chemin_fichier VARCHAR(500),
+    date_upload DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_patient) REFERENCES patients(id_patient),
+    FOREIGN KEY (id_consultation) REFERENCES consultations(id_consultation)
+);
+
+-- ============================================
+-- 9. TABLE rendez_vous
+-- ============================================
+CREATE TABLE rendez_vous (
+    id_rdv INT PRIMARY KEY AUTO_INCREMENT,
+    id_patient INT NOT NULL,
+    id_medecin INT NOT NULL,
+    date_rdv DATETIME NOT NULL,
+    motif VARCHAR(255),
+    statut ENUM('en_attente', 'confirme', 'termine', 'annule') DEFAULT 'en_attente',
+    notes TEXT,
+    FOREIGN KEY (id_patient) REFERENCES patients(id_patient),
+    FOREIGN KEY (id_medecin) REFERENCES medecins(id_medecin)
+);
+
+-- ============================================
+-- 10. TABLE logs_actions
+-- ============================================
+CREATE TABLE logs_actions (
+    id_log INT PRIMARY KEY AUTO_INCREMENT,
+    utilisateur_type ENUM('medecin', 'admin', 'patient') NOT NULL,
+    id_utilisateur INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    details TEXT,
+    date_action DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
+-- 11. TABLE admins
+-- ============================================
+CREATE TABLE admins (
+    id_admin INT PRIMARY KEY AUTO_INCREMENT,
+    nom_utilisateur VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    mot_de_passe VARCHAR(255) NOT NULL,
+    nom VARCHAR(100),
+    prenom VARCHAR(100),
+    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
+);

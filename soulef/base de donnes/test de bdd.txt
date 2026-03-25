@@ -1,0 +1,50 @@
+-- ============================================
+-- DONNÉES DE TEST
+-- ============================================
+
+-- Wilayas
+INSERT INTO wilayas (nom_wilaya) VALUES 
+('Adrar (01)'), ('Chlef (02)'), ('Laghouat (03)'), ('Oum El Bouaghi (04)'),
+('Batna (05)'), ('Béjaïa (06)'), ('Biskra (07)'), ('Béchar (08)'), ('Blida (09)'),
+('Bouira (10)'), ('Tamanrasset (11)'), ('Tébessa (12)'), ('Tlemcen (13)'),
+('Tiaret (14)'), ('Tizi Ouzou (15)'), ('Alger (16)'), ('Djelfa (17)'), ('Jijel (18)'),
+('Sétif (19)'), ('Saïda (20)'), ('Skikda (21)'), ('Sidi Bel Abbès (22)'),
+('Annaba (23)'), ('Guelma (24)'), ('Constantine (25)'), ('Médéa (26)'),
+('Mostaganem (27)'), ('M\'Sila (28)'), ('Mascara (29)'), ('Ouargla (30)'),
+('Oran (31)'), ('El Bayadh (32)'), ('Illizi (33)'), ('Bordj Bou Arréridj (34)'),
+('Boumerdès (35)'), ('El Tarf (36)'), ('Tindouf (37)'), ('Tissemsilt (38)'),
+('El Oued (39)'), ('Khenchela (40)'), ('Souk Ahras (41)'), ('Tipaza (42)'),
+('Mila (43)'), ('Aïn Defla (44)'), ('Naâma (45)'), ('Aïn Témouchent (46)'),
+('Ghardaïa (47)'), ('Relizane (48)');
+
+-- Spécialités
+INSERT INTO specialites (nom_specialite) VALUES 
+('Cardiologie'), ('Neurologie'), ('Dermatologie'), ('Pédiatrie'),
+('Gynécologie'), ('Médecine générale'), ('Radiologie'), ('Chirurgie'),
+('Ophtalmologie'), ('ORL'), ('Psychiatrie'), ('Urgences');
+
+-- Hôpitaux
+INSERT INTO hopitaux (nom_hopital, adresse, telephone, id_wilaya) VALUES 
+('CHU Mustapha Pacha', 'Alger Centre', '023 45 67 89', 16),
+('CHU Bab El Oued', 'Bab El Oued', '023 56 78 90', 16),
+('CHU Oran', 'Oran', '041 34 56 78', 31),
+('CHU Constantine', 'Constantine', '031 23 45 67', 25),
+('CHU Annaba', 'Annaba', '038 45 67 89', 23),
+('CHU Sétif', 'Sétif', '036 56 78 90', 19);
+
+-- Admin par défaut
+INSERT INTO admins (nom_utilisateur, email, mot_de_passe, nom, prenom) VALUES 
+('admin', 'admin@mediconnex.dz', '$2y$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'Admin', 'Système');
+-- Mot de passe: admin123 (à hasher en production)
+
+-- Médecin test
+INSERT INTO medecins (code_medecin, nom, prenom, email, telephone, mot_de_passe, id_specialite, id_hopital, id_wilaya) VALUES 
+('CARD123', 'Benali', 'Ahmed', 'a.benali@mediconnex.dz', '0550 12 34 56', '$2y$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 1, 1, 16),
+('NEURO456', 'Amine', 'Karim', 'k.amine@mediconnex.dz', '0551 23 45 67', '$2y$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 2, 2, 31),
+('DERM789', 'Leila', 'Fatima', 'f.leila@mediconnex.dz', '0552 34 56 78', '$2y$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 3, 3, 25);
+
+-- Patients test
+INSERT INTO patients (id_national, nom, prenom, date_naissance, age, sexe, telephone, email, adresse, id_wilaya, groupe_sanguin, allergies, maladies_chroniques, id_medecin_traitant) VALUES 
+('DZ-2503-042', 'Benali', 'Sarah', '1992-06-15', 32, 'F', '0550 12 34 56', 's.benali@email.com', 'Ben Aknoun', 16, 'A+', 'Pénicilline', 'Aucune', 1),
+('DZ-2502-156', 'Amine', 'Mohamed', '1979-08-10', 45, 'M', '0551 23 45 67', 'm.amine@email.com', 'Hydra', 16, 'O+', 'Aucune', 'Diabète type 2', 1),
+('DZ-2501-234', 'Zahra', 'Fatima', '1996-03-20', 28, 'F', '0552 34 56 78', 'f.zahra@email.com', 'El Biar', 16, 'B+', 'Aucune', 'Aucune', 2);
