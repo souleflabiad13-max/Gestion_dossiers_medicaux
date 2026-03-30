@@ -1,0 +1,606 @@
+<?php
+include("config.php");
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossier médical complet - MédiConnex</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dossier-wrapper {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid #00d4ff33;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            box-shadow: 0 0 50px rgba(0,212,255,0.2);
+        }
+
+        /* En-tête patient */
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #00d4ff33;
+        }
+
+        .patient-identity {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .patient-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #00d4ff, #1a1a2e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #00d4ff;
+            box-shadow: 0 0 30px #00d4ff66;
+        }
+
+        .patient-avatar i {
+            font-size: 3.5rem;
+            color: #fff;
+        }
+
+        .patient-info h1 {
+            color: #00d4ff;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .patient-meta {
+            color: #aaa;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .patient-meta i {
+            color: #00d4ff;
+            width: 20px;
+        }
+
+        .access-badge {
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #00d4ff22;
+            border: 2px solid #00d4ff;
+            color: #00d4ff;
+        }
+
+        .btn-edit {
+            background: rgba(0,212,255,0.1);
+            border: 2px solid #00d4ff;
+            border-radius: 40px;
+            padding: 12px 30px;
+            color: #00d4ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-edit:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+            box-shadow: 0 0 30px #00d4ff;
+        }
+
+        /* Grille principale */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        /* Cartes de section */
+        .section-card {
+            background: rgba(0,212,255,0.02);
+            border: 1px solid #00d4ff33;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #00d4ff;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #00d4ff22;
+        }
+
+        .info-label {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .info-value i {
+            color: #00d4ff;
+            margin-right: 8px;
+        }
+
+        .badge {
+            background: #00d4ff22;
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 5px 15px;
+            border-radius: 30px;
+            display: inline-block;
+            margin: 3px;
+        }
+
+        .badge-allergie {
+            background: #ff336622;
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        .list-item {
+            padding: 12px;
+            background: rgba(0,212,255,0.03);
+            border: 1px solid #00d4ff22;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .list-item-content {
+            color: #ddd;
+            font-size: 0.95rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            color: #00d4ff;
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 2px solid #00d4ff33;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #00d4ff22;
+        }
+
+        tr:hover td {
+            background: rgba(0,212,255,0.03);
+        }
+
+        .back-link {
+            color: #aaa;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: #00d4ff;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid #00d4ff;
+            border-radius: 30px;
+            padding: 35px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #00d4ff;
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #ff3366;
+        }
+
+        .modal-field {
+            margin-bottom: 15px;
+        }
+
+        .modal-field label {
+            color: #00d4ff;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal-field input,
+        .modal-field textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #00d4ff33;
+            border-radius: 8px;
+            color: #fff;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid;
+            background: transparent;
+        }
+
+        .modal-btn.save {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .modal-btn.save:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+        }
+
+        .modal-btn.cancel {
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+
+        .modal-btn.cancel:hover {
+            background: #ff3366;
+            color: #1a1a2e;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            .patient-identity {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dossier-wrapper" id="dossierContainer"></div>
+
+    <!-- MODAL DE MODIFICATION -->
+    <div id="modalModif" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pen"></i> Modifier le dossier</h2>
+                <span class="close-modal" onclick="fermerModal()">&times;</span>
+            </div>
+            <div class="modal-field"><label>Nom</label><input type="text" id="editNom"></div>
+            <div class="modal-field"><label>Prénom</label><input type="text" id="editPrenom"></div>
+            <div class="modal-field"><label>Date de naissance</label><input type="date" id="editDateNaiss"></div>
+            <div class="modal-field"><label>Téléphone</label><input type="text" id="editTel"></div>
+            <div class="modal-field"><label>Email</label><input type="email" id="editEmail"></div>
+            <div class="modal-field"><label>Adresse</label><input type="text" id="editAdresse"></div>
+            <div class="modal-field"><label>Wilaya</label><input type="text" id="editWilaya"></div>
+            <div class="modal-field"><label>Groupe sanguin</label><input type="text" id="editGroupe"></div>
+            <div class="modal-field"><label>Allergies</label><textarea id="editAllergies"></textarea></div>
+            <div class="modal-field"><label>Antécédents</label><textarea id="editAntecedents"></textarea></div>
+            <div class="modal-field"><label>Maladies chroniques</label><textarea id="editChroniques"></textarea></div>
+            <div class="modal-field"><label>Notes du médecin</label><textarea id="editNotes"></textarea></div>
+            <div class="modal-actions">
+                <button class="modal-btn save" onclick="enregistrerModification()">Enregistrer</button>
+                <button class="modal-btn cancel" onclick="fermerModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const patientId = params.get('id') || 'DZ-2503-042';
+
+        // Base de données complète des patients
+        const patientsData = {
+            'DZ-2503-042': {
+                nom: 'Benali',
+                prenom: 'Sarah',
+                dateNaissance: '15/06/1992',
+                age: 32,
+                telephone: '0550 12 34 56',
+                email: 's.benali@email.com',
+                adresse: 'Ben Aknoun',
+                wilaya: 'Alger (16)',
+                groupe: 'A+',
+                allergies: ['Pénicilline', 'Arachides'],
+                antecedents: ['Aucun'],
+                maladiesChroniques: 'Aucune',
+                consultations: [
+                    { date: '10/03/2025', diagnostic: 'Rhume', traitement: 'Doliprane 500mg', medecin: 'Dr. Benali' },
+                    { date: '15/02/2025', diagnostic: 'Fatigue', traitement: 'Vitamines', medecin: 'Dr. Benali' }
+                ],
+                diagnostics: [
+                    { date: '10/03/2025', description: 'Rhume aigu' },
+                    { date: '15/02/2025', description: 'Fatigue passagère' }
+                ],
+                prescriptions: [
+                    { medicament: 'Doliprane 500mg', posologie: '1 comprimé 3x/jour', duree: '5 jours' },
+                    { medicament: 'Vitamine D', posologie: '1 ampoule/mois', duree: 'Long terme' }
+                ],
+                analyses: [
+                    { nom: 'Analyse sanguine', date: '10/03/2025', resultat: 'Normal' },
+                    { nom: 'Radio thorax', date: '05/02/2025', resultat: 'Normal' }
+                ],
+                notes: 'Patient suivie régulièrement. Bon état général.'
+            },
+            'DZ-2502-156': {
+                nom: 'Amine',
+                prenom: 'Mohamed',
+                dateNaissance: '10/08/1979',
+                age: 45,
+                telephone: '0551 23 45 67',
+                email: 'm.amine@email.com',
+                adresse: 'Hydra',
+                wilaya: 'Alger (16)',
+                groupe: 'O+',
+                allergies: ['Aucune'],
+                antecedents: ['Diabète type 2'],
+                maladiesChroniques: 'Diabète',
+                consultations: [
+                    { date: '05/03/2025', diagnostic: 'Diabète', traitement: 'Metformine', medecin: 'Dr. Benali' }
+                ],
+                diagnostics: [
+                    { date: '05/03/2025', description: 'Diabète déséquilibré' }
+                ],
+                prescriptions: [
+                    { medicament: 'Metformine', posologie: '1 comprimé 2x/jour', duree: 'Long terme' }
+                ],
+                analyses: [
+                    { nom: 'Glycémie', date: '05/03/2025', resultat: '1.8 g/L' }
+                ],
+                notes: 'Suivi diabète. À revoir dans 3 mois.'
+            }
+        };
+
+        let patient = { ...patientsData[patientId] } || { ...patientsData['DZ-2503-042'] };
+
+        function afficherDossier() {
+            document.getElementById('dossierContainer').innerHTML = `
+                <div class="patient-header">
+                    <div class="patient-identity">
+                        <div class="patient-avatar"><i class="fa-solid fa-user"></i></div>
+                        <div class="patient-info">
+                            <h1>${patient.prenom} ${patient.nom}</h1>
+                            <div class="patient-meta"><i class="fa-solid fa-id-card"></i> ID: ${patientId}</div>
+                            <div class="patient-meta"><i class="fa-solid fa-calendar"></i> ${patient.age} ans • Née le ${patient.dateNaissance}</div>
+                            <div class="patient-meta"><i class="fa-solid fa-location-dot"></i> ${patient.wilaya} • ${patient.adresse}</div>
+                            <div class="patient-meta"><i class="fa-solid fa-phone"></i> ${patient.telephone} • <i class="fa-solid fa-envelope"></i> ${patient.email}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-edit" onclick="ouvrirModal()"><i class="fa-solid fa-pen"></i> Modifier</button>
+                        <div class="access-badge"><i class="fa-solid fa-pen"></i> Accès complet</div>
+                    </div>
+                </div>
+
+                <div class="main-grid">
+                    <div>
+                        <!-- Informations médicales de base -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-heart-pulse"></i> Informations médicales</div>
+                            <div class="info-grid">
+                                <div class="info-item"><div class="info-label">Groupe sanguin</div><div class="info-value"><i class="fa-solid fa-droplet"></i> ${patient.groupe}</div></div>
+                                <div class="info-item"><div class="info-label">Médecin traitant</div><div class="info-value"><i class="fa-solid fa-user-md"></i> Dr. Ahmed Benali</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Antécédents -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-notes-medical"></i> Antécédents</div>
+                            ${patient.antecedents.map(a => `<span class="badge">${a}</span>`).join(' ')}
+                        </div>
+
+                        <!-- Allergies -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> Allergies</div>
+                            ${patient.allergies.map(a => `<span class="badge badge-allergie">${a}</span>`).join(' ')}
+                        </div>
+
+                        <!-- Diagnostics -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-stethoscope"></i> Diagnostics</div>
+                            ${patient.diagnostics.map(d => `
+                                <div class="list-item">
+                                    <div class="list-item-header">${d.date}</div>
+                                    <div class="list-item-content">${d.description}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Consultations -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Consultations</div>
+                            <table>
+                                <thead><tr><th>Date</th><th>Diagnostic</th><th>Traitement</th><th>Médecin</th></tr></thead>
+                                <tbody>
+                                    ${patient.consultations.map(c => `
+                                        <tr><td>${c.date}</td><td>${c.diagnostic}</td><td>${c.traitement}</td><td>${c.medecin}</td></tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <!-- Prescriptions -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-prescription"></i> Prescriptions</div>
+                            ${patient.prescriptions.map(p => `
+                                <div class="list-item">
+                                    <div class="list-item-header">${p.medicament}</div>
+                                    <div class="list-item-content">${p.posologie} • ${p.duree}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Analyses -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-flask"></i> Analyses</div>
+                            ${patient.analyses.map(a => `
+                                <div class="list-item">
+                                    <div class="list-item-header">${a.nom} - ${a.date}</div>
+                                    <div class="list-item-content">Résultat : ${a.resultat}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Notes du médecin -->
+                        <div class="section-card">
+                            <div class="section-title"><i class="fa-solid fa-pen"></i> Notes du médecin</div>
+                            <div class="list-item-content">${patient.notes}</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="medecin-patients.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Retour à la liste</a>
+            `;
+        }
+
+        function ouvrirModal() {
+            document.getElementById('editNom').value = patient.nom;
+            document.getElementById('editPrenom').value = patient.prenom;
+            document.getElementById('editDateNaiss').value = patient.dateNaissance;
+            document.getElementById('editTel').value = patient.telephone;
+            document.getElementById('editEmail').value = patient.email;
+            document.getElementById('editAdresse').value = patient.adresse;
+            document.getElementById('editWilaya').value = patient.wilaya;
+            document.getElementById('editGroupe').value = patient.groupe;
+            document.getElementById('editAllergies').value = patient.allergies.join(', ');
+            document.getElementById('editAntecedents').value = patient.antecedents.join(', ');
+            document.getElementById('editChroniques').value = patient.maladiesChroniques;
+            document.getElementById('editNotes').value = patient.notes;
+            document.getElementById('modalModif').style.display = 'flex';
+        }
+
+        function fermerModal() {
+            document.getElementById('modalModif').style.display = 'none';
+        }
+
+        function enregistrerModification() {
+            patient.nom = document.getElementById('editNom').value;
+            patient.prenom = document.getElementById('editPrenom').value;
+            patient.dateNaissance = document.getElementById('editDateNaiss').value;
+            patient.telephone = document.getElementById('editTel').value;
+            patient.email = document.getElementById('editEmail').value;
+            patient.adresse = document.getElementById('editAdresse').value;
+            patient.wilaya = document.getElementById('editWilaya').value;
+            patient.groupe = document.getElementById('editGroupe').value;
+            patient.allergies = document.getElementById('editAllergies').value.split(',').map(s => s.trim());
+            patient.antecedents = document.getElementById('editAntecedents').value.split(',').map(s => s.trim());
+            patient.maladiesChroniques = document.getElementById('editChroniques').value;
+            patient.notes = document.getElementById('editNotes').value;
+
+            afficherDossier();
+            fermerModal();
+        }
+
+        afficherDossier();
+    </script>
+</body>
+</html>

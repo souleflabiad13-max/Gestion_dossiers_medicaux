@@ -1,0 +1,527 @@
+<?php
+include("config.php");
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Médecin - MédiConnex</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== STRUCTURE SPÉCIFIQUE AU DASHBOARD ===== */
+        .dashboard-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 90vh;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid #00d4ff33;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,212,255,0.2);
+        }
+
+        /* ===== SIDEBAR FIXE ===== */
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            border-right: 2px solid #00d4ff33;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding: 0 10px;
+        }
+
+        .sidebar-logo i {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px #00d4ff);
+        }
+
+        .sidebar-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00d4ff;
+            letter-spacing: 2px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            color: #00d4ff;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(0,212,255,0.1);
+            border-left: 4px solid #00d4ff;
+        }
+
+        .sidebar-menu .active a {
+            background: rgba(0,212,255,0.15);
+            border-left: 4px solid #00d4ff;
+            color: #00d4ff;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #00d4ff33;
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #ff3366;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255,51,102,0.1);
+            border-left: 4px solid #ff3366;
+        }
+
+        /* ===== CONTENU PRINCIPAL ===== */
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* ===== HEADER AVEC RECHERCHE ET NOTIFICATIONS ===== */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #00d4ff33;
+        }
+
+        .header-search {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .header-search i {
+            color: #00d4ff;
+            font-size: 1.2rem;
+        }
+
+        .header-search input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #00d4ff33;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .header-search input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notifications i {
+            font-size: 1.3rem;
+            color: #fff;
+        }
+
+        .notifications .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff3366;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 50%;
+        }
+
+        .doctor-photo {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00d4ff, #1a1a2e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #00d4ff;
+            cursor: pointer;
+        }
+
+        .doctor-photo i {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        /* ===== CARTES STATISTIQUES ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(0,212,255,0.05);
+            border: 1px solid #00d4ff33;
+            border-radius: 15px;
+            padding: 25px;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px #00d4ff66;
+            transform: translateY(-5px);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-header i {
+            font-size: 2rem;
+            color: #00d4ff;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* ===== ACCÈS RAPIDE ===== */
+        .quick-actions {
+            margin-bottom: 40px;
+        }
+
+        .quick-actions h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .action-card {
+            background: rgba(0,212,255,0.03);
+            border: 1px solid #00d4ff33;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-card:hover {
+            border-color: #00d4ff;
+            background: rgba(0,212,255,0.08);
+            transform: translateY(-5px);
+        }
+
+        .action-card i {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .action-card span {
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        /* ===== ACTIVITÉS RÉCENTES ===== */
+        .recent-activities {
+            background: rgba(0,212,255,0.03);
+            border: 1px solid #00d4ff33;
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .recent-activities h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #00d4ff22;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 35px;
+            height: 35px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00d4ff;
+        }
+
+        .activity-desc {
+            flex: 1;
+        }
+
+        .activity-desc p {
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .stats-grid,
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-wrapper {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 2px solid #00d4ff33;
+                padding: 20px;
+            }
+            
+            .stats-grid,
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header-search {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- ===== SIDEBAR (Menu latéral) ===== -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-staff-snake"></i>
+                <span>MédiConnex</span>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="active"><a href="#"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="medecin-patients.php"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li><a href="medecin-ajout-patient.php"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+                <li><a href="medecin-dossier.php"><i class="fa-solid fa-folder-open"></i> Dossiers médicaux</a></li>
+                <li><a href="medecin-consultation.php"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+                <li><a href="medecin-rendezvous.php"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+                <li><a href="#"><i class="fa-solid fa-search"></i> Recherche patient</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-simple"></i> Statistiques</a></li>
+                <li><a href="medecin-profil.php"><i class="fa-solid fa-user-md"></i> Profil médecin</a></li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="medecin-login.php"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <!-- ===== CONTENU PRINCIPAL ===== -->
+        <div class="main-content">
+            <!-- ===== HEADER (Barre supérieure) ===== -->
+            <div class="dashboard-header">
+                <div class="header-search">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Rechercher patient par nom ou ID...">
+                </div>
+
+                <div class="header-actions">
+                    <div class="notifications">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="doctor-photo">
+                        <i class="fa-solid fa-user-md"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CARTES STATISTIQUES ===== -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-number">124</div>
+                    <div class="stat-label">Total patients</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Consultations aujourd'hui</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Rendez-vous aujourd'hui</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <i class="fa-solid fa-folder-plus"></i>
+                    </div>
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Nouveaux dossiers</div>
+                </div>
+            </div>
+
+            <!-- ===== ACCÈS RAPIDE ===== -->
+            <div class="quick-actions">
+                <h3><i class="fa-solid fa-bolt"></i> Accès rapide</h3>
+                <div class="actions-grid">
+                    <div class="action-card" onclick="window.location.href='medecin-ajout-patient.php'">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Ajouter patient</span>
+                    </div>
+                    <div class="action-card" onclick="window.location.href='#'">
+                        <i class="fa-solid fa-search"></i>
+                        <span>Rechercher patient</span>
+                    </div>
+                    <div class="action-card" onclick="window.location.href='medecin-consultation.php'">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span>Nouvelle consultation</span>
+                    </div>
+                    <div class="action-card" onclick="window.location.href='medecin-patients.php'">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <span>Voir dossiers</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ACTIVITÉS RÉCENTES ===== -->
+            <div class="recent-activities">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Activités récentes</h3>
+                
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div class="activity-desc">
+                        <p>Nouveau patient ajouté : Sarah Benali</p>
+                        <span class="activity-time">Il y a 10 minutes</span>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="activity-desc">
+                        <p>Consultation réalisée : Mohamed Amine</p>
+                        <span class="activity-time">Il y a 2 heures</span>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <div class="activity-desc">
+                        <p>Dossier médical mis à jour : Fatima Zahra</p>
+                        <span class="activity-time">Il y a 5 heures</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
