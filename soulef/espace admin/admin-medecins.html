@@ -200,7 +200,6 @@
             color: #ff3366;
         }
 
-        /* MODAL DE MODIFICATION */
         .modal {
             display: none;
             position: fixed;
@@ -296,11 +295,6 @@
             color: #ff3366;
         }
 
-        .modal-btn.cancel:hover {
-            background: #ff3366;
-            color: #1a1a2e;
-        }
-
         @media (max-width: 768px) {
             .gestion-wrapper {
                 flex-direction: column;
@@ -321,30 +315,24 @@
                 <i class="fa-solid fa-hospital-user"></i>
                 <span>MédiConnex</span>
             </div>
-
             <ul class="sidebar-menu">
                 <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                <li class="active"><a href="#"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
-                <li><a href="#"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
-                <li><a href="#"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
-                <li><a href="#"><i class="fa-solid fa-users"></i> Patients</a></li>
-                <li><a href="#"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
-                <li><a href="#"><i class="fa-solid fa-history"></i> Logs</a></li>
-                <li><a href="#"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
+                <li class="active"><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
+                <li><a href="admin-hopitaux.html"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
+                <li><a href="admin-specialites.html"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
+                <li><a href="admin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li><a href="admin-statistiques.html"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
+                <li><a href="admin-logs.html"><i class="fa-solid fa-history"></i> Logs</a></li>
+                <li><a href="admin-profil.html"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
             </ul>
-
             <div class="sidebar-footer">
                 <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
             </div>
         </div>
 
-        <!-- MAIN CONTENT -->
         <div class="main-content">
             <div class="page-header">
-                <h1>
-                    <i class="fa-solid fa-user-md"></i>
-                    Gestion des médecins
-                </h1>
+                <h1><i class="fa-solid fa-user-md"></i> Gestion des médecins</h1>
                 <a href="admin-ajout-medecin.html" class="btn-add">
                     <i class="fa-solid fa-plus"></i> Ajouter un médecin
                 </a>
@@ -364,14 +352,14 @@
                         </tr>
                     </thead>
                     <tbody id="medecinsBody">
-                        <!-- Rempli par JavaScript -->
+                        <tr><td colspan="7" style="text-align:center;">Chargement...<\/td><\/tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE MODIFICATION -->
+    <!-- MODAL MODIFICATION -->
     <div id="modalModif" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -415,116 +403,104 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Données initiales des médecins
-        let medecins = [
-            { id: 'DOC001', nom: 'Benali', prenom: 'Ahmed', specialite: 'Cardiologie', hopital: 'CHU Mustapha', wilaya: 'Alger (16)' },
-            { id: 'DOC002', nom: 'Amine', prenom: 'Karim', specialite: 'Neurologie', hopital: 'CHU Oran', wilaya: 'Oran (31)' },
-            { id: 'DOC003', nom: 'Leila', prenom: 'Fatima', specialite: 'Dermatologie', hopital: 'CHU Constantine', wilaya: 'Constantine (25)' },
-            { id: 'DOC004', nom: 'Said', prenom: 'Mohamed', specialite: 'Pédiatrie', hopital: 'CHU Annaba', wilaya: 'Annaba (23)' }
-        ];
-
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let ligneEnCours = null;
 
-        function afficherMedecins() {
+        async function chargerMedecins() {
             const tbody = document.getElementById('medecinsBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Chargement...<\/td><\/tr>';
+            
+            const { data: medecins, error: errMed } = await supabaseClient
+                .from('medecins')
+                .select('*');
+            
+            if (errMed) {
+                tbody.innerHTML = `<tr><td colspan="7">❌ Erreur: ${errMed.message}<\/td><\/tr>`;
+                return;
+            }
+            
+            if (!medecins || medecins.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">Aucun médecin trouvé<\/td><\/tr>';
+                return;
+            }
+            
+            const { data: specialites } = await supabaseClient.from('specialites').select('id_specialite, nom_specialite');
+            const { data: hopitaux } = await supabaseClient.from('hopitaux').select('id_hopital, nom_hopital');
+            const { data: wilayas } = await supabaseClient.from('wilayas').select('id_wilaya, nom_wilaya');
+            
+            const specialitesMap = new Map();
+            const hopitauxMap = new Map();
+            const wilayasMap = new Map();
+            
+            specialites?.forEach(s => specialitesMap.set(s.id_specialite, s.nom_specialite));
+            hopitaux?.forEach(h => hopitauxMap.set(h.id_hopital, h.nom_hopital));
+            wilayas?.forEach(w => wilayasMap.set(w.id_wilaya, w.nom_wilaya));
+            
             tbody.innerHTML = '';
-
+            
             medecins.forEach(m => {
                 const ligne = document.createElement('tr');
-                ligne.setAttribute('data-id', m.id);
-                ligne.setAttribute('data-nom', m.nom);
-                ligne.setAttribute('data-prenom', m.prenom);
-                ligne.setAttribute('data-specialite', m.specialite);
-                ligne.setAttribute('data-hopital', m.hopital);
-                ligne.setAttribute('data-wilaya', m.wilaya);
                 ligne.innerHTML = `
-                    <td>${m.id}</td>
-                    <td>${m.nom}</td>
-                    <td>${m.prenom}</td>
-                    <td>${m.specialite}</td>
-                    <td>${m.hopital}</td>
-                    <td>${m.wilaya}</td>
+                    <td>${m.id_medecin}<\/td>
+                    <td>${m.nom || '-'}<\/td>
+                    <td>${m.prenom || '-'}<\/td>
+                    <td>${specialitesMap.get(m.id_specialite) || 'Non renseignée'}<\/td>
+                    <td>${hopitauxMap.get(m.id_hopital) || 'Non renseigné'}<\/td>
+                    <td>${wilayasMap.get(m.id_wilaya) || 'Non renseignée'}<\/td>
                     <td class="action-icons">
-                        <i class="fa-solid fa-eye" title="Voir" onclick="voirMedecin('${m.id}')"></i>
-                        <i class="fa-solid fa-pen" title="Modifier" onclick="ouvrirModal(this)"></i>
-                        <i class="fa-solid fa-trash" title="Supprimer" onclick="supprimerMedecin(this)"></i>
-                    </td>
+                        <i class="fa-solid fa-eye" onclick="voirMedecin(${m.id_medecin})"><\/i>
+                        <i class="fa-solid fa-pen" onclick="ouvrirModal(this)"><\/i>
+                        <i class="fa-solid fa-trash" onclick="supprimerMedecin(${m.id_medecin})"><\/i>
+                    <\/td>
                 `;
                 tbody.appendChild(ligne);
             });
         }
 
-        // Fonction Voir
-        window.voirMedecin = function(id) {
-            const med = medecins.find(m => m.id === id);
-            alert(`👁️ Détails du médecin :\n\nID: ${med.id}\nNom: ${med.nom} ${med.prenom}\nSpécialité: ${med.specialite}\nHôpital: ${med.hopital}\nWilaya: ${med.wilaya}`);
-        };
+        async function voirMedecin(id) {
+            const { data } = await supabaseClient.from('medecins').select('*').eq('id_medecin', id).single();
+            alert(`👁️ Médecin: ${data.nom} ${data.prenom}\nID: ${data.id_medecin}`);
+        }
 
-        // Fonction Supprimer
-        window.supprimerMedecin = function(icone) {
-            if (confirm('🗑️ Supprimer ce médecin ?')) {
-                const ligne = icone.closest('tr');
-                const id = ligne.getAttribute('data-id');
-                medecins = medecins.filter(m => m.id !== id);
-                afficherMedecins();
-            }
-        };
+        async function supprimerMedecin(id) {
+            if (!confirm('🗑️ Supprimer ce médecin ?')) return;
+            await supabaseClient.from('medecins').delete().eq('id_medecin', id);
+            chargerMedecins();
+        }
 
-        // Fonction Modifier (ouvrir modal)
-        window.ouvrirModal = function(icone) {
-            ligneEnCours = icone.closest('tr');
-            document.getElementById('editId').value = ligneEnCours.getAttribute('data-id');
-            document.getElementById('editNom').value = ligneEnCours.getAttribute('data-nom');
-            document.getElementById('editPrenom').value = ligneEnCours.getAttribute('data-prenom');
-            document.getElementById('editSpecialite').value = ligneEnCours.getAttribute('data-specialite');
-            document.getElementById('editHopital').value = ligneEnCours.getAttribute('data-hopital');
-            document.getElementById('editWilaya').value = ligneEnCours.getAttribute('data-wilaya');
+        function ouvrirModal(icone) {
+            const ligne = icone.closest('tr');
+            ligneEnCours = ligne;
+            document.getElementById('editId').value = ligne.cells[0].innerText;
+            document.getElementById('editNom').value = ligne.cells[1].innerText;
+            document.getElementById('editPrenom').value = ligne.cells[2].innerText;
+            document.getElementById('editSpecialite').value = ligne.cells[3].innerText;
+            document.getElementById('editHopital').value = ligne.cells[4].innerText;
+            document.getElementById('editWilaya').value = ligne.cells[5].innerText;
             document.getElementById('modalModif').style.display = 'flex';
-        };
+        }
 
-        window.fermerModal = function() {
+        function fermerModal() {
             document.getElementById('modalModif').style.display = 'none';
-            ligneEnCours = null;
-        };
+        }
 
-        window.enregistrerModification = function() {
-            if (!ligneEnCours) return;
-
+        async function enregistrerModification() {
             const id = document.getElementById('editId').value;
-            const newNom = document.getElementById('editNom').value;
-            const newPrenom = document.getElementById('editPrenom').value;
-            const newSpecialite = document.getElementById('editSpecialite').value;
-            const newHopital = document.getElementById('editHopital').value;
-            const newWilaya = document.getElementById('editWilaya').value;
-
-            // Mettre à jour le tableau medecins
-            const med = medecins.find(m => m.id === id);
-            if (med) {
-                med.nom = newNom;
-                med.prenom = newPrenom;
-                med.specialite = newSpecialite;
-                med.hopital = newHopital;
-                med.wilaya = newWilaya;
-            }
-
-            // Mettre à jour l'affichage
-            ligneEnCours.setAttribute('data-nom', newNom);
-            ligneEnCours.setAttribute('data-prenom', newPrenom);
-            ligneEnCours.setAttribute('data-specialite', newSpecialite);
-            ligneEnCours.setAttribute('data-hopital', newHopital);
-            ligneEnCours.setAttribute('data-wilaya', newWilaya);
-            ligneEnCours.cells[1].innerText = newNom;
-            ligneEnCours.cells[2].innerText = newPrenom;
-            ligneEnCours.cells[3].innerText = newSpecialite;
-            ligneEnCours.cells[4].innerText = newHopital;
-            ligneEnCours.cells[5].innerText = newWilaya;
-
+            const data = {
+                nom: document.getElementById('editNom').value,
+                prenom: document.getElementById('editPrenom').value
+            };
+            await supabaseClient.from('medecins').update(data).eq('id_medecin', id);
             fermerModal();
-        };
+            chargerMedecins();
+        }
 
-        // Initialisation
-        afficherMedecins();
+        chargerMedecins();
     </script>
 </body>
 </html>

@@ -2,101 +2,54 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion Admin - MédiConnex</title>
     <link rel="stylesheet" href="style-admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ===== FORÇAGE COMPLET DE LA COULEUR ORANGE ===== */
         .auth-wrapper {
             border-color: #ffaa33 !important;
             box-shadow: 0 0 25px #ffaa33 !important;
         }
-
         .background-shape {
             background: linear-gradient(45deg, #1a1a2e, #ffaa33) !important;
         }
-
         .secondary-shape {
             border-top-color: #ffaa33 !important;
         }
-
-        /* Champs de formulaire */
         .field-wrapper input:focus,
-        .field-wrapper input:valid,
-        .field-wrapper select:focus,
-        .field-wrapper select:valid {
+        .field-wrapper input:valid {
             border-bottom-color: #ffaa33 !important;
         }
-
         .field-wrapper input:focus ~ label,
-        .field-wrapper input:valid ~ label,
-        .field-wrapper select:focus ~ label,
-        .field-wrapper select:valid ~ label {
+        .field-wrapper input:valid ~ label {
             color: #ffaa33 !important;
         }
-
-        .field-wrapper input:focus ~ i,
-        .field-wrapper input:valid ~ i,
-        .field-wrapper select:focus ~ i,
-        .field-wrapper select:valid ~ i {
-            color: #ffaa33 !important;
-        }
-
-        /* Bouton */
-        .submit-button {
-            border-color: #ffaa33 !important;
-        }
-
-        .submit-button::before {
-            background: linear-gradient(#1a1a2e, #ffaa33, #1a1a2e, #ffaa33) !important;
-        }
-
-        .submit-button:hover {
-            background: #ffaa33 !important;
-            color: #1a1a2e !important;
-            box-shadow: 0 0 30px #ffaa33 !important;
-        }
-
-        /* Textes */
-        .credentials-panel h2 {
-            color: #ffaa33 !important;
-            text-shadow: 0 0 15px #ffaa33 !important;
-        }
-
-        .welcome-section h2,
-        .welcome-section p {
-            color: #ffaa33 !important;
-        }
-
-        .forgot-link a {
-            color: #ffaa33 !important;
-        }
-
-        .forgot-link a:hover {
-            color: #ffaa33 !important;
-            text-decoration: underline !important;
-        }
-
-        /* Icônes dans les champs (par défaut) */
-        .field-wrapper i {
-            color: #ffaa33 !important;
-        }
-
-        /* S'assurer que le bleu ne revient pas */
         .field-wrapper input:focus ~ i,
         .field-wrapper input:valid ~ i {
             color: #ffaa33 !important;
         }
-
-        /* Pour être encore plus sûr */
-        .auth-wrapper .credentials-panel h2 {
+        .submit-button {
+            border-color: #ffaa33 !important;
+        }
+        .submit-button::before {
+            background: linear-gradient(#1a1a2e, #ffaa33, #1a1a2e, #ffaa33) !important;
+        }
+        .submit-button:hover {
+            background: #ffaa33 !important;
+            color: #1a1a2e !important;
+        }
+        .credentials-panel h2 {
             color: #ffaa33 !important;
         }
-
-        .auth-wrapper .welcome-section h2,
-        .auth-wrapper .welcome-section p {
+        .welcome-section h2,
+        .welcome-section p {
             color: #ffaa33 !important;
+        }
+        .error-msg {
+            color: #ff3366;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
         }
     </style>
 </head>
@@ -105,42 +58,81 @@
         <div class="background-shape"></div>
         <div class="secondary-shape"></div>
 
-        <!-- Panneau de connexion -->
         <div class="credentials-panel signin">
             <h2 class="slide-element">Connexion Admin</h2>
 
-            <form onsubmit="event.preventDefault(); window.location.href='admin-dashboard.html'">
-                <!-- Nom d'utilisateur -->
+            <form id="adminLoginForm">
                 <div class="field-wrapper slide-element">
-                    <input type="text" required>
+                    <input type="text" id="username" required>
                     <label>Nom d'utilisateur</label>
                     <i class="fa-solid fa-user-tie"></i>
                 </div>
 
-                <!-- Mot de passe -->
                 <div class="field-wrapper slide-element">
-                    <input type="password" required>
+                    <input type="password" id="password" required>
                     <label>Mot de passe</label>
                     <i class="fa-solid fa-lock"></i>
                 </div>
 
-                <!-- Lien mot de passe oublié -->
-                <div class="forgot-link slide-element">
-                    <a href="#">Mot de passe oublié ?</a>
-                </div>
-
-                <!-- Bouton -->
                 <div class="field-wrapper slide-element">
                     <button class="submit-button" type="submit">Se connecter</button>
                 </div>
+
+                <div id="errorMsg" class="error-msg"></div>
             </form>
         </div>
 
-        <!-- Panneau d'accueil -->
         <div class="welcome-section signin">
             <h2 class="slide-element">ESPACE ADMIN</h2>
             <p class="slide-element">Gestion complète du système</p>
         </div>
     </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7'; // ⚠️ Remplace par TA vraie clé
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.style.display = 'none';
+
+            if (!username || !password) {
+                errorDiv.textContent = '❌ Veuillez remplir tous les champs';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                // Requête avec les BONS noms de colonnes
+                const url = `${SUPABASE_URL}/rest/v1/admins?select=*&nom_utilisateur=eq.${encodeURIComponent(username)}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erreur réseau');
+
+                const admins = await response.json();
+
+                if (admins.length > 0 && admins[0].mot_de_passe === password) {
+                    localStorage.setItem('admin', JSON.stringify(admins[0]));
+                    window.location.href = 'admin-dashboard.html';
+                } else {
+                    errorDiv.textContent = '❌ Identifiants incorrects';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = '❌ Erreur de connexion: ' + err.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

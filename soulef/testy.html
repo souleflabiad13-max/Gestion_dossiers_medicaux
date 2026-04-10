@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test XAMPP + Supabase</title></head>
+<body>
+    <h1>Test connexion Supabase</h1>
+    <button onclick="tester()">Tester Supabase</button>
+    <pre id="resultat"></pre>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function tester() {
+            const resultatDiv = document.getElementById('resultat');
+            resultatDiv.innerText = '⏳ Connexion en cours...';
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('medecins')
+                    .select('*');
+                
+                if (error) {
+                    resultatDiv.innerText = '❌ Erreur Supabase:\n' + JSON.stringify(error, null, 2);
+                } else {
+                    resultatDiv.innerText = '✅ Succès!\n\nMédecins trouvés : ' + data.length + '\n\n';
+                    resultatDiv.innerText += JSON.stringify(data, null, 2);
+                }
+            } catch (err) {
+                resultatDiv.innerText = '❌ Exception:\n' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

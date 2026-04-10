@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter un médecin - MédiConnex</title>
-    <link rel="stylesheet" href="style-admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -12,400 +11,389 @@
             --admin-light: rgba(255,170,51,0.2);
         }
 
-        .form-wrapper {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-container {
             width: 100%;
-            max-width: 1400px;
-            min-height: 90vh;
-            background: rgba(26,26,46,0.7);
+            max-width: 700px;
+            background: rgba(26, 26, 46, 0.9);
             border: 2px solid var(--admin);
             border-radius: 30px;
             backdrop-filter: blur(10px);
-            overflow: hidden;
-            box-shadow: 0 0 50px var(--admin);
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(255, 170, 51, 0.3);
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: rgba(0,0,0,0.3);
-            border-right: 2px solid var(--admin);
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 40px;
-            padding: 0 10px;
-        }
-
-        .sidebar-logo i {
-            font-size: 2.5rem;
-            color: var(--admin);
-            filter: drop-shadow(0 0 10px var(--admin));
-        }
-
-        .sidebar-logo span {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--admin);
-            letter-spacing: 2px;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            flex: 1;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 8px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 20px;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 10px;
-            transition: 0.3s;
-            font-size: 0.95rem;
-        }
-
-        .sidebar-menu a i {
-            width: 25px;
-            color: var(--admin);
-            font-size: 1.2rem;
-        }
-
-        .sidebar-menu a:hover {
-            background: var(--admin-light);
-            border-left: 4px solid var(--admin);
-        }
-
-        .sidebar-menu .active a {
-            background: var(--admin-light);
-            border-left: 4px solid var(--admin);
-            color: var(--admin);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid var(--admin);
-        }
-
-        .sidebar-footer a {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 20px;
-            color: #ff3366;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        /* Contenu principal */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        /* En-tête */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .form-header {
+            text-align: center;
             margin-bottom: 30px;
+            position: relative;
         }
 
-        .page-header h1 {
+        .form-header i {
+            font-size: 3rem;
             color: var(--admin);
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .form-header h1 {
+            color: var(--admin);
+            font-size: 1.8rem;
+        }
+
+        .form-header p {
+            color: #aaa;
+            margin-top: 5px;
         }
 
         .back-link {
-            color: #aaa;
+            position: absolute;
+            left: 0;
+            top: 10px;
+            color: var(--admin);
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1.2rem;
             transition: 0.3s;
         }
 
         .back-link:hover {
-            color: var(--admin);
-        }
-
-        /* Formulaire */
-        .form-container {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--admin);
-            border-radius: 20px;
-            padding: 30px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
-            margin-bottom: 25px;
+            transform: translateX(-5px);
         }
 
         .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
+            margin-bottom: 20px;
         }
 
         .form-group label {
-            color: var(--admin);
             display: block;
+            color: var(--admin);
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 600;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--admin);
             border-radius: 10px;
             color: #fff;
             font-size: 1rem;
+            transition: 0.3s;
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--admin);
-            box-shadow: 0 0 15px var(--admin);
+            box-shadow: 0 0 10px var(--admin);
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .form-group select option {
-            background: #1a1a2e;
-            color: #fff;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
-        /* Boutons */
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            padding: 12px 30px;
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--admin), #ffcc66);
+            border: none;
             border-radius: 40px;
-            font-weight: 600;
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
-            border: 2px solid;
-            background: transparent;
+            margin-top: 20px;
         }
 
-        .btn-primary {
-            border-color: var(--admin);
-            color: var(--admin);
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 170, 51, 0.4);
         }
 
-        .btn-primary:hover {
-            background: var(--admin);
-            color: #1a1a2e;
-            box-shadow: 0 0 30px var(--admin);
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        .btn-secondary {
-            border-color: #ff3366;
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            display: block;
+        }
+
+        .message.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff3366;
             color: #ff3366;
-        }
-
-        .btn-secondary:hover {
-            background: #ff3366;
-            color: #1a1a2e;
-            box-shadow: 0 0 30px #ff3366;
+            display: block;
         }
 
         @media (max-width: 768px) {
-            .form-wrapper {
-                flex-direction: column;
+            .form-container {
+                padding: 25px;
             }
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 2px solid var(--admin);
-            }
-            .form-grid {
+            .form-row {
                 grid-template-columns: 1fr;
-            }
-            .form-group.full-width {
-                grid-column: span 1;
+                gap: 0;
             }
         }
     </style>
 </head>
 <body>
-    <div class="form-wrapper">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-logo">
-                <i class="fa-solid fa-hospital-user"></i>
-                <span>MédiConnex</span>
-            </div>
-
-            <ul class="sidebar-menu">
-                <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                <li class="active"><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
-                <li><a href="#"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
-                <li><a href="#"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
-                <li><a href="#"><i class="fa-solid fa-users"></i> Patients</a></li>
-                <li><a href="#"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
-                <li><a href="#"><i class="fa-solid fa-history"></i> Logs</a></li>
-                <li><a href="#"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
-            </ul>
-
-            <div class="sidebar-footer">
-                <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
-            </div>
+    <div class="form-container">
+        <div class="form-header">
+            <a href="admin-medecins.html" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i> Retour
+            </a>
+            <i class="fa-solid fa-user-md"></i>
+            <h1>Ajouter un médecin</h1>
+            <p>Remplissez le formulaire pour ajouter un nouveau médecin</p>
         </div>
 
-        <!-- MAIN CONTENT -->
-        <div class="main-content">
-            <!-- En-tête -->
-            <div class="page-header">
-                <h1>
-                    <i class="fa-solid fa-user-plus"></i>
-                    Ajouter un médecin
-                </h1>
-                <a href="admin-medecins.html" class="back-link">
-                    <i class="fa-solid fa-arrow-left"></i> Retour à la liste
-                </a>
+        <form id="ajoutMedecinForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Nom *</label>
+                    <input type="text" id="nom" name="nom" required placeholder="Entrez le nom">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Prénom *</label>
+                    <input type="text" id="prenom" name="prenom" required placeholder="Entrez le prénom">
+                </div>
             </div>
 
-            <!-- Formulaire -->
-            <div class="form-container">
-                <form onsubmit="event.preventDefault(); ajouterMedecin();">
-                    <div class="form-grid">
-                        <!-- Nom -->
-                        <div class="form-group">
-                            <label>Nom</label>
-                            <input type="text" id="nom" placeholder="Benali" required>
-                        </div>
-
-                        <!-- Prénom -->
-                        <div class="form-group">
-                            <label>Prénom</label>
-                            <input type="text" id="prenom" placeholder="Ahmed" required>
-                        </div>
-
-                        <!-- Email -->
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="email" placeholder="ahmed.benali@email.com" required>
-                        </div>
-
-                        <!-- Téléphone -->
-                        <div class="form-group">
-                            <label>Téléphone</label>
-                            <input type="tel" id="telephone" placeholder="0550 12 34 56" required>
-                        </div>
-
-                        <!-- Spécialité -->
-                        <div class="form-group">
-                            <label>Spécialité</label>
-                            <select id="specialite" required>
-                                <option value="">Sélectionner</option>
-                                <option value="Cardiologie">Cardiologie</option>
-                                <option value="Neurologie">Neurologie</option>
-                                <option value="Dermatologie">Dermatologie</option>
-                                <option value="Pédiatrie">Pédiatrie</option>
-                                <option value="Gynécologie">Gynécologie</option>
-                                <option value="Médecine générale">Médecine générale</option>
-                            </select>
-                        </div>
-
-                        <!-- Hôpital -->
-                        <div class="form-group">
-                            <label>Hôpital</label>
-                            <select id="hopital" required>
-                                <option value="">Sélectionner</option>
-                                <option value="CHU Mustapha">CHU Mustapha</option>
-                                <option value="CHU Oran">CHU Oran</option>
-                                <option value="CHU Constantine">CHU Constantine</option>
-                                <option value="CHU Annaba">CHU Annaba</option>
-                            </select>
-                        </div>
-
-                        <!-- Wilaya -->
-                        <div class="form-group">
-                            <label>Wilaya</label>
-                            <select id="wilaya" required>
-                                <option value="">Sélectionner</option>
-                                <option value="Alger (16)">Alger (16)</option>
-                                <option value="Oran (31)">Oran (31)</option>
-                                <option value="Constantine (25)">Constantine (25)</option>
-                                <option value="Annaba (23)">Annaba (23)</option>
-                                <option value="Sétif (19)">Sétif (19)</option>
-                            </select>
-                        </div>
-
-                        <!-- Mot de passe -->
-                        <div class="form-group full-width">
-                            <label>Mot de passe</label>
-                            <input type="password" id="password" placeholder="••••••••" required>
-                        </div>
-                    </div>
-
-                    <!-- Boutons -->
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='admin-medecins.html'">Annuler</button>
-                        <button type="submit" class="btn btn-primary">Ajouter le médecin</button>
-                    </div>
-                </form>
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-envelope"></i> Email</label>
+                    <input type="email" id="email" name="email" placeholder="medecin@exemple.com">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-phone"></i> Téléphone</label>
+                    <input type="tel" id="telephone" name="telephone" placeholder="0555 12 34 56">
+                </div>
             </div>
-        </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-stethoscope"></i> Spécialité *</label>
+                    <select id="id_specialite" name="id_specialite" required>
+                        <option value="">-- Sélectionner une spécialité --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-hospital"></i> Hôpital *</label>
+                    <select id="id_hopital" name="id_hopital" required>
+                        <option value="">-- Sélectionner un hôpital --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-map-marker-alt"></i> Wilaya *</label>
+                    <select id="id_wilaya" name="id_wilaya" required>
+                        <option value="">-- Sélectionner une wilaya --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-calendar"></i> Date d'embauche</label>
+                    <input type="date" id="date_embauche" name="date_embauche">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa-solid fa-location-dot"></i> Adresse</label>
+                <textarea id="adresse" name="adresse" rows="3" placeholder="Adresse complète du médecin"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa-solid fa-venus-mars"></i> Genre</label>
+                <select id="genre" name="genre">
+                    <option value="">-- Sélectionner --</option>
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fa-solid fa-save"></i> Ajouter le médecin
+            </button>
+        </form>
+
+        <div id="message" class="message"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        function ajouterMedecin() {
-            // Récupération des valeurs
-            const nom = document.getElementById('nom').value.trim();
-            const prenom = document.getElementById('prenom').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const telephone = document.getElementById('telephone').value.trim();
-            const specialite = document.getElementById('specialite').value;
-            const hopital = document.getElementById('hopital').value;
-            const wilaya = document.getElementById('wilaya').value;
-            const password = document.getElementById('password').value;
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-            // Validation simple
-            if (!nom || !prenom || !email || !telephone || !specialite || !hopital || !wilaya || !password) {
-                alert('❌ Veuillez remplir tous les champs');
-                return;
+        // Charger les listes déroulantes
+        async function chargerSelects() {
+            try {
+                // Charger les spécialités
+                const { data: specialites, error: errSpec } = await supabase
+                    .from('specialites')
+                    .select('id_specialite, nom_specialite')
+                    .order('nom_specialite');
+                
+                if (errSpec) throw errSpec;
+                
+                const selectSpec = document.getElementById('id_specialite');
+                specialites.forEach(spec => {
+                    const option = document.createElement('option');
+                    option.value = spec.id_specialite;
+                    option.textContent = spec.nom_specialite;
+                    selectSpec.appendChild(option);
+                });
+
+                // Charger les hôpitaux
+                const { data: hopitaux, error: errHop } = await supabase
+                    .from('hopitaux')
+                    .select('id_hopital, nom_hopital')
+                    .order('nom_hopital');
+                
+                if (errHop) throw errHop;
+                
+                const selectHop = document.getElementById('id_hopital');
+                hopitaux.forEach(hop => {
+                    const option = document.createElement('option');
+                    option.value = hop.id_hopital;
+                    option.textContent = hop.nom_hopital;
+                    selectHop.appendChild(option);
+                });
+
+                // Charger les wilayas
+                const { data: wilayas, error: errWil } = await supabase
+                    .from('wilayas')
+                    .select('id_wilaya, nom_wilaya')
+                    .order('nom_wilaya');
+                
+                if (errWil) throw errWil;
+                
+                const selectWil = document.getElementById('id_wilaya');
+                wilayas.forEach(wil => {
+                    const option = document.createElement('option');
+                    option.value = wil.id_wilaya;
+                    option.textContent = wil.nom_wilaya;
+                    selectWil.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Erreur chargement:', error);
+                afficherMessage('Erreur lors du chargement des données', 'error');
             }
-
-            // Génération d'un ID simple
-            const id = 'DOC' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-
-            // Simulation d'ajout
-            alert(`✅ Médecin ajouté avec succès !\n\nID: ${id}\nNom: ${prenom} ${nom}\nSpécialité: ${specialite}\nHôpital: ${hopital} (${wilaya})`);
-
-            // Redirection vers la liste
-            window.location.href = 'admin-medecins.html';
         }
+
+        // Afficher un message
+        function afficherMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+            }, 5000);
+        }
+
+        // Ajouter un médecin
+        async function ajouterMedecin(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Ajout en cours...';
+
+            try {
+                const medecinData = {
+                    nom: document.getElementById('nom').value,
+                    prenom: document.getElementById('prenom').value,
+                    email: document.getElementById('email').value || null,
+                    telephone: document.getElementById('telephone').value || null,
+                    id_specialite: parseInt(document.getElementById('id_specialite').value),
+                    id_hopital: parseInt(document.getElementById('id_hopital').value),
+                    id_wilaya: parseInt(document.getElementById('id_wilaya').value),
+                    date_embauche: document.getElementById('date_embauche').value || null,
+                    adresse: document.getElementById('adresse').value || null,
+                    genre: document.getElementById('genre').value || null
+                };
+
+                // Validation
+                if (!medecinData.nom || !medecinData.prenom) {
+                    throw new Error('Le nom et prénom sont obligatoires');
+                }
+                if (!medecinData.id_specialite || !medecinData.id_hopital || !medecinData.id_wilaya) {
+                    throw new Error('Veuillez sélectionner une spécialité, un hôpital et une wilaya');
+                }
+
+                const { data, error } = await supabase
+                    .from('medecins')
+                    .insert([medecinData])
+                    .select();
+
+                if (error) throw error;
+
+                afficherMessage('✅ Médecin ajouté avec succès !', 'success');
+                
+                // Réinitialiser le formulaire
+                document.getElementById('ajoutMedecinForm').reset();
+                
+                // Rediriger après 2 secondes
+                setTimeout(() => {
+                    window.location.href = 'admin-medecins.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                afficherMessage(`❌ Erreur : ${error.message}`, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> Ajouter le médecin';
+            }
+        }
+
+        // Écouter la soumission du formulaire
+        document.getElementById('ajoutMedecinForm').addEventListener('submit', ajouterMedecin);
+
+        // Charger les listes au démarrage
+        chargerSelects();
     </script>
 </body>
 </html>

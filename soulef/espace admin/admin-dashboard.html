@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - MédiConnex</title>
     <link rel="stylesheet" href="style-admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.0/css/all.css">
     <style>
         :root {
             --admin: #ffaa33;
@@ -149,10 +149,6 @@
             width: 250px;
         }
 
-        .header-search input:focus {
-            outline: none;
-        }
-
         .admin-profile {
             display: flex;
             align-items: center;
@@ -171,11 +167,6 @@
             border: 2px solid var(--admin);
         }
 
-        .admin-avatar i {
-            font-size: 1.5rem;
-            color: #fff;
-        }
-
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -189,6 +180,7 @@
             border-radius: 15px;
             padding: 20px;
             transition: 0.3s;
+            cursor: pointer;
         }
 
         .stat-card:hover {
@@ -259,12 +251,6 @@
             font-size: 2rem;
             color: var(--admin);
             margin-bottom: 10px;
-            display: block;
-        }
-
-        .action-btn span {
-            color: #fff;
-            font-size: 0.9rem;
         }
 
         .charts-grid {
@@ -292,13 +278,15 @@
             justify-content: space-around;
             align-items: flex-end;
             height: 150px;
+            gap: 10px;
         }
 
         .bar {
-            width: 30px;
+            width: 40px;
             background: linear-gradient(to top, var(--admin), #ffaa33);
             border-radius: 5px 5px 0 0;
             transition: 0.3s;
+            position: relative;
         }
 
         .bar:hover {
@@ -308,9 +296,16 @@
 
         .bar-label {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 8px;
             color: #aaa;
             font-size: 0.8rem;
+        }
+
+        .bar-value {
+            text-align: center;
+            color: var(--admin);
+            font-size: 0.7rem;
+            margin-bottom: 4px;
         }
 
         @media (max-width: 1024px) {
@@ -374,7 +369,7 @@
             <div class="dashboard-header">
                 <div class="header-search">
                     <i class="fa-solid fa-search"></i>
-                    <input type="text" placeholder="Rechercher...">
+                    <input type="text" id="searchInput" placeholder="Rechercher...">
                 </div>
                 <div class="admin-profile" onclick="window.location.href='admin-profil.html'">
                     <span>Admin</span>
@@ -384,39 +379,31 @@
                 </div>
             </div>
 
-            <!-- STATISTIQUES -->
-            <div class="stats-grid">
+            <!-- STATISTIQUES (chargées dynamiquement) -->
+            <div class="stats-grid" id="statsGrid">
                 <div class="stat-card" onclick="window.location.href='admin-medecins.html'">
-                    <div class="stat-header">
-                        <i class="fa-solid fa-user-md"></i>
-                    </div>
-                    <div class="stat-number">24</div>
+                    <div class="stat-header"><i class="fa-solid fa-user-md"></i></div>
+                    <div class="stat-number" id="medecinsCount">--</div>
                     <div class="stat-label">Médecins</div>
                 </div>
                 <div class="stat-card" onclick="window.location.href='admin-patients.html'">
-                    <div class="stat-header">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="stat-number">124</div>
+                    <div class="stat-header"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-number" id="patientsCount">--</div>
                     <div class="stat-label">Patients</div>
                 </div>
                 <div class="stat-card" onclick="window.location.href='admin-hopitaux.html'">
-                    <div class="stat-header">
-                        <i class="fa-solid fa-hospital"></i>
-                    </div>
-                    <div class="stat-number">8</div>
+                    <div class="stat-header"><i class="fa-solid fa-hospital"></i></div>
+                    <div class="stat-number" id="hopitauxCount">--</div>
                     <div class="stat-label">Hôpitaux</div>
                 </div>
                 <div class="stat-card" onclick="window.location.href='admin-statistiques.html'">
-                    <div class="stat-header">
-                        <i class="fa-solid fa-calendar-check"></i>
-                    </div>
-                    <div class="stat-number">56</div>
+                    <div class="stat-header"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="stat-number" id="consultationsCount">--</div>
                     <div class="stat-label">Consultations</div>
                 </div>
             </div>
 
-            <!-- ACCÈS RAPIDE (avec liens corrigés) -->
+            <!-- ACCÈS RAPIDE -->
             <div class="quick-actions">
                 <h3><i class="fa-solid fa-bolt"></i> Accès rapide</h3>
                 <div class="actions-grid">
@@ -439,33 +426,128 @@
                 </div>
             </div>
 
-            <!-- GRAPHIQUES -->
+            <!-- GRAPHIQUES DYNAMIQUES -->
             <div class="charts-grid">
-                <!-- Consultations par mois -->
                 <div class="chart-card">
                     <div class="chart-title">Consultations par mois</div>
-                    <div class="chart-bars">
-                        <div><div class="bar" style="height: 80px;"></div><div class="bar-label">Jan</div></div>
-                        <div><div class="bar" style="height: 110px;"></div><div class="bar-label">Fév</div></div>
-                        <div><div class="bar" style="height: 95px;"></div><div class="bar-label">Mar</div></div>
-                        <div><div class="bar" style="height: 130px;"></div><div class="bar-label">Avr</div></div>
-                        <div><div class="bar" style="height: 70px;"></div><div class="bar-label">Mai</div></div>
-                    </div>
+                    <div id="consultationsChart" class="chart-bars"></div>
                 </div>
-
-                <!-- Patients enregistrés -->
                 <div class="chart-card">
-                    <div class="chart-title">Patients enregistrés</div>
-                    <div class="chart-bars">
-                        <div><div class="bar" style="height: 60px;"></div><div class="bar-label">Jan</div></div>
-                        <div><div class="bar" style="height: 85px;"></div><div class="bar-label">Fév</div></div>
-                        <div><div class="bar" style="height: 100px;"></div><div class="bar-label">Mar</div></div>
-                        <div><div class="bar" style="height: 115px;"></div><div class="bar-label">Avr</div></div>
-                        <div><div class="bar" style="height: 90px;"></div><div class="bar-label">Mai</div></div>
-                    </div>
+                    <div class="chart-title">Patients par mois</div>
+                    <div id="patientsChart" class="chart-bars"></div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7'; // Ta clé anon
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function chargerStatistiques() {
+            try {
+                // Médecins
+                const { count: medecins, error: err1 } = await supabaseClient
+                    .from('medecins')
+                    .select('*', { count: 'exact', head: true });
+                if (!err1) document.getElementById('medecinsCount').innerText = medecins || 0;
+
+                // Patients
+                const { count: patients, error: err2 } = await supabaseClient
+                    .from('patients')
+                    .select('*', { count: 'exact', head: true });
+                if (!err2) document.getElementById('patientsCount').innerText = patients || 0;
+
+                // Hôpitaux
+                const { count: hopitaux, error: err3 } = await supabaseClient
+                    .from('hopitaux')
+                    .select('*', { count: 'exact', head: true });
+                if (!err3) document.getElementById('hopitauxCount').innerText = hopitaux || 0;
+
+                // Consultations
+                const { count: consultations, error: err4 } = await supabaseClient
+                    .from('consultations')
+                    .select('*', { count: 'exact', head: true });
+                if (!err4) document.getElementById('consultationsCount').innerText = consultations || 0;
+
+                // Charger les graphiques après les stats
+                chargerGraphiques();
+
+            } catch (err) {
+                console.error('Erreur chargement stats:', err);
+            }
+        }
+
+        async function chargerGraphiques() {
+            try {
+                // Consultations par mois
+                const { data: consultations } = await supabaseClient
+                    .from('consultations')
+                    .select('date_consultation');
+
+                const moisCons = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+                const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai'];
+                
+                consultations?.forEach(c => {
+                    if (c.date_consultation) {
+                        const mois = new Date(c.date_consultation).getMonth() + 1;
+                        if (moisCons[mois] !== undefined) moisCons[mois]++;
+                    }
+                });
+                
+                const maxCons = Math.max(...Object.values(moisCons), 1);
+                const consChart = document.getElementById('consultationsChart');
+                consChart.innerHTML = '';
+                
+                for (let i = 1; i <= 5; i++) {
+                    const height = (moisCons[i] / maxCons) * 120;
+                    consChart.innerHTML += `
+                        <div>
+                            <div class="bar-value">${moisCons[i]}</div>
+                            <div class="bar" style="height: ${height}px;"></div>
+                            <div class="bar-label">${moisNoms[i-1]}</div>
+                        </div>
+                    `;
+                }
+
+                // Patients par mois
+                const { data: patients } = await supabaseClient
+                    .from('patients')
+                    .select('date_creation');
+
+                const moisPat = { 1:0, 2:0, 3:0, 4:0, 5:0 };
+                patients?.forEach(p => {
+                    if (p.date_creation) {
+                        const mois = new Date(p.date_creation).getMonth() + 1;
+                        if (moisPat[mois] !== undefined) moisPat[mois]++;
+                    }
+                });
+                
+                const maxPat = Math.max(...Object.values(moisPat), 1);
+                const patChart = document.getElementById('patientsChart');
+                patChart.innerHTML = '';
+                
+                for (let i = 1; i <= 5; i++) {
+                    const height = (moisPat[i] / maxPat) * 120;
+                    patChart.innerHTML += `
+                        <div>
+                            <div class="bar-value">${moisPat[i]}</div>
+                            <div class="bar" style="height: ${height}px;"></div>
+                            <div class="bar-label">${moisNoms[i-1]}</div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Erreur graphiques:', err);
+            }
+        }
+
+        // Lancer au chargement
+        window.onload = chargerStatistiques;
+    </script>
 </body>
 </html>

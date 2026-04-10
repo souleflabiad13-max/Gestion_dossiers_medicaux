@@ -32,7 +32,6 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
-        /* ===== EN-TÊTE ===== */
         .form-header {
             display: flex;
             justify-content: space-between;
@@ -84,7 +83,6 @@
             color: #00d4ff;
         }
 
-        /* ===== CONTEXTE MÉDECIN ===== */
         .doctor-context {
             background: linear-gradient(90deg, #00d4ff11, #1a1a2e);
             border-left: 5px solid #00d4ff;
@@ -139,7 +137,6 @@
             font-size: 0.9rem;
         }
 
-        /* ===== SECTIONS DE FORMULAIRE ===== */
         .form-section {
             background: rgba(0,212,255,0.02);
             border: 1px solid #00d4ff22;
@@ -157,18 +154,10 @@
             gap: 10px;
         }
 
-        .section-title i {
-            font-size: 1.3rem;
-        }
-
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
-        }
-
-        .form-group {
-            position: relative;
         }
 
         .form-group.full-width {
@@ -213,16 +202,6 @@
             padding-top: 15px;
         }
 
-        .input-wrapper input:focus,
-        .input-wrapper select:focus,
-        .input-wrapper textarea:focus {
-            outline: none;
-            border-color: #00d4ff;
-            background: rgba(0,212,255,0.05);
-            box-shadow: 0 0 20px #00d4ff33;
-        }
-
-        /* ===== CHECKBOX STYLE ===== */
         .checkbox-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -240,18 +219,6 @@
             border: 1px solid #00d4ff22;
         }
 
-        .checkbox-item input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #00d4ff;
-        }
-
-        .checkbox-item label {
-            margin: 0;
-            color: #ddd;
-        }
-
-        /* ===== UPLOAD DOCUMENTS ===== */
         .upload-area {
             border: 2px dashed #00d4ff33;
             border-radius: 15px;
@@ -273,15 +240,6 @@
             margin-bottom: 10px;
         }
 
-        .upload-area p {
-            color: #aaa;
-        }
-
-        .upload-area span {
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
         .file-list {
             margin-top: 20px;
         }
@@ -297,17 +255,6 @@
             border: 1px solid #00d4ff22;
         }
 
-        .file-item i {
-            color: #00d4ff;
-            margin-right: 10px;
-        }
-
-        .file-item .remove-file {
-            color: #ff3366;
-            cursor: pointer;
-        }
-
-        /* ===== BOUTONS ===== */
         .form-actions {
             display: flex;
             justify-content: flex-end;
@@ -360,28 +307,22 @@
             .form-container {
                 padding: 20px;
             }
-            
             .form-grid {
                 grid-template-columns: 1fr;
             }
-            
             .form-group.full-width {
                 grid-column: span 1;
             }
-            
             .doctor-context {
                 flex-direction: column;
                 text-align: center;
             }
-            
             .doctor-info {
                 justify-content: center;
             }
-            
             .form-actions {
                 flex-direction: column;
             }
-            
             .btn-primary, .btn-secondary {
                 width: 100%;
                 justify-content: center;
@@ -391,12 +332,8 @@
 </head>
 <body>
     <div class="form-container">
-        <!-- EN-TÊTE AVEC ID PATIENT -->
         <div class="form-header">
-            <h1>
-                <i class="fa-solid fa-user-plus"></i>
-                Nouveau patient
-            </h1>
+            <h1><i class="fa-solid fa-user-plus"></i> Nouveau patient</h1>
             <div class="patient-id">
                 <span>ID National:</span>
                 <strong id="patientId">DZ-25-03-001</strong>
@@ -407,7 +344,6 @@
             </a>
         </div>
 
-        <!-- CONTEXTE MÉDECIN -->
         <div class="doctor-context">
             <div class="doctor-info">
                 <div class="doctor-avatar">
@@ -424,261 +360,146 @@
         </div>
 
         <form id="ajoutPatientForm" onsubmit="event.preventDefault(); enregistrerPatient();">
-            <!-- SECTION 1 : INFORMATIONS PERSONNELLES -->
+            <!-- Informations personnelles -->
             <div class="form-section">
-                <div class="section-title">
-                    <i class="fa-solid fa-user"></i>
-                    <span>Informations personnelles</span>
-                </div>
-                
+                <div class="section-title"><i class="fa-solid fa-user"></i> Informations personnelles</div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>Nom</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-user"></i>
-                            <input type="text" id="nom" placeholder="Benali" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Prénom</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-user"></i>
-                            <input type="text" id="prenom" placeholder="Sarah" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Date de naissance</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-calendar"></i>
-                            <input type="date" id="dateNaissance" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Genre</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-venus-mars"></i>
-                            <select id="genre">
-                                <option value="F">Féminin</option>
-                                <option value="M">Masculin</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Téléphone</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-phone"></i>
-                            <input type="tel" id="telephone" placeholder="0550 12 34 56">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Email</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-envelope"></i>
-                            <input type="email" id="email" placeholder="patient@email.com">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Adresse complète</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <input type="text" id="adresse" placeholder="Rue, n°, cité, commune">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Wilaya</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <select id="wilaya" required>
-                                <option value="16">Alger</option>
-                                <option value="31">Oran</option>
-                                <option value="25">Constantine</option>
-                                <option value="23">Annaba</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Commune</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-city"></i>
-                            <input type="text" id="commune" placeholder="Commune">
-                        </div>
-                    </div>
+                    <div class="form-group"><label>Nom</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="nom" placeholder="Benali" required></div></div>
+                    <div class="form-group"><label>Prénom</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="prenom" placeholder="Sarah" required></div></div>
+                    <div class="form-group"><label>Date de naissance</label><div class="input-wrapper"><i class="fa-solid fa-calendar"></i><input type="date" id="dateNaissance" required></div></div>
+                    <div class="form-group"><label>Genre</label><div class="input-wrapper"><i class="fa-solid fa-venus-mars"></i><select id="genre"><option value="F">Féminin</option><option value="M">Masculin</option></select></div></div>
+                    <div class="form-group"><label>Téléphone</label><div class="input-wrapper"><i class="fa-solid fa-phone"></i><input type="tel" id="telephone" placeholder="0550 12 34 56"></div></div>
+                    <div class="form-group"><label>Email</label><div class="input-wrapper"><i class="fa-solid fa-envelope"></i><input type="email" id="email" placeholder="patient@email.com"></div></div>
+                    <div class="form-group full-width"><label>Adresse complète</label><div class="input-wrapper"><i class="fa-solid fa-location-dot"></i><input type="text" id="adresse" placeholder="Rue, n°, cité, commune"></div></div>
+                   <div class="form-group">
+    <label>Wilaya</label>
+    <div class="input-wrapper">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <select id="wilaya" required>
+            <option value="">Sélectionnez une wilaya</option>
+            <option value="1">Adrar (01)</option>
+            <option value="2">Chlef (02)</option>
+            <option value="3">Laghouat (03)</option>
+            <option value="4">Oum El Bouaghi (04)</option>
+            <option value="5">Batna (05)</option>
+            <option value="6">Béjaïa (06)</option>
+            <option value="7">Biskra (07)</option>
+            <option value="8">Béchar (08)</option>
+            <option value="9">Blida (09)</option>
+            <option value="10">Bouira (10)</option>
+            <option value="11">Tamanrasset (11)</option>
+            <option value="12">Tébessa (12)</option>
+            <option value="13">Tlemcen (13)</option>
+            <option value="14">Tiaret (14)</option>
+            <option value="15">Tizi Ouzou (15)</option>
+            <option value="16">Alger (16)</option>
+            <option value="17">Djelfa (17)</option>
+            <option value="18">Jijel (18)</option>
+            <option value="19">Sétif (19)</option>
+            <option value="20">Saïda (20)</option>
+            <option value="21">Skikda (21)</option>
+            <option value="22">Sidi Bel Abbès (22)</option>
+            <option value="23">Annaba (23)</option>
+            <option value="24">Guelma (24)</option>
+            <option value="25">Constantine (25)</option>
+            <option value="26">Médéa (26)</option>
+            <option value="27">Mostaganem (27)</option>
+            <option value="28">M'Sila (28)</option>
+            <option value="29">Mascara (29)</option>
+            <option value="30">Ouargla (30)</option>
+            <option value="31">Oran (31)</option>
+            <option value="32">El Bayadh (32)</option>
+            <option value="33">Illizi (33)</option>
+            <option value="34">Bordj Bou Arréridj (34)</option>
+            <option value="35">Boumerdès (35)</option>
+            <option value="36">El Tarf (36)</option>
+            <option value="37">Tindouf (37)</option>
+            <option value="38">Tissemsilt (38)</option>
+            <option value="39">El Oued (39)</option>
+            <option value="40">Khenchela (40)</option>
+            <option value="41">Souk Ahras (41)</option>
+            <option value="42">Tipaza (42)</option>
+            <option value="43">Mila (43)</option>
+            <option value="44">Aïn Defla (44)</option>
+            <option value="45">Naâma (45)</option>
+            <option value="46">Aïn Témouchent (46)</option>
+            <option value="47">Ghardaïa (47)</option>
+            <option value="48">Relizane (48)</option>
+            <option value="49">Timimoun (49)</option>
+            <option value="50">Bordj Badji Mokhtar (50)</option>
+            <option value="51">Ouled Djellal (51)</option>
+            <option value="52">Béni Abbès (52)</option>
+            <option value="53">In Salah (53)</option>
+            <option value="54">In Guezzam (54)</option>
+            <option value="55">Touggourt (55)</option>
+            <option value="56">Djanet (56)</option>
+            <option value="57">El Meghaier (57)</option>
+            <option value="58">El Menia (58)</option>
+        </select>
+    </div>
+</div>
+                    <div class="form-group"><label>Commune</label><div class="input-wrapper"><i class="fa-solid fa-city"></i><input type="text" id="commune" placeholder="Commune"></div></div>
                 </div>
             </div>
 
-            <!-- SECTION 2 : INFORMATIONS MÉDICALES -->
+            <!-- Informations médicales -->
             <div class="form-section">
-                <div class="section-title">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                    <span>Informations médicales</span>
-                </div>
-                
+                <div class="section-title"><i class="fa-solid fa-heart-pulse"></i> Informations médicales</div>
                 <div class="form-grid">
-                    <div class="form-group">
-                        <label>Groupe sanguin</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-droplet"></i>
-                            <select id="groupeSanguin">
-                                <option value="">Non spécifié</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Taille (cm)</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-ruler"></i>
-                            <input type="number" id="taille" placeholder="168">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Poids (kg)</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-weight-scale"></i>
-                            <input type="number" id="poids" placeholder="70">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Médecin traitant</label>
-                        <div class="input-wrapper">
-                            <i class="fa-solid fa-user-md"></i>
-                            <input type="text" id="medecinTraitant" value="Dr. Ahmed Benali" readonly>
-                        </div>
-                    </div>
+                    <div class="form-group"><label>Groupe sanguin</label><div class="input-wrapper"><i class="fa-solid fa-droplet"></i><select id="groupeSanguin"><option value="">Non spécifié</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="O+">O+</option><option value="O-">O-</option></select></div></div>
+                    <div class="form-group"><label>Taille (cm)</label><div class="input-wrapper"><i class="fa-solid fa-ruler"></i><input type="number" id="taille" placeholder="168"></div></div>
+                    <div class="form-group"><label>Poids (kg)</label><div class="input-wrapper"><i class="fa-solid fa-weight-scale"></i><input type="number" id="poids" placeholder="70"></div></div>
+                    <div class="form-group"><label>Médecin traitant</label><div class="input-wrapper"><i class="fa-solid fa-user-md"></i><input type="text" id="medecinTraitant" value="Dr. Ahmed Benali" readonly></div></div>
                 </div>
             </div>
 
-            <!-- SECTION 3 : ANTÉCÉDENTS -->
+            <!-- Antécédents -->
             <div class="form-section">
-                <div class="section-title">
-                    <i class="fa-solid fa-notes-medical"></i>
-                    <span>Antécédents médicaux</span>
-                </div>
-                
+                <div class="section-title"><i class="fa-solid fa-notes-medical"></i> Antécédents médicaux</div>
                 <div class="checkbox-grid">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="diabete">
-                        <label for="diabete">Diabète</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="hypertension">
-                        <label for="hypertension">Hypertension</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="asthme">
-                        <label for="asthme">Asthme</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="cardiaque">
-                        <label for="cardiaque">Cardiaque</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="thyroide">
-                        <label for="thyroide">Thyroïde</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="cancer">
-                        <label for="cancer">Antécédent cancéreux</label>
-                    </div>
+                    <div class="checkbox-item"><input type="checkbox" id="diabete"><label>Diabète</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="hypertension"><label>Hypertension</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="asthme"><label>Asthme</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="cardiaque"><label>Cardiaque</label></div>
                 </div>
-                
-                <div class="form-group full-width" style="margin-top: 20px;">
-                    <label>Autres antécédents</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-pen"></i>
-                        <textarea id="autresAntecedents" placeholder="Informations complémentaires..."></textarea>
-                    </div>
-                </div>
+                <div class="form-group full-width"><label>Autres antécédents</label><div class="input-wrapper"><i class="fa-solid fa-pen"></i><textarea id="autresAntecedents" placeholder="Informations complémentaires..."></textarea></div></div>
             </div>
 
-            <!-- SECTION 4 : ALLERGIES -->
+            <!-- Allergies -->
             <div class="form-section">
-                <div class="section-title">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Allergies</span>
-                </div>
-                
+                <div class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> Allergies</div>
                 <div class="checkbox-grid">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="allergieMedicament">
-                        <label for="allergieMedicament">Médicaments</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="allergieAliment">
-                        <label for="allergieAliment">Aliments</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="allergiePollens">
-                        <label for="allergiePollens">Pollens</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="allergieAnimaux">
-                        <label for="allergieAnimaux">Animaux</label>
-                    </div>
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="allergieLatex">
-                        <label for="allergieLatex">Latex</label>
-                    </div>
+                    <div class="checkbox-item"><input type="checkbox" id="allergieMedicament"><label>Médicaments</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="allergieAliment"><label>Aliments</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="allergiePollens"><label>Pollens</label></div>
+                    <div class="checkbox-item"><input type="checkbox" id="allergieAnimaux"><label>Animaux</label></div>
                 </div>
-                
-                <div class="form-group full-width" style="margin-top: 20px;">
-                    <label>Détail des allergies</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-pen"></i>
-                        <textarea id="detailAllergies" placeholder="Ex: Pénicilline, Arachides, Pollen de bouleau..."></textarea>
-                    </div>
-                </div>
+                <div class="form-group full-width"><label>Détail des allergies</label><div class="input-wrapper"><i class="fa-solid fa-pen"></i><textarea id="detailAllergies" placeholder="Ex: Pénicilline, Arachides..."></textarea></div></div>
             </div>
 
-            <!-- SECTION 5 : UPLOAD DOCUMENTS -->
+            <!-- Upload documents -->
             <div class="form-section">
-                <div class="section-title">
-                    <i class="fa-solid fa-file-upload"></i>
-                    <span>Documents médicaux</span>
-                </div>
-                
+                <div class="section-title"><i class="fa-solid fa-file-upload"></i> Documents médicaux</div>
                 <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                     <i class="fa-solid fa-cloud-upload-alt"></i>
                     <p>Cliquez ou glissez vos fichiers ici</p>
                     <p><span>Analyses</span> • <span>Radios</span> • <span>Ordonnances</span> (PDF)</p>
                 </div>
                 <input type="file" id="fileInput" multiple style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="ajouterFichiers(this)">
-                
-                <div class="file-list" id="fileList">
-                    <!-- Les fichiers ajoutés apparaîtront ici -->
-                </div>
+                <div class="file-list" id="fileList"></div>
             </div>
 
-            <!-- BOUTONS -->
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="window.location.href='medecin-patients.html'">
-                    <i class="fa-solid fa-times"></i> Annuler
-                </button>
-                <button type="submit" class="btn-primary">
-                    <i class="fa-solid fa-save"></i> Enregistrer le patient
-                </button>
+                <button type="button" class="btn-secondary" onclick="window.location.href='medecin-patients.html'">Annuler</button>
+                <button type="submit" class="btn-primary">Enregistrer le patient</button>
             </div>
         </form>
     </div>
 
     <script>
-        // Génération automatique d'un ID national unique
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7'; // ⚠️ Remplace par TA clé
+
         function genererIdNational() {
             const date = new Date();
             const annee = date.getFullYear().toString().slice(-2);
@@ -687,131 +508,78 @@
             return `DZ-${annee}${mois}-${random}`;
         }
 
-        // Afficher l'ID généré
         document.getElementById('patientId').textContent = genererIdNational();
 
-        // Fonction pour copier l'ID
         window.copierId = function() {
             const id = document.getElementById('patientId').textContent;
             navigator.clipboard.writeText(id);
             alert('ID copié dans le presse-papier !');
         };
 
-        // Gestion des fichiers uploadés
         let fichiers = [];
-
         window.ajouterFichiers = function(input) {
             const fileList = document.getElementById('fileList');
-            
             for (let i = 0; i < input.files.length; i++) {
                 const file = input.files[i];
                 fichiers.push(file);
-                
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div>
-                        <i class="fa-solid fa-file-pdf" style="color: #ff3366;"></i>
-                        <span>${file.name}</span>
-                    </div>
-                    <i class="fa-solid fa-times remove-file" onclick="supprimerFichier(this, '${file.name}')"></i>
-                `;
+                fileItem.innerHTML = `<div><i class="fa-solid fa-file-pdf" style="color: #ff3366;"></i><span>${file.name}</span></div><i class="fa-solid fa-times remove-file" onclick="this.parentElement.remove()"></i>`;
                 fileList.appendChild(fileItem);
             }
         };
 
-        window.supprimerFichier = function(element, nomFichier) {
-            element.parentElement.remove();
-            fichiers = fichiers.filter(f => f.name !== nomFichier);
+        window.enregistrerPatient = async function() {
+            const nom = document.getElementById('nom').value.trim();
+            const prenom = document.getElementById('prenom').value.trim();
+            const dateNaiss = document.getElementById('dateNaissance').value;
+            if (!nom || !prenom || !dateNaiss) {
+                alert('❌ Veuillez remplir les champs obligatoires (nom, prénom, date de naissance)');
+                return;
+            }
+
+            const today = new Date();
+            const birth = new Date(dateNaiss);
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+            const patientId = document.getElementById('patientId').textContent;
+            const patientData = {
+                id_national: patientId,
+                nom: nom,
+                prenom: prenom,
+                date_naissance: dateNaiss,
+                age: age,
+                sexe: document.getElementById('genre').value,
+                telephone: document.getElementById('telephone').value,
+                email: document.getElementById('email').value,
+                adresse: document.getElementById('adresse').value,
+                id_wilaya: parseInt(document.getElementById('wilaya').value) || null,
+                groupe_sanguin: document.getElementById('groupeSanguin').value,
+                allergies: document.getElementById('detailAllergies').value,
+                maladies_chroniques: document.getElementById('autresAntecedents').value,
+                antecedents: document.getElementById('autresAntecedents').value,
+                id_medecin_traitant: 1
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/patients`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(patientData)
+                });
+                if (response.ok) {
+                    alert(`✅ Patient ${prenom} ${nom} (${age} ans) ajouté avec succès !\nID: ${patientId}`);
+                    window.location.href = 'medecin-patients.html';
+                } else {
+                    const error = await response.text();
+                    alert('❌ Erreur Supabase : ' + error);
+                }
+            } catch (error) {
+                alert('❌ Erreur réseau : ' + error.message);
+            }
         };
-// Validation et enregistrement
-window.enregistrerPatient = function() {
-    const nom = document.getElementById('nom').value.trim();
-    const prenom = document.getElementById('prenom').value.trim();
-    const dateNaiss = document.getElementById('dateNaissance').value;
-    
-    if (!nom || !prenom || !dateNaiss) {
-        alert('❌ Veuillez remplir les champs obligatoires (nom, prénom, date de naissance)');
-        return;
-    }
-
-    // Calcul de l'âge
-    const today = new Date();
-    const birth = new Date(dateNaiss);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-
-    // Récupération des autres informations
-    const genre = document.getElementById('genre').value;
-    const telephone = document.getElementById('telephone').value;
-    const email = document.getElementById('email').value;
-    const adresse = document.getElementById('adresse').value;
-    const wilaya = document.getElementById('wilaya').value;
-    const commune = document.getElementById('commune').value;
-    const groupeSanguin = document.getElementById('groupeSanguin').value;
-    const taille = document.getElementById('taille').value;
-    const poids = document.getElementById('poids').value;
-    const medecin = document.getElementById('medecinTraitant').value;
-
-    // Récupération des allergies
-    const allergies = [];
-    if (document.getElementById('allergieMedicament').checked) allergies.push('Médicaments');
-    if (document.getElementById('allergieAliment').checked) allergies.push('Aliments');
-    if (document.getElementById('allergiePollens').checked) allergies.push('Pollens');
-    if (document.getElementById('allergieAnimaux').checked) allergies.push('Animaux');
-    if (document.getElementById('allergieLatex').checked) allergies.push('Latex');
-
-    const detailAllergies = document.getElementById('detailAllergies').value;
-
-    // Récupération des antécédents
-    const antecedents = [];
-    if (document.getElementById('diabete').checked) antecedents.push('Diabète');
-    if (document.getElementById('hypertension').checked) antecedents.push('Hypertension');
-    if (document.getElementById('asthme').checked) antecedents.push('Asthme');
-    if (document.getElementById('cardiaque').checked) antecedents.push('Cardiaque');
-    if (document.getElementById('thyroide').checked) antecedents.push('Thyroïde');
-    if (document.getElementById('cancer').checked) antecedents.push('Antécédent cancéreux');
-
-    const autresAntecedents = document.getElementById('autresAntecedents').value;
-
-    const patientId = document.getElementById('patientId').textContent;
-
-    // ✅ Création du dossier médical (simulée)
-    const dossierMedical = {
-        id: patientId,
-        nom: nom,
-        prenom: prenom,
-        age: age,
-        genre: genre,
-        telephone: telephone,
-        email: email,
-        adresse: adresse,
-        wilaya: wilaya,
-        commune: commune,
-        groupeSanguin: groupeSanguin,
-        taille: taille,
-        poids: poids,
-        medecinTraitant: medecin,
-        allergies: allergies,
-        detailAllergies: detailAllergies,
-        antecedents: antecedents,
-        autresAntecedents: autresAntecedents,
-        dateCreation: new Date().toLocaleDateString('fr-FR'),
-        consultations: [],
-        prescriptions: [],
-        analyses: []
-    };
-
-    // ✅ Simuler l'enregistrement du patient et du dossier
-    console.log('✅ Patient créé :', { id: patientId, nom, prenom, age });
-    console.log('📁 Dossier médical généré automatiquement :', dossierMedical);
-
-    alert(`✅ Patient ${prenom} ${nom} (${age} ans) enregistré avec succès !\nID National: ${patientId}\n📁 Dossier médical créé automatiquement.\n${fichiers.length} document(s) uploadé(s).`);
-
-    // Redirection vers la liste des patients
-    window.location.href = 'medecin-patients.html';
-};
     </script>
 </body>
 </html>
