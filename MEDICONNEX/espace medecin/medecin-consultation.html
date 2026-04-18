@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultation médicale - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 30px;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 15, 0.75);
+            z-index: 0;
+        }
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .bg-glow .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.1), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .page-header h1 {
+            color: #00d4ff;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .back-link {
+            color: #94a3b8;
+            text-decoration: none;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 18px;
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+        .back-link:hover { color: #00d4ff; background: rgba(0,212,255,0.1); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; }
+        .card {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .card-title {
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 3px solid #00d4ff;
+            padding-left: 12px;
+        }
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block;
+            color: #00d4ff;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #00d4ff; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .search-patient { display: flex; gap: 12px; margin-bottom: 20px; }
+        .search-patient input { flex: 1; }
+        .search-patient button {
+            padding: 12px 24px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 12px;
+            color: #00d4ff;
+            cursor: pointer;
+        }
+        .search-patient button:hover { background: #00d4ff; color: #0a0c10; }
+
+        .btn-add {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 30px;
+            padding: 8px 20px;
+            color: #00d4ff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-pdf {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 40px;
+            padding: 12px;
+            width: 100%;
+            margin-top: 10px;
+            color: #00d4ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-pdf:hover, .btn-add:hover { background: #00d4ff; color: #0a0c10; }
+
+        .prescriptions-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .prescription-item {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .prescription-med { font-weight: 600; color: #00d4ff; }
+        .delete-prescription { color: #ef4444; cursor: pointer; }
+
+        .patient-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .info-label { color: #00d4ff; font-size: 0.7rem; text-transform: uppercase; }
+        .info-value { color: #fff; font-weight: 500; margin-bottom: 8px; }
+
+        .form-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 25px; }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 40px;
+            padding: 12px 32px;
+            color: #0a0c10;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 40px;
+            padding: 12px 32px;
+            color: #ef4444;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border-left: 4px solid #00ff88;
+            border-radius: 12px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .row-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-stethoscope"></i> Consultation médicale</h1>
+            <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+        </div>
+
+        <div class="grid-2">
+            <!-- Colonne gauche -->
+            <div>
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-search"></i> Patient</div>
+                    <div class="search-patient">
+                        <input type="text" id="searchPatient" placeholder="Nom, prénom ou ID...">
+                        <button onclick="rechercherPatient()">Rechercher</button>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="btn-add" onclick="nouveauPatient()"><i class="fas fa-plus"></i> Nouveau patient</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-user"></i> Informations patient</div>
+                    <div id="patientDetails">Aucun patient sélectionné</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-file-alt"></i> Documents prêts</div>
+                    <div style="display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;">
+                        <button class="btn-add" onclick="genererDocumentPDF('analyse')"><i class="fas fa-flask"></i> Analyses</button>
+                        <button class="btn-add" onclick="genererDocumentPDF('radiographie')"><i class="fas fa-x-ray"></i> Radiographie</button>
+                        <button class="btn-add" onclick="genererDocumentPDF('certificat')"><i class="fas fa-file-medical"></i> Certificat</button>
+                        <button class="btn-add" onclick="genererDocumentPDF('compte_rendu')"><i class="fas fa-notes-medical"></i> Compte rendu</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite -->
+            <div>
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-notes-medical"></i> Détails de la consultation</div>
+                    <div class="row-2">
+                        <div class="form-group"><label>Date</label><input type="date" id="dateConsult"></div>
+                        <div class="form-group"><label>Motif</label><input type="text" id="motif" placeholder="Consultation de suivi"></div>
+                    </div>
+                    <div class="form-group"><label>Symptômes</label><textarea id="symptomes" rows="2"></textarea></div>
+                    <div class="row-2">
+                        <div class="form-group"><label>Température</label><input type="text" id="temperature" placeholder="36.5"></div>
+                        <div class="form-group"><label>Tension</label><input type="text" id="tension" placeholder="120/80"></div>
+                    </div>
+                    <div class="form-group"><label>Diagnostic *</label><textarea id="diagnostic" rows="2" required></textarea></div>
+                    <div class="form-group"><label>Notes</label><textarea id="notes" rows="2"></textarea></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-prescription-bottle"></i> Prescriptions</div>
+                    <div class="row-2">
+                        <div class="form-group"><input type="text" id="medicament" placeholder="Médicament"></div>
+                        <div class="form-group"><input type="text" id="dosage" placeholder="Dosage"></div>
+                        <div class="form-group"><input type="text" id="frequence" placeholder="Fréquence"></div>
+                        <div class="form-group"><input type="text" id="duree" placeholder="Durée"></div>
+                    </div>
+                    <button class="btn-add" onclick="ajouterPrescriptionTemp()" style="width:100%; justify-content:center;"><i class="fas fa-plus"></i> Ajouter à l'ordonnance</button>
+                    <div class="prescriptions-list" id="prescriptionsList"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-prescription"></i> Ordonnance</div>
+                    <div id="medicamentsList"></div>
+                    <button class="btn-pdf" onclick="genererOrdonnancePDF()"><i class="fas fa-file-pdf"></i> Générer PDF</button>
+                    <button class="btn-pdf" onclick="imprimerOrdonnance()" style="background: rgba(0,255,136,0.1); border-color:#00ff88; color:#00ff88;"><i class="fas fa-print"></i> Imprimer</button>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="window.location.href='medecin-dashboard.html'">Annuler</button>
+                    <button class="btn-primary" onclick="enregistrerConsultation()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+        const medecinId = medecin.id_medecin;
+        if (!medecinId) window.location.href = 'medecin-login.html';
+
+        function showToast(msg, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        let patientActuel = null;
+        let prescriptionsTemporaires = [];
+
+        document.getElementById('dateConsult').value = new Date().toISOString().slice(0,10);
+
+        function afficherPrescriptionsTemp() {
+            const container = document.getElementById('prescriptionsList');
+            if (prescriptionsTemporaires.length === 0) { container.innerHTML = '<div style="text-align:center; padding:15px; color:#aaa;">Aucune prescription</div>'; return; }
+            container.innerHTML = prescriptionsTemporaires.map((p, i) => `
+                <div class="prescription-item">
+                    <div><span class="prescription-med">💊 ${p.medicament}</span><br><span style="font-size:12px;">${p.dosage} | ${p.frequence} | ${p.duree}</span></div>
+                    <i class="fas fa-trash delete-prescription" onclick="supprimerPrescriptionTemp(${i})"></i>
+                </div>
+            `).join('');
+            document.getElementById('medicamentsList').innerHTML = prescriptionsTemporaires.map(p => `
+                <div style="background:rgba(0,212,255,0.05); padding:10px; margin-bottom:8px; border-radius:10px;">
+                    <strong>${p.medicament}</strong> - ${p.dosage} - ${p.frequence} - ${p.duree}
+                </div>
+            `).join('');
+        }
+
+        function ajouterPrescriptionTemp() {
+            const medicament = document.getElementById('medicament').value.trim();
+            if (!medicament) { showToast('Entrez un médicament', 'error'); return; }
+            prescriptionsTemporaires.push({
+                medicament, dosage: document.getElementById('dosage').value.trim() || 'NS',
+                frequence: document.getElementById('frequence').value.trim() || 'NS',
+                duree: document.getElementById('duree').value.trim() || 'NS'
+            });
+            afficherPrescriptionsTemp();
+            document.getElementById('medicament').value = ''; document.getElementById('dosage').value = ''; document.getElementById('frequence').value = ''; document.getElementById('duree').value = '';
+            showToast('Prescription ajoutée', 'success');
+        }
+
+        function supprimerPrescriptionTemp(index) { prescriptionsTemporaires.splice(index, 1); afficherPrescriptionsTemp(); }
+
+        async function rechercherPatient() {
+            const search = document.getElementById('searchPatient').value.trim();
+            if (!search) return showToast('Entrez un nom ou ID', 'info');
+            const url = `${SUPABASE_URL}/rest/v1/patients?select=*&or=(nom.ilike.%25${search}%25,prenom.ilike.%25${search}%25,id_national.ilike.%25${search}%25)`;
+            const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+            const patients = await res.json();
+            if (!patients.length) return showToast('Aucun patient', 'error');
+            patientActuel = patients[0];
+            document.getElementById('patientDetails').innerHTML = `
+                <div class="patient-info-grid">
+                    <div><div class="info-label">ID</div><div class="info-value">${patientActuel.id_national || patientActuel.id_patient}</div></div>
+                    <div><div class="info-label">Nom</div><div class="info-value">${patientActuel.prenom} ${patientActuel.nom}</div></div>
+                    <div><div class="info-label">Âge</div><div class="info-value">${patientActuel.age || '-'} ans</div></div>
+                    <div><div class="info-label">Tél</div><div class="info-value">${patientActuel.telephone || '-'}</div></div>
+                </div>
+            `;
+            showToast(`Patient ${patientActuel.prenom} ${patientActuel.nom} sélectionné`, 'success');
+        }
+
+        function nouveauPatient() { window.location.href = 'medecin-ajout-patient.html'; }
+
+        async function enregistrerPrescriptions(patientId) {
+            if (prescriptionsTemporaires.length === 0) return 0;
+            let saved = 0;
+            for (const p of prescriptionsTemporaires) {
+                const { error } = await supabaseClient.from('prescriptions').insert({
+                    id_patient: patientId, id_medecin: medecinId,
+                    medicament: p.medicament, dosage: p.dosage, frequence: p.frequence, duree: p.duree,
+                    date_prescription: new Date().toISOString()
+                });
+                if (!error) saved++;
+            }
+            return saved;
+        }
+
+        async function genererOrdonnancePDF() {
+            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
+            if (prescriptionsTemporaires.length === 0) return showToast('Ajoutez des médicaments', 'error');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const date = new Date().toLocaleDateString();
+            doc.setFontSize(22);
+            doc.setTextColor(0,0,128);
+            doc.text('ORDONNANCE MÉDICALE', 20, 20);
+            doc.setFontSize(12);
+            doc.setTextColor(0,0,0);
+            doc.text(`Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`, 20, 30);
+            doc.text(`Patient: ${patientActuel.prenom} ${patientActuel.nom}`, 20, 50);
+            doc.text(`Date: ${date}`, 20, 60);
+            let y = 80;
+            prescriptionsTemporaires.forEach((p, i) => {
+                doc.text(`${i+1}. ${p.medicament} - ${p.dosage} - ${p.frequence} - ${p.duree}`, 20, y);
+                y += 10;
+            });
+            doc.text('_________________________', 20, y+10);
+            doc.text('Signature', 20, y+18);
+            doc.save(`ordonnance_${patientActuel.prenom}_${patientActuel.nom}.pdf`);
+            showToast('PDF généré', 'success');
+        }
+
+        function imprimerOrdonnance() {
+            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
+            if (prescriptionsTemporaires.length === 0) return showToast('Ajoutez des médicaments', 'error');
+            const win = window.open('', '_blank');
+            let html = `<html><head><title>Ordonnance</title></head><body style="font-family:Arial; padding:40px;"><h1>ORDONNANCE MÉDICALE</h1>`;
+            html += `<p><strong>Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}</strong><br>Patient: ${patientActuel.prenom} ${patientActuel.nom}<br>Date: ${new Date().toLocaleDateString()}</p>`;
+            html += `<h3>Prescriptions:</h3><ul>`;
+            prescriptionsTemporaires.forEach(p => { html += `<li><strong>${p.medicament}</strong> - ${p.dosage} - ${p.frequence} - ${p.duree}</li>`; });
+            html += `</ul><p>_________________________<br>Signature</p></body></html>`;
+            win.document.write(html);
+            win.document.close();
+            win.print();
+        }
+
+        async function genererDocumentPDF(type) {
+            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const date = new Date().toLocaleDateString();
+            const patient = `${patientActuel.prenom} ${patientActuel.nom}`;
+            let titre = '', contenu = '';
+            if (type === 'analyse') { titre = "DEMANDE D'ANALYSE"; contenu = `Patient: ${patient}\nDate: ${date}\nAnalyses: Bilan sanguin, Glycémie, Cholestérol`; }
+            if (type === 'radiographie') { titre = "DEMANDE DE RADIOGRAPHIE"; contenu = `Patient: ${patient}\nDate: ${date}\nExamen: Radiographie thoracique`; }
+            if (type === 'certificat') { titre = "CERTIFICAT MÉDICAL"; contenu = `Je certifie avoir examiné ${patient} le ${date}.`; }
+            if (type === 'compte_rendu') { titre = "COMPTE RENDU"; contenu = `Patient: ${patient}\nDate: ${date}\nDiagnostic: ${document.getElementById('diagnostic').value || '--'}`; }
+            doc.setFontSize(18);
+            doc.text(titre, 20, 20);
+            doc.setFontSize(12);
+            doc.text(contenu, 20, 40);
+            doc.save(`${type}_${patient}.pdf`);
+            showToast('Document généré', 'success');
+        }
+
+        async function enregistrerConsultation() {
+            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
+            const diagnostic = document.getElementById('diagnostic').value;
+            if (!diagnostic) return showToast('Diagnostic requis', 'error');
+            const consultationData = {
+                id_patient: patientActuel.id_patient, id_medecin: medecinId,
+                date_consultation: document.getElementById('dateConsult').value,
+                motif: document.getElementById('motif').value || '',
+                symptomes: document.getElementById('symptomes').value || '',
+                diagnostic: diagnostic, traitement: document.getElementById('notes').value || ''
+            };
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/consultations`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(consultationData)
+            });
+            if (!response.ok) return showToast('Erreur enregistrement', 'error');
+            const saved = await enregistrerPrescriptions(patientActuel.id_patient);
+            showToast(`✅ Consultation enregistrée + ${saved} prescription(s)`, 'success');
+            setTimeout(() => window.location.href = 'medecin-dashboard.html', 1500);
+        }
+    </script>
+</body>
+</html>

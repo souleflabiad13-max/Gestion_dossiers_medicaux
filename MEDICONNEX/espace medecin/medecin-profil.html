@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon profil - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 15, 0.75);
+            z-index: 0;
+        }
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .bg-glow .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.1), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            padding: 35px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        h1 { color: #00d4ff; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 1.6rem; }
+
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,212,255,0.15); align-items: center; flex-wrap: wrap; gap: 10px; }
+        .label { color: #94a3b8; font-weight: 500; min-width: 140px; }
+        .value { color: #fff; flex: 1; }
+        .edit-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(0,212,255,0.3); border-radius: 10px; padding: 8px 12px; color: #fff; width: 200px; display: none; }
+        .edit-input:focus { outline: none; border-color: #00d4ff; }
+
+        .btn { background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 40px; padding: 12px 25px; color: #00d4ff; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #00d4ff; color: #0a0c10; transform: translateY(-2px); }
+        .btn-danger { border-color: #ef4444; color: #ef4444; }
+        .btn-danger:hover { background: #ef4444; color: #fff; }
+
+        .back-link { color: #94a3b8; text-decoration: none; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .back-link:hover { color: #00d4ff; }
+
+        .password-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,212,255,0.15); }
+        .password-section h3 { color: #00d4ff; margin-bottom: 15px; font-size: 1rem; }
+
+        .edit-mode .value { display: none; }
+        .edit-mode .edit-input { display: inline-block; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; background: rgba(15,23,42,0.95); border-left: 4px solid #00ff88; border-radius: 12px; z-index: 1100; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 600px) { .card { padding: 25px; } .info-row { flex-direction: column; align-items: flex-start; } .edit-input { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+
+    <div class="card" id="profilCard">
+        <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+        <h1><i class="fas fa-user-md"></i> Mon profil</h1>
+
+        <div id="profilInfo">
+            <div class="info-row"><span class="label">Code médecin</span><span class="value" id="code"></span><input class="edit-input" id="codeInput" readonly></div>
+            <div class="info-row"><span class="label">Nom</span><span class="value" id="nom"></span><input class="edit-input" id="nomInput"></div>
+            <div class="info-row"><span class="label">Prénom</span><span class="value" id="prenom"></span><input class="edit-input" id="prenomInput"></div>
+            <div class="info-row"><span class="label">Email</span><span class="value" id="email"></span><input class="edit-input" id="emailInput" type="email"></div>
+            <div class="info-row"><span class="label">Téléphone</span><span class="value" id="tel"></span><input class="edit-input" id="telInput"></div>
+            <div class="info-row"><span class="label">Spécialité</span><span class="value" id="specialite"></span><input class="edit-input" id="specialiteInput"></div>
+            <div class="info-row"><span class="label">Hôpital</span><span class="value" id="hopital"></span><input class="edit-input" id="hopitalInput"></div>
+            <div class="info-row"><span class="label">Wilaya</span><span class="value" id="wilaya"></span><input class="edit-input" id="wilayaInput"></div>
+        </div>
+
+        <div class="password-section">
+            <h3><i class="fas fa-lock"></i> Changer le mot de passe</h3>
+            <div class="info-row"><span class="label">Ancien mot de passe</span><input type="password" id="oldPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Ancien mot de passe"></div>
+            <div class="info-row"><span class="label">Nouveau mot de passe</span><input type="password" id="newPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Nouveau mot de passe"></div>
+            <div class="info-row"><span class="label">Confirmer</span><input type="password" id="confirmPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Confirmer"></div>
+            <button id="changePasswordBtn" class="btn btn-danger"><i class="fas fa-key"></i> Changer le mot de passe</button>
+        </div>
+
+        <button id="editBtn" class="btn"><i class="fas fa-pen"></i> Modifier les informations</button>
+        <button id="saveBtn" class="btn" style="display:none;"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function showToast(msg, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function hashPassword(pwd) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pwd);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        async function verifyPassword(pwd, hashed) { return await hashPassword(pwd) === hashed; }
+
+        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+        const medecinId = medecin.id_medecin;
+        if (!medecinId) window.location.href = 'medecin-login.html';
+
+        async function chargerProfil() {
+            const { data, error } = await supabaseClient.from('medecins').select('*').eq('id_medecin', medecinId).single();
+            if (error) return;
+            const m = data;
+            document.getElementById('code').innerText = m.code_medecin;
+            document.getElementById('codeInput').value = m.code_medecin;
+            document.getElementById('nom').innerText = m.nom;
+            document.getElementById('nomInput').value = m.nom;
+            document.getElementById('prenom').innerText = m.prenom;
+            document.getElementById('prenomInput').value = m.prenom;
+            document.getElementById('email').innerText = m.email;
+            document.getElementById('emailInput').value = m.email;
+            document.getElementById('tel').innerText = m.telephone;
+            document.getElementById('telInput').value = m.telephone;
+            document.getElementById('specialite').innerText = m.specialite;
+            document.getElementById('specialiteInput').value = m.specialite;
+            document.getElementById('hopital').innerText = m.hopital;
+            document.getElementById('hopitalInput').value = m.hopital;
+            document.getElementById('wilaya').innerText = m.wilaya;
+            document.getElementById('wilayaInput').value = m.wilaya;
+        }
+
+        document.getElementById('editBtn').onclick = () => {
+            document.getElementById('profilCard').classList.add('edit-mode');
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'block';
+        };
+        document.getElementById('saveBtn').onclick = async () => {
+            const updated = {
+                nom: document.getElementById('nomInput').value,
+                prenom: document.getElementById('prenomInput').value,
+                email: document.getElementById('emailInput').value,
+                telephone: document.getElementById('telInput').value,
+                specialite: document.getElementById('specialiteInput').value,
+                hopital: document.getElementById('hopitalInput').value,
+                wilaya: document.getElementById('wilayaInput').value
+            };
+            const { error } = await supabaseClient.from('medecins').update(updated).eq('id_medecin', medecinId);
+            if (error) showToast('❌ Erreur', 'error');
+            else { showToast('✅ Profil mis à jour', 'success'); localStorage.setItem('medecin', JSON.stringify({ ...medecin, ...updated })); setTimeout(() => location.reload(), 1000); }
+        };
+
+        document.getElementById('changePasswordBtn').onclick = async () => {
+            const oldPass = document.getElementById('oldPassword').value, newPass = document.getElementById('newPassword').value, confirmPass = document.getElementById('confirmPassword').value;
+            if (!oldPass || !newPass || !confirmPass) return showToast('❌ Tous les champs requis', 'error');
+            if (newPass !== confirmPass) return showToast('❌ Les mots de passe ne correspondent pas', 'error');
+            if (newPass.length < 4) return showToast('❌ Minimum 4 caractères', 'error');
+            const { data: medData } = await supabaseClient.from('medecins').select('mot_de_passe').eq('id_medecin', medecinId).single();
+            if (!await verifyPassword(oldPass, medData.mot_de_passe)) return showToast('❌ Ancien mot de passe incorrect', 'error');
+            const hashedNew = await hashPassword(newPass);
+            const { error } = await supabaseClient.from('medecins').update({ mot_de_passe: hashedNew }).eq('id_medecin', medecinId);
+            if (error) showToast('❌ Erreur', 'error');
+            else showToast('✅ Mot de passe modifié', 'success');
+        };
+        chargerProfil();
+    </script>
+</body>
+</html>

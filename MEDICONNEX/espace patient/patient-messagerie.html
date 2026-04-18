@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Messagerie | MediConnex</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=1600');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #ffffff;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 15, 0.75);
+      z-index: 0;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .bg-glow .glow-1 {
+      position: absolute;
+      top: 20%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.15), transparent);
+      border-radius: 50%;
+      animation: floatGlow 20s infinite ease-in-out;
+    }
+    .bg-glow .glow-2 {
+      position: absolute;
+      bottom: 10%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+      border-radius: 50%;
+      animation: floatGlow 25s infinite ease-in-out reverse;
+    }
+    @keyframes floatGlow {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(50px, -50px) scale(1.1); }
+      66% { transform: translate(-30px, 40px) scale(0.9); }
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 280px;
+      height: 100%;
+      background: rgba(10, 12, 16, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 30px 20px;
+      border-right: 1px solid rgba(0, 255, 136, 0.2);
+      z-index: 100;
+      transition: all 0.3s;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .sidebar-header i { font-size: 28px; color: #00ff88; filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5)); }
+    .sidebar-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00ff88, #33ff9e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .sidebar nav ul { list-style: none; }
+    .sidebar nav ul li { margin-bottom: 6px; }
+    .sidebar nav ul li a {
+      color: #8a8f9e;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .sidebar nav ul li a i { width: 22px; font-size: 18px; }
+    .sidebar nav ul li a:hover {
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      transform: translateX(5px);
+    }
+    .sidebar nav ul li a.active {
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
+      color: #00ff88;
+      border-left: 3px solid #00ff88;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .sidebar-footer a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #ef4444;
+      text-decoration: none;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: 0.3s;
+    }
+    .sidebar-footer a:hover {
+      background: rgba(239, 68, 68, 0.1);
+      transform: translateX(5px);
+    }
+
+    .main-content {
+      position: relative;
+      z-index: 2;
+      margin-left: 280px;
+      padding: 25px 35px;
+      min-height: 100vh;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .greeting h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff, #00ff88);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+    @keyframes titleGlow {
+      0%, 100% { text-shadow: 0 0 5px rgba(0, 255, 136, 0.3); }
+      50% { text-shadow: 0 0 15px rgba(0, 255, 136, 0.6); }
+    }
+    .greeting p { color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 5px; }
+
+    .btn-back {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      color: #00ff88;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-back:hover {
+      background: #00ff88;
+      color: #0a0c10;
+      transform: translateY(-2px);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .tab-btn.active {
+      background: #00ff88;
+      color: #0a0c10;
+      border-color: #00ff88;
+    }
+
+    .section-card {
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 25px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .section-header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+    }
+    .section-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #00ff88;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #00ff88;
+      font-size: 13px;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 16px;
+      color: white;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none;
+      border-color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #00ff88, #00cc6a);
+      color: #0a0c10;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+    }
+    .btn-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+    }
+
+    .message-item {
+      background: rgba(0, 255, 136, 0.05);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      transition: 0.3s;
+    }
+    .message-item:hover {
+      border-color: #00ff88;
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .message-sujet {
+      color: #00ff88;
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .message-date {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
+    .message-contenu {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .message-reponse {
+      background: rgba(0, 255, 136, 0.05);
+      border-left: 3px solid #00ff88;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 12px;
+    }
+    .message-reponse p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .success-message {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid #00ff88;
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 20px;
+      text-align: center;
+      color: #00ff88;
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 12px 20px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      border-left: 4px solid #00ff88;
+      border-radius: 12px;
+      z-index: 1100;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 101;
+      background: #00ff88;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      color: #0a0c10;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { left: -280px; }
+      .sidebar.open { left: 0; }
+      .main-content { margin-left: 0; padding: 20px; }
+      .menu-toggle { display: block; }
+      .tabs { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+  <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header"><i class="fas fa-heartbeat"></i><h2>MediConnex</h2></div>
+    <nav>
+      <ul>
+        <li><a href="patient-dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+        <li><a href="patient-rendezvous.html"><i class="fas fa-calendar-alt"></i> Mes rendez-vous</a></li>
+        <li><a href="patient-dossier.html"><i class="fas fa-folder-medical"></i> Dossier médical</a></li>
+        <li><a href="patient-consultations.html"><i class="fas fa-history"></i> Consultations</a></li>
+        <li><a href="patient-profil.html"><i class="fas fa-user"></i> Mon profil</a></li>
+        <li><a href="patient-messagerie.html" class="active"><i class="fas fa-comments"></i> Messagerie</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="greeting"><h1>Messagerie</h1><p>Contactez votre médecin</p></div>
+      <button class="btn-back" onclick="window.location.href='patient-dashboard.html'"><i class="fas fa-arrow-left"></i> Retour</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('nouveau')">📝 Nouveau message</button>
+      <button class="tab-btn" onclick="showTab('envoyes')">📤 Messages envoyés</button>
+      <button class="tab-btn" onclick="showTab('reponses')">💬 Réponses reçues</button>
+    </div>
+
+    <div id="tabNouveau" class="section-card">
+      <div class="section-header"><h3><i class="fas fa-envelope"></i> Nouveau message</h3></div>
+      <form id="messageForm">
+        <div class="form-group">
+          <label><i class="fas fa-user-md"></i> Destinataire</label>
+          <select id="medecinId" required>
+            <option value="">Chargement des médecins...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-tag"></i> Sujet</label>
+          <input type="text" id="sujet" placeholder="Ex: Question sur mon traitement" required>
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-comment"></i> Message</label>
+          <textarea id="message" rows="5" placeholder="Décrivez votre demande..." required></textarea>
+        </div>
+        <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i> Envoyer le message</button>
+        <div id="successMessage" class="success-message"></div>
+      </form>
+    </div>
+
+    <div id="tabEnvoyes" class="section-card" style="display: none;">
+      <div class="section-header"><h3><i class="fas fa-paper-plane"></i> Messages envoyés</h3></div>
+      <div id="messagesEnvoyesList">Chargement...</div>
+    </div>
+
+    <div id="tabReponses" class="section-card" style="display: none;">
+      <div class="section-header"><h3><i class="fas fa-reply-all"></i> Réponses reçues</h3></div>
+      <div id="reponsesRecuesList">Chargement...</div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+
+    const patientData = localStorage.getItem('patient');
+    if (!patientData) window.location.href = 'patient-login.html';
+    const patient = JSON.parse(patientData);
+    const currentPatientId = patient.id_patient;
+
+    let medecinsList = [];
+
+    function showToast(message, type) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00ff88"></i> ${message}`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function logout() { localStorage.removeItem('patient'); window.location.href = 'patient-login.html'; }
+
+    function showTab(tabName) {
+      document.getElementById('tabNouveau').style.display = 'none';
+      document.getElementById('tabEnvoyes').style.display = 'none';
+      document.getElementById('tabReponses').style.display = 'none';
+      
+      if (tabName === 'nouveau') {
+        document.getElementById('tabNouveau').style.display = 'block';
+      } else if (tabName === 'envoyes') {
+        document.getElementById('tabEnvoyes').style.display = 'block';
+        loadSentMessages();
+      } else if (tabName === 'reponses') {
+        document.getElementById('tabReponses').style.display = 'block';
+        loadReceivedReplies();
+      }
+      
+      const btns = document.querySelectorAll('.tab-btn');
+      btns.forEach(btn => btn.classList.remove('active'));
+      if (tabName === 'nouveau') btns[0].classList.add('active');
+      else if (tabName === 'envoyes') btns[1].classList.add('active');
+      else if (tabName === 'reponses') btns[2].classList.add('active');
+    }
+
+    async function loadMedecins() {
+      const select = document.getElementById('medecinId');
+      select.innerHTML = '<option value="">Chargement...</option>';
+      
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/medecins?select=id_medecin,nom,prenom`;
+        const response = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('Erreur chargement');
+        
+        medecinsList = await response.json();
+        
+        if (medecinsList && medecinsList.length > 0) {
+          select.innerHTML = '<option value="">-- Sélectionnez un médecin --</option>';
+          medecinsList.forEach(m => {
+            select.innerHTML += `<option value="${m.id_medecin}">Dr. ${m.prenom || ''} ${m.nom || ''}</option>`;
+          });
+        } else {
+          select.innerHTML = '<option value="">Aucun médecin disponible</option>';
+        }
+      } catch (err) {
+        console.error(err);
+        select.innerHTML = '<option value="">Erreur de chargement</option>';
+        showToast('Erreur de chargement des médecins', 'error');
+      }
+    }
+
+    function getMedecinNom(idMedecin) {
+      const medecin = medecinsList.find(m => m.id_medecin === idMedecin);
+      return medecin ? `Dr. ${medecin.prenom || ''} ${medecin.nom || ''}` : 'Médecin';
+    }
+
+    async function loadSentMessages() {
+      const container = document.getElementById('messagesEnvoyesList');
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+      
+      try {
+        // Requête sans la relation medecins
+        const url = `${SUPABASE_URL}/rest/v1/messages?select=*&id_patient=eq.${currentPatientId}&order=date_envoi.desc`;
+        const response = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('Erreur chargement');
+        
+        const messages = await response.json();
+        
+        if (!messages || messages.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope-open-text"></i><p>Aucun message envoyé</p></div>';
+          return;
+        }
+        
+        container.innerHTML = messages.map(msg => {
+          const medecinNom = getMedecinNom(msg.id_medecin);
+          const date = new Date(msg.date_envoi).toLocaleString('fr-FR');
+          const hasReponse = msg.reponse && msg.reponse.trim() !== '';
+          
+          return `
+            <div class="message-item">
+              <div class="message-header">
+                <span class="message-sujet">${escapeHtml(msg.sujet || 'Sans sujet')}</span>
+                <span class="message-date">${date}</span>
+              </div>
+              <div class="message-contenu">${escapeHtml(msg.contenu)}</div>
+              <div style="margin-top: 8px;">
+                <span style="background:rgba(0,255,136,0.15); color:#00ff88; padding:4px 12px; border-radius:20px; font-size:12px;">👨‍⚕️ ${medecinNom}</span>
+              </div>
+              ${hasReponse ? `
+                <div class="message-reponse">
+                  <strong style="color: #00ff88;"><i class="fas fa-reply"></i> Réponse du médecin :</strong>
+                  <p>${escapeHtml(msg.reponse)}</p>
+                  <small style="color: rgba(255,255,255,0.5);">${new Date(msg.date_reponse).toLocaleString('fr-FR')}</small>
+                </div>
+              ` : `
+                <div style="margin-top: 10px;">
+                  <span style="color: #f59e0b; font-size: 12px;"><i class="fas fa-clock"></i> En attente de réponse...</span>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
+      }
+    }
+
+    async function loadReceivedReplies() {
+      const container = document.getElementById('reponsesRecuesList');
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+      
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/messages?select=*&id_patient=eq.${currentPatientId}&not.reponse.is.null&order=date_reponse.desc`;
+        const response = await fetch(url, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('Erreur chargement');
+        
+        const messages = await response.json();
+        
+        if (!messages || messages.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>Aucune réponse reçue</p></div>';
+          return;
+        }
+        
+        container.innerHTML = messages.map(msg => {
+          const medecinNom = getMedecinNom(msg.id_medecin);
+          const dateEnvoi = new Date(msg.date_envoi).toLocaleString('fr-FR');
+          const dateReponse = new Date(msg.date_reponse).toLocaleString('fr-FR');
+          
+          return `
+            <div class="message-item">
+              <div class="message-header">
+                <span class="message-sujet">${escapeHtml(msg.sujet || 'Sans sujet')}</span>
+                <span class="message-date">Envoyé: ${dateEnvoi}</span>
+              </div>
+              <div class="message-contenu" style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 10px;">
+                <strong style="color: #aaa;">Votre message :</strong>
+                <p style="margin-top: 5px;">${escapeHtml(msg.contenu)}</p>
+              </div>
+              <div class="message-reponse" style="margin-top: 15px;">
+                <strong style="color: #00ff88;"><i class="fas fa-reply-all"></i> Réponse (${dateReponse}) :</strong>
+                <p style="margin-top: 8px;">${escapeHtml(msg.reponse)}</p>
+                <div style="margin-top: 8px;">
+                  <span style="background:rgba(0,255,136,0.15); color:#00ff88; padding:4px 12px; border-radius:20px; font-size:12px;">👨‍⚕️ ${medecinNom}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById('messageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const medecinId = document.getElementById('medecinId').value;
+      const sujet = document.getElementById('sujet').value;
+      const message = document.getElementById('message').value;
+      const successDiv = document.getElementById('successMessage');
+      
+      if (!medecinId || !sujet || !message) {
+        showToast('Veuillez remplir tous les champs', 'error');
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/messages`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id_patient: currentPatientId,
+            id_medecin: parseInt(medecinId),
+            sujet: sujet,
+            contenu: message,
+            date_envoi: new Date().toISOString(),
+            expediteur: 'patient',
+            lu: false
+          })
+        });
+        
+        if (!response.ok) {
+          const error = await response.text();
+          throw new Error(error);
+        }
+        
+        successDiv.style.display = 'block';
+        successDiv.innerHTML = '<i class="fas fa-check-circle"></i> Message envoyé avec succès ! Votre médecin vous répondra dans les plus brefs délais.';
+        document.getElementById('messageForm').reset();
+        setTimeout(() => { successDiv.style.display = 'none'; }, 5000);
+        showToast('✅ Message envoyé', 'success');
+        
+        if (document.getElementById('tabEnvoyes').style.display !== 'none') {
+          loadSentMessages();
+        }
+        
+      } catch (error) {
+        console.error(error);
+        showToast('❌ Erreur: ' + error.message, 'error');
+      }
+    });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMedecins();
+    });
+    
+    document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+    
+    window.showTab = showTab;
+    window.logout = logout;
+  </script>
+</body>
+</html>

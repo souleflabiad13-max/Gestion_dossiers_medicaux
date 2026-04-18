@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dossier patient - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 30px;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 15, 0.75);
+            z-index: 0;
+        }
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .bg-glow .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.1), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        .dossier-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1300px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            padding: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        h1 { color: #00d4ff; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; font-size: 1.6rem; }
+        h2 { color: #00d4ff; margin: 20px 0 10px; font-size: 1.2rem; border-left: 4px solid #00d4ff; padding-left: 12px; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; margin-bottom: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; margin-bottom: 20px; }
+
+        .info-card { background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.2); border-radius: 20px; padding: 20px; transition: 0.3s; }
+        .info-card:hover { border-color: #00d4ff; transform: translateY(-3px); }
+
+        .info-item { padding: 8px 0; border-bottom: 1px solid rgba(0,212,255,0.15); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .label { color: #94a3b8; font-weight: 500; }
+        .value { color: #fff; font-weight: 500; }
+
+        .alerte-rouge { background: rgba(239,68,68,0.15); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .alerte-orange { background: rgba(245,158,11,0.15); border-left: 4px solid #f59e0b; padding: 12px 15px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+
+        .badge { background: rgba(0,212,255,0.15); border-radius: 20px; padding: 5px 12px; display: inline-block; font-size: 0.7rem; }
+        .badge-danger { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444; }
+        .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid #f59e0b; }
+
+        .timeline { position: relative; padding-left: 30px; }
+        .timeline::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; width: 2px; background: rgba(0,212,255,0.3); }
+        .timeline-item { position: relative; padding: 15px 0 15px 25px; margin-bottom: 10px; background: rgba(0,212,255,0.03); border-radius: 12px; }
+        .timeline-item:hover { background: rgba(0,212,255,0.08); transform: translateX(5px); }
+        .timeline-dot { position: absolute; left: -20px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: #00d4ff; border: 2px solid #1a1a2e; }
+        .timeline-date { font-size: 0.7rem; color: #00d4ff; margin-bottom: 5px; }
+        .timeline-title { font-weight: 600; margin-bottom: 5px; }
+
+        .table-wrapper { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid rgba(0,212,255,0.15); }
+        th { color: #00d4ff; font-size: 0.8rem; background: rgba(0,212,255,0.05); }
+        td { font-size: 0.85rem; color: rgba(255,255,255,0.9); }
+
+        .btn { background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 40px; padding: 10px 20px; color: #00d4ff; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .btn:hover { background: #00d4ff; color: #0a0c10; transform: translateY(-2px); }
+        .btn-red { border-color: #ef4444; color: #ef4444; }
+        .btn-red:hover { background: #ef4444; color: #fff; }
+
+        .flex-right { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .back-link { color: #94a3b8; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; transition: 0.3s; }
+        .back-link:hover { color: #00d4ff; }
+
+        .stat-card-mini { text-align: center; padding: 15px; background: rgba(0,212,255,0.05); border-radius: 15px; }
+        .stat-number-mini { font-size: 1.8rem; font-weight: 700; color: #00d4ff; }
+        .stat-label-mini { font-size: 0.7rem; color: #94a3b8; }
+
+        .empty-state { text-align: center; padding: 30px; color: #94a3b8; background: rgba(0,212,255,0.02); border-radius: 15px; }
+
+        .toast { position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; background: rgba(15,23,42,0.95); border-left: 4px solid #00ff88; border-radius: 12px; z-index: 1100; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 900px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } .flex-right { flex-direction: column; } .btn { width: 100%; justify-content: center; } }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+    <div class="dossier-container" id="dossierContainer">Chargement...</div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+        if (!medecin.id_medecin) window.location.href = 'medecin-login.html';
+
+        function showToast(msg, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${msg}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const patientId = params.get('id');
+        if (!patientId) { document.getElementById('dossierContainer').innerHTML = '<p style="color:red; text-align:center;">❌ Aucun patient sélectionné</p>'; }
+        else { chargerPatient(patientId); }
+
+        let consultationsChart = null;
+
+        async function chargerPatient(id) {
+            try {
+                const { data: patient, error } = await supabaseClient.from('patients').select('*').eq('id_patient', id).single();
+                if (error) throw new Error("Patient introuvable");
+                const [consultations, prescriptions, documents, rdvs] = await Promise.all([
+                    supabaseClient.from('consultations').select('*').eq('id_patient', id).order('date_consultation', { ascending: false }),
+                    supabaseClient.from('prescriptions').select('*').eq('id_patient', id).order('date_prescription', { ascending: false }),
+                    supabaseClient.from('documents').select('*').eq('id_patient', id).order('date_upload', { ascending: false }),
+                    supabaseClient.from('rendez_vous').select('*, medecins(nom, prenom)').eq('id_patient', id).order('date_rdv', { ascending: true })
+                ]);
+                afficherDossier(patient, consultations.data || [], prescriptions.data || [], documents.data || [], rdvs.data || []);
+            } catch (err) { document.getElementById('dossierContainer').innerHTML = `<p style="color:red; text-align:center;">❌ ${err.message}</p>`; }
+        }
+
+        function afficherDossier(p, consultations, prescriptions, documents, rdvs) {
+            const lastConsult = consultations.length > 0 ? new Date(consultations[0].date_consultation) : null;
+            const today = new Date();
+            const daysSinceLastConsult = lastConsult ? Math.floor((today - lastConsult) / (1000*60*60*24)) : null;
+            const chartData = [...consultations].reverse().slice(-8).map(c => ({ date: c.date_consultation ? new Date(c.date_consultation).toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}) : '', diagnostic: c.diagnostic?.substring(0,25) || 'Consultation' }));
+            
+            let alertesHtml = '';
+            if (p.allergies && p.allergies !== 'Aucune' && p.allergies !== 'null') alertesHtml += `<div class="alerte-rouge"><i class="fas fa-exclamation-triangle"></i> ⚠️ ALERTE ALLERGIE : ${p.allergies}</div>`;
+            if (p.maladies_chroniques && p.maladies_chroniques !== 'Aucune' && p.maladies_chroniques !== 'null') alertesHtml += `<div class="alerte-orange"><i class="fas fa-heartbeat"></i> Maladie chronique : ${p.maladies_chroniques}</div>`;
+            if (daysSinceLastConsult && daysSinceLastConsult > 180) alertesHtml += `<div class="alerte-orange"><i class="fas fa-clock"></i> Dernière consultation : il y a ${daysSinceLastConsult} jours (>6 mois)</div>`;
+
+            const nextRdv = rdvs.filter(rdv => new Date(rdv.date_rdv) >= today && rdv.statut !== 'annulé')[0];
+
+            const html = `
+                <a href="medecin-patients.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <h1><i class="fas fa-folder-open"></i> Dossier patient</h1>
+                    <div><button class="btn" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button></div>
+                </div>
+                ${alertesHtml}
+                <div class="grid-4">
+                    <div class="stat-card-mini"><div class="stat-number-mini">${p.age || '?'}</div><div class="stat-label-mini">Âge</div></div>
+                    <div class="stat-card-mini"><div class="stat-number-mini">${p.groupe_sanguin || '?'}</div><div class="stat-label-mini">Groupe sanguin</div></div>
+                    <div class="stat-card-mini"><div class="stat-number-mini">${consultations.length}</div><div class="stat-label-mini">Consultations</div></div>
+                    <div class="stat-card-mini"><div class="stat-number-mini">${prescriptions.length}</div><div class="stat-label-mini">Prescriptions</div></div>
+                </div>
+                ${chartData.length > 0 ? `<div class="info-card" style="margin-bottom:20px;"><h2><i class="fas fa-chart-line"></i> Évolution des consultations</h2><canvas id="consultationsTimeline" style="height:200px;"></canvas></div>` : ''}
+                <div class="grid-2">
+                    <div class="info-card"><h2><i class="fas fa-user"></i> Informations personnelles</h2>
+                        <div class="info-item"><span class="label">Nom</span><span class="value">${p.prenom || ''} ${p.nom || ''}</span></div>
+                        <div class="info-item"><span class="label">Date naissance</span><span class="value">${p.date_naissance || '-'} (${p.age || '?'} ans)</span></div>
+                        <div class="info-item"><span class="label">Sexe</span><span class="value">${p.sexe === 'M' ? 'Masculin' : (p.sexe === 'F' ? 'Féminin' : '-')}</span></div>
+                        <div class="info-item"><span class="label">Téléphone</span><span class="value">${p.telephone || '-'}</span></div>
+                        <div class="info-item"><span class="label">Email</span><span class="value">${p.email || '-'}</span></div>
+                        <div class="info-item"><span class="label">Adresse</span><span class="value">${p.adresse || '-'}</span></div>
+                    </div>
+                    <div class="info-card"><h2><i class="fas fa-notes-medical"></i> Informations médicales</h2>
+                        <div class="info-item"><span class="label">Groupe sanguin</span><span class="value"><span class="badge ${p.groupe_sanguin ? 'badge-danger' : ''}">${p.groupe_sanguin || 'Non spécifié'}</span></span></div>
+                        <div class="info-item"><span class="label">Allergies</span><span class="value">${p.allergies && p.allergies !== 'null' ? `<span class="badge badge-danger">${p.allergies}</span>` : 'Aucune'}</span></div>
+                        <div class="info-item"><span class="label">Maladies chroniques</span><span class="value">${p.maladies_chroniques && p.maladies_chroniques !== 'null' ? `<span class="badge badge-warning">${p.maladies_chroniques}</span>` : 'Aucune'}</span></div>
+                        <div class="info-item"><span class="label">Dernière consultation</span><span class="value">${lastConsult ? lastConsult.toLocaleDateString('fr-FR') + ` <span class="badge">(il y a ${daysSinceLastConsult} jours)</span>` : 'Aucune'}</span></div>
+                    </div>
+                </div>
+                ${nextRdv ? `<div class="info-card" style="background:linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,212,255,0.02)); margin-bottom:20px;"><h2><i class="fas fa-calendar-check"></i> Prochain rendez-vous</h2><div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;"><div><div style="font-size:1.1rem; color:#00d4ff;">📅 ${new Date(nextRdv.date_rdv).toLocaleDateString('fr-FR')} à ${new Date(nextRdv.date_rdv).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</div><div><i class="fas fa-user-md"></i> Dr. ${nextRdv.medecins?.prenom || ''} ${nextRdv.medecins?.nom || 'Médecin'}</div><div><i class="fas fa-stethoscope"></i> ${nextRdv.motif || 'Consultation générale'}</div></div><span class="badge badge-success" style="background:#00ff8822; color:#00ff88;">Confirmé</span></div></div>` : ''}
+                <h2><i class="fas fa-history"></i> Historique des consultations</h2>
+                ${consultations.length > 0 ? `<div class="timeline">${consultations.slice(0,5).map(c => `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-date">${new Date(c.date_consultation).toLocaleDateString('fr-FR')}</div><div class="timeline-title">${c.motif || 'Consultation'}</div><div class="timeline-desc"><strong>Diagnostic:</strong> ${c.diagnostic || '-'}</div><div class="timeline-desc"><strong>Traitement:</strong> ${c.traitement || '-'}</div></div>`).join('')}${consultations.length > 5 ? `<div style="text-align:center; margin-top:10px;"><span class="badge">+ ${consultations.length-5} autres</span></div>` : ''}</div>` : '<div class="empty-state"><i class="fas fa-stethoscope"></i><p>Aucune consultation</p></div>'}
+                <h2><i class="fas fa-prescription-bottle"></i> Prescriptions</h2>
+                ${prescriptions.length > 0 ? `<div class="table-wrapper"><table><thead><tr><th>Médicament</th><th>Dosage</th><th>Fréquence</th><th>Durée</th><th>Date</th></tr></thead><tbody>${prescriptions.map(p => `<tr><td><strong>${p.medicament || '-'}</strong></td><td>${p.dosage || '-'}</td><td>${p.frequence || '-'}</td><td>${p.duree || '-'}</td><td>${new Date(p.date_prescription).toLocaleDateString('fr-FR')}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state"><i class="fas fa-prescription-bottle"></i><p>Aucune prescription</p></div>'}
+                <h2><i class="fas fa-file-alt"></i> Documents</h2>
+                ${documents.length > 0 ? `<div class="table-wrapper"><table><thead><tr><th>Type</th><th>Nom</th><th>Date</th><th>Action</th></tr></thead><tbody>${documents.map(d => `<tr><td><span class="badge">${d.type_document || 'Document'}</span></td><td>${d.nom_fichier || '-'}</td><td>${new Date(d.date_upload).toLocaleDateString('fr-FR')}</td><td>${d.url ? `<a href="${d.url}" target="_blank" style="color:#00d4ff;"><i class="fas fa-download"></i></a>` : '-'}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun document</p></div>'}
+                <div class="flex-right"><a href="medecin-consultation.html?patient=${p.id_patient}" class="btn btn-red"><i class="fas fa-stethoscope"></i> Nouvelle consultation</a></div>
+            `;
+            document.getElementById('dossierContainer').innerHTML = html;
+            if (chartData.length > 0) { setTimeout(() => { const ctx = document.getElementById('consultationsTimeline')?.getContext('2d'); if (ctx) new Chart(ctx, { type: 'line', data: { labels: chartData.map(d=>d.date), datasets: [{ label: 'Consultations', data: chartData.map((_,i)=>i+1), borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#00d4ff' }] }, options: { responsive: true, maintainAspectRatio: true } }); }, 100); }
+        }
+    </script>
+</body>
+</html>

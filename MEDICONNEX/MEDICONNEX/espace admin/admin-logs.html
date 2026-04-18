@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des actions - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin: #ffaa33;
+            --admin-light: rgba(255,170,51,0.2);
+            --admin-dark: #cc8800;
+            --danger: #ff3366;
+            --success: #00ff88;
+            --info: #00d4ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .logs-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 90vh;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid var(--admin);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 0 50px var(--admin);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            border-right: 2px solid var(--admin);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-logo i {
+            font-size: 2.5rem;
+            color: var(--admin);
+            filter: drop-shadow(0 0 10px var(--admin));
+        }
+
+        .sidebar-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--admin);
+            letter-spacing: 2px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            color: var(--admin);
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu .active a {
+            background: var(--admin-light);
+            border-left: 4px solid var(--admin);
+            color: var(--admin);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--admin);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: var(--danger);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255,51,102,0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: var(--admin);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--admin);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .header-stat span {
+            color: var(--admin);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--admin);
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin);
+            border-radius: 40px;
+            color: #fff;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .search-wrapper input:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 15px var(--admin);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .filter-group select {
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin);
+            border-radius: 40px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 15px var(--admin);
+        }
+
+        .btn-refresh {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 40px;
+            padding: 0 20px;
+            color: var(--admin);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-refresh:hover {
+            background: var(--admin);
+            color: #1a1a2e;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            color: var(--admin);
+            padding: 15px 10px;
+            text-align: left;
+            border-bottom: 2px solid var(--admin);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255,170,51,0.2);
+            transition: 0.3s;
+            color: #ffffff;
+        }
+
+        tr:hover td {
+            background: var(--admin-light);
+        }
+
+        .badge {
+            background: rgba(255,170,51,0.15);
+            color: var(--admin);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid var(--admin);
+            display: inline-block;
+        }
+
+        .badge-danger {
+            background: rgba(255,51,102,0.15);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .badge-success {
+            background: rgba(0,255,136,0.15);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .badge-info {
+            background: rgba(0,212,255,0.15);
+            color: var(--info);
+            border-color: var(--info);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .page-btn.active {
+            background: var(--admin-light);
+            border-color: var(--admin);
+            color: var(--admin);
+            box-shadow: 0 0 10px var(--admin);
+        }
+
+        .page-btn:hover:not(.active) {
+            border-color: var(--admin);
+            transform: translateY(-2px);
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--admin);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #aaa;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--admin);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .logs-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid var(--admin); }
+            .filter-bar { flex-direction: column; }
+            .header-stats { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="logs-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-hospital-user"></i>
+                <span>MédiConnex</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
+                <li><a href="admin-hopitaux.html"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
+                <li><a href="admin-specialites.html"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
+                <li><a href="admin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li><a href="admin-statistiques.html"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
+                <li class="active"><a href="admin-logs.html"><i class="fa-solid fa-history"></i> Logs</a></li>
+                <li><a href="admin-profil.html"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-history"></i> Historique des actions</h1>
+            </div>
+
+            <div class="header-stats">
+                <div class="header-stat">
+                    <i class="fa-solid fa-list"></i>
+                    Total: <span id="totalLogs">0</span>
+                </div>
+                <div class="header-stat">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    Ajouts: <span id="ajoutsCount">0</span>
+                </div>
+                <div class="header-stat">
+                    <i class="fa-solid fa-pen"></i>
+                    Modifications: <span id="modificationsCount">0</span>
+                </div>
+                <div class="header-stat">
+                    <i class="fa-solid fa-trash"></i>
+                    Suppressions: <span id="suppressionsCount">0</span>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher par utilisateur ou action...">
+                </div>
+                <div class="filter-group">
+                    <select id="filterAction">
+                        <option value="all">Toutes les actions</option>
+                        <option value="AJOUT">Ajouts</option>
+                        <option value="MODIFICATION">Modifications</option>
+                        <option value="SUPPRESSION">Suppressions</option>
+                        <option value="CONNEXION">Connexions</option>
+                    </select>
+                </div>
+                <button class="btn-refresh" onclick="chargerLogs()">
+                    <i class="fa-solid fa-rotate-right"></i> Actualiser
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="logsTable">
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Action</th>
+                            <th>Table</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody">
+                        <tr><td colspan="4" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            let tousLogs = [];
+            let logsFiltres = [];
+            let currentPage = 1;
+            const itemsParPage = 15;
+
+            function getBadgeClass(action) {
+                switch(action) {
+                    case 'AJOUT': return 'badge-success';
+                    case 'MODIFICATION': return 'badge-info';
+                    case 'SUPPRESSION': return 'badge-danger';
+                    default: return 'badge';
+                }
+            }
+
+            function formatDate(dateStr) {
+                if (!dateStr) return '-';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR');
+            }
+
+            async function chargerLogs() {
+                const tbody = document.getElementById('logsBody');
+                tbody.innerHTML = '<tr><td colspan="4" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</td></tr>';
+                
+                const { data, error } = await supabaseClient
+                    .from('logs')
+                    .select('*')
+                    .order('date_action', { ascending: false });
+                
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="loading-spinner">❌ Erreur: ${error.message}</td></tr>`;
+                    return;
+                }
+                
+                tousLogs = data || [];
+                
+                // Statistiques
+                document.getElementById('totalLogs').innerText = tousLogs.length;
+                document.getElementById('ajoutsCount').innerText = tousLogs.filter(l => l.action === 'AJOUT').length;
+                document.getElementById('modificationsCount').innerText = tousLogs.filter(l => l.action === 'MODIFICATION').length;
+                document.getElementById('suppressionsCount').innerText = tousLogs.filter(l => l.action === 'SUPPRESSION').length;
+                
+                filtrerEtAfficher();
+            }
+
+            function filtrerEtAfficher() {
+                const search = document.getElementById('searchInput').value.toLowerCase();
+                const actionFilter = document.getElementById('filterAction').value;
+                
+                logsFiltres = tousLogs.filter(log => {
+                    const matchSearch = search === '' || 
+                        log.utilisateur?.toLowerCase().includes(search) ||
+                        log.action?.toLowerCase().includes(search) ||
+                        log.table_name?.toLowerCase().includes(search);
+                    
+                    const matchAction = actionFilter === 'all' || log.action === actionFilter;
+                    
+                    return matchSearch && matchAction;
+                });
+                
+                currentPage = 1;
+                afficherPage();
+            }
+
+            function afficherPage() {
+                const start = (currentPage - 1) * itemsParPage;
+                const end = start + itemsParPage;
+                const pageData = logsFiltres.slice(start, end);
+                const tbody = document.getElementById('logsBody');
+                
+                if (pageData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="empty-state"><i class="fa-solid fa-history"></i><p>Aucun log trouvé</p></td></tr>';
+                    document.getElementById('pagination').innerHTML = '';
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                pageData.forEach(log => {
+                    const badgeClass = getBadgeClass(log.action);
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><i class="fa-solid fa-user-circle" style="color:var(--admin); margin-right:8px;"></i>${log.utilisateur || 'Admin'}</td>
+                            <td><span class="badge ${badgeClass}">${log.action || '-'}</span></td>
+                            <td>${log.table_name || '-'}</td>
+                            <td><i class="fa-solid fa-calendar" style="color:var(--admin); margin-right:8px;"></i>${formatDate(log.date_action)}</td>
+                        </tr>
+                    `;
+                });
+                
+                afficherPagination();
+            }
+
+            function afficherPagination() {
+                const totalPages = Math.ceil(logsFiltres.length / itemsParPage);
+                const pagination = document.getElementById('pagination');
+                pagination.innerHTML = '';
+                
+                if (totalPages <= 1) return;
+                
+                if (currentPage > 1) {
+                    pagination.innerHTML += `<div class="page-btn" onclick="changerPage(${currentPage - 1})"><i class="fa-solid fa-chevron-left"></i></div>`;
+                }
+                
+                for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                    pagination.innerHTML += `<div class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changerPage(${i})">${i}</div>`;
+                }
+                
+                if (currentPage < totalPages) {
+                    pagination.innerHTML += `<div class="page-btn" onclick="changerPage(${currentPage + 1})"><i class="fa-solid fa-chevron-right"></i></div>`;
+                }
+            }
+
+            window.changerPage = function(page) {
+                currentPage = page;
+                afficherPage();
+            }
+
+            document.getElementById('searchInput').addEventListener('input', () => {
+                filtrerEtAfficher();
+            });
+            
+            document.getElementById('filterAction').addEventListener('change', () => {
+                filtrerEtAfficher();
+            });
+
+            window.chargerLogs = chargerLogs;
+            chargerLogs();
+        })();
+    </script>
+</body>
+</html>

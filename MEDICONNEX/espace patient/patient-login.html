@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Patient - MédiConnex</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --patient: #00ff88;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: -1;
+        }
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            background: rgba(255,68,68,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .success-message {
+            color: #00ff88;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            background: rgba(0,255,136,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--patient);
+        }
+        .forgot-password {
+            text-align: right;
+            margin-top: 8px;
+            margin-bottom: 5px;
+        }
+        .forgot-password a {
+            color: var(--patient);
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .forgot-password a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid var(--patient);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+        }
+        .modal-content h3 {
+            color: var(--patient);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .modal-content input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-bottom: 2px solid #333;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-content input:focus {
+            border-bottom-color: var(--patient);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-btn-confirm {
+            background: var(--patient);
+            border: none;
+            color: #1a1a2e;
+        }
+        .modal-btn-cancel {
+            background: transparent;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+        }
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="background-shape"></div>
+        <div class="secondary-shape"></div>
+
+        <div class="credentials-panel signin">
+            <h2 class="slide-element">Connexion Patient</h2>
+
+            <form id="loginForm">
+                <div class="field-wrapper slide-element">
+                    <input type="email" id="email" required>
+                    <label>Adresse email</label>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <input type="password" id="motDePasse" required>
+                    <label>Mot de passe</label>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                
+                <div class="forgot-password slide-element">
+                    <a href="javascript:void(0)" onclick="openResetModal()">Mot de passe oublié ?</a>
+                </div>
+
+                <div class="field-wrapper slide-element">
+                    <button class="submit-button" type="submit">Se connecter</button>
+                </div>
+                
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+                <div class="loading" id="loading">Connexion en cours...</div>
+            </form>
+            
+            <div class="register-link" style="text-align: center; margin-top: 20px;">
+                <p>Pas encore de compte ? <a href="patient-inscription.html" style="color: var(--patient);">S'inscrire</a></p>
+            </div>
+        </div>
+
+        <div class="welcome-section signin">
+            <h2 class="slide-element">ESPACE PATIENT</h2>
+            <p class="slide-element">Accès à votre dossier médical</p>
+        </div>
+    </div>
+    
+    <!-- MODAL : Mot de passe oublié -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeResetModal()">&times;</span>
+            <h3><i class="fa-solid fa-key"></i> Réinitialisation</h3>
+            <div class="field-wrapper">
+                <input type="email" id="resetEmail" placeholder="Entrez votre email">
+                <label>Email du compte</label>
+            </div>
+            <div class="field-wrapper">
+                <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                <label>Nouveau mot de passe</label>
+            </div>
+            <div class="field-wrapper">
+                <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe">
+                <label>Confirmer</label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn-confirm" onclick="resetPassword()">Réinitialiser</button>
+                <button class="modal-btn-cancel" onclick="closeResetModal()">Annuler</button>
+            </div>
+            <div id="resetMessage" style="color: #00ff88; text-align: center; margin-top: 15px; font-size: 12px; display: none;"></div>
+            <div id="resetError" style="color: #ff4444; text-align: center; margin-top: 15px; font-size: 12px; display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        async function verifyPassword(password, hashedPassword) {
+            const hash = await hashPassword(password);
+            return hash === hashedPassword;
+        }
+
+        // Vérifier si déjà connecté
+        if (localStorage.getItem('patient')) {
+            window.location.href = 'patient-dashboard.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const motDePasse = document.getElementById('motDePasse').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const loadingDiv = document.getElementById('loading');
+            
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            if (!email || !motDePasse) {
+                errorDiv.textContent = "❌ Veuillez remplir tous les champs";
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+                return;
+            }
+            
+            try {
+                // 1️⃣ D'abord, vérifier dans la table patients (comptes créés par médecin)
+                const url = `${SUPABASE_URL}/rest/v1/patients?select=*&email=eq.${encodeURIComponent(email)}`;
+                const response = await fetch(url, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+
+                const patients = await response.json();
+
+                if (patients && patients.length > 0) {
+                    const patient = patients[0];
+                    const isValid = await verifyPassword(motDePasse, patient.mot_de_passe);
+                    
+                    if (isValid) {
+                        localStorage.setItem('patient', JSON.stringify({
+                            id_patient: patient.id_patient,
+                            nom: patient.nom,
+                            prenom: patient.prenom,
+                            email: patient.email,
+                            telephone: patient.telephone
+                        }));
+                        successDiv.textContent = "✅ Connexion réussie ! Redirection...";
+                        successDiv.style.display = 'block';
+                        setTimeout(() => { window.location.href = 'patient-dashboard.html'; }, 1000);
+                        return;
+                    }
+                }
+                
+                // 2️⃣ Sinon, vérifier dans Supabase Auth (comptes créés par inscription)
+                const { data, error: authError } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: motDePasse
+                });
+                
+                if (authError) throw authError;
+                
+                if (data && data.user) {
+                    // Récupérer les infos du patient dans la table
+                    const { data: patientData } = await supabaseClient
+                        .from('patients')
+                        .select('*')
+                        .eq('email', email)
+                        .single();
+                    
+                    if (patientData) {
+                        localStorage.setItem('patient', JSON.stringify({
+                            id_patient: patientData.id_patient,
+                            nom: patientData.nom,
+                            prenom: patientData.prenom,
+                            email: patientData.email,
+                            telephone: patientData.telephone
+                        }));
+                    } else {
+                        // Si le patient n'existe pas dans la table, créer une entrée basique
+                        const { data: newPatient } = await supabaseClient
+                            .from('patients')
+                            .insert([{
+                                email: email,
+                                nom: data.user.user_metadata?.nom || 'Patient',
+                                prenom: data.user.user_metadata?.prenom || '',
+                                mot_de_passe: await hashPassword(motDePasse),
+                                date_creation: new Date().toISOString()
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (newPatient) {
+                            localStorage.setItem('patient', JSON.stringify({
+                                id_patient: newPatient.id_patient,
+                                nom: newPatient.nom,
+                                prenom: newPatient.prenom,
+                                email: newPatient.email,
+                                telephone: newPatient.telephone
+                            }));
+                        }
+                    }
+                    
+                    successDiv.textContent = "✅ Connexion réussie ! Redirection...";
+                    successDiv.style.display = 'block';
+                    setTimeout(() => { window.location.href = 'patient-dashboard.html'; }, 1000);
+                    return;
+                }
+                
+                errorDiv.textContent = "❌ Email ou mot de passe incorrect";
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+                
+            } catch (error) {
+                console.error(error);
+                errorDiv.textContent = "❌ Email ou mot de passe incorrect";
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+            }
+        });
+
+        function openResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const resetMessage = document.getElementById('resetMessage');
+            const resetError = document.getElementById('resetError');
+            
+            resetMessage.style.display = 'none';
+            resetError.style.display = 'none';
+            
+            if (!email) {
+                resetError.innerHTML = 'Veuillez entrer votre email';
+                resetError.style.display = 'block';
+                return;
+            }
+            
+            if (!newPassword || newPassword.length < 4) {
+                resetError.innerHTML = 'Le mot de passe doit contenir au moins 4 caractères';
+                resetError.style.display = 'block';
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                resetError.innerHTML = 'Les mots de passe ne correspondent pas';
+                resetError.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Chercher le patient dans la table
+                const url = `${SUPABASE_URL}/rest/v1/patients?select=id_patient&email=eq.${encodeURIComponent(email)}`;
+                const response = await fetch(url, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                const patients = await response.json();
+                
+                if (patients && patients.length > 0) {
+                    const hashedPassword = await hashPassword(newPassword);
+                    
+                    const updateUrl = `${SUPABASE_URL}/rest/v1/patients?id_patient=eq.${patients[0].id_patient}`;
+                    const updateResponse = await fetch(updateUrl, {
+                        method: 'PATCH',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ mot_de_passe: hashedPassword })
+                    });
+                    
+                    if (!updateResponse.ok) throw new Error('Erreur lors de la mise à jour');
+                    
+                    resetMessage.innerHTML = '✅ Mot de passe modifié avec succès !';
+                    resetMessage.style.display = 'block';
+                } else {
+                    // Essayer avec Supabase Auth
+                    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                    if (error) throw error;
+                    resetMessage.innerHTML = '📧 Un email de réinitialisation a été envoyé !';
+                    resetMessage.style.display = 'block';
+                }
+                
+                setTimeout(() => { closeResetModal(); }, 3000);
+                
+            } catch (error) {
+                resetError.innerHTML = 'Erreur: ' + error.message;
+                resetError.style.display = 'block';
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('resetModal');
+            if (event.target === modal) closeResetModal();
+        }
+    </script>
+</body>
+</html>

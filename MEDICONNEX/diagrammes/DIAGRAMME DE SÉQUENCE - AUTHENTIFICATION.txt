@@ -1,0 +1,26 @@
+UTILISATEUR                SYSTEME                    SUPABASE
+   │                          │                           │
+   │  1. Saisit email + mdp   │                           │
+   ├─────────────────────────▶│                           │
+   │                          │                           │
+   │                          │  2. Vérifie identifiants  │
+   │                          ├──────────────────────────▶│
+   │                          │                           │
+   │                          │  3. Hash le mot de passe  │
+   │                          ├──────────────────────────┤
+   │                          │                           │
+   │                          │  4. Compare avec stocké   │
+   │                          ├──────────────────────────▶│
+   │                          │                           │
+   │                          │  5. Retourne résultat     │
+   │                          │◀──────────────────────────┤
+   │                          │                           │
+   │  6. Affiche résultat     │                           │
+   │◀─────────────────────────┤                           │
+   │                          │                           │
+   │  7. Stocke session       │                           │
+   │◀─────────────────────────┤                           │
+   │                          │                           │
+   │  8. Redirige vers dashboard│                         │
+   │◀─────────────────────────┤                           │
+   │                          │                           │

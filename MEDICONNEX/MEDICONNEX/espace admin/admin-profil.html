@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Admin - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin: #ffaa33;
+            --admin-light: rgba(255,170,51,0.2);
+            --danger: #ff3366;
+            --success: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .profil-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 90vh;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid var(--admin);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 0 50px var(--admin);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            border-right: 2px solid var(--admin);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-logo i {
+            font-size: 2.5rem;
+            color: var(--admin);
+            filter: drop-shadow(0 0 10px var(--admin));
+        }
+
+        .sidebar-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--admin);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            color: var(--admin);
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu .active a {
+            background: var(--admin-light);
+            border-left: 4px solid var(--admin);
+            color: var(--admin);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--admin);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: var(--danger);
+            text-decoration: none;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: var(--admin);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profil-container {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .profil-avatar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profil-avatar i {
+            font-size: 5rem;
+            color: var(--admin);
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 50%;
+            border: 3px solid var(--admin);
+        }
+
+        .info-group {
+            margin-bottom: 25px;
+        }
+
+        .info-group label {
+            color: var(--admin);
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .info-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .info-group input[readonly] {
+            background: rgba(255,255,255,0.02);
+            cursor: not-allowed;
+        }
+
+        .password-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--admin);
+        }
+
+        .password-section h3 {
+            color: var(--admin);
+            margin-bottom: 20px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid;
+            background: transparent;
+        }
+
+        .btn-primary {
+            border-color: var(--admin);
+            color: var(--admin);
+        }
+
+        .btn-primary:hover {
+            background: var(--admin);
+            color: #1a1a2e;
+        }
+
+        .btn-secondary {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-secondary:hover {
+            background: var(--danger);
+            color: #1a1a2e;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 1100;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: #1a1a2e;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .profil-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid var(--admin); }
+            .profil-container { margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="profil-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-hospital-user"></i>
+                <span>MédiConnex</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
+                <li><a href="admin-hopitaux.html"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
+                <li><a href="admin-specialites.html"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
+                <li><a href="admin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li><a href="admin-statistiques.html"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
+                <li><a href="admin-logs.html"><i class="fa-solid fa-history"></i> Logs</a></li>
+                <li class="active"><a href="admin-profil.html"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-user-cog"></i> Profil Administrateur</h1>
+            </div>
+
+            <div class="profil-container">
+                <div class="profil-avatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+
+                <div class="info-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" id="username" value="admin" readonly>
+                </div>
+
+                <div class="info-group">
+                    <label>Email</label>
+                    <input type="email" id="email" value="admin@mediconnex.dz" readonly>
+                </div>
+
+                <div class="password-section">
+                    <h3><i class="fa-solid fa-lock"></i> Modifier le mot de passe</h3>
+                    
+                    <div class="info-group">
+                        <label>Ancien mot de passe</label>
+                        <input type="password" id="oldPassword" placeholder="Entrez l'ancien mot de passe">
+                    </div>
+
+                    <div class="info-group">
+                        <label>Nouveau mot de passe</label>
+                        <input type="password" id="newPassword" placeholder="Entrez le nouveau mot de passe">
+                    </div>
+
+                    <div class="info-group">
+                        <label>Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirmez le nouveau mot de passe">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-secondary" id="cancelBtn">Annuler</button>
+                    <button class="btn btn-primary" id="changeBtn">Changer le mot de passe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fonction pour afficher les notifications
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Fonction pour annuler
+        function annuler() {
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        // Fonction pour changer le mot de passe
+        function changerMotDePasse() {
+            const oldPass = document.getElementById('oldPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            // Vérifier les champs
+            if (!oldPass || !newPass || !confirmPass) {
+                showToast('Tous les champs sont requis', 'error');
+                return;
+            }
+
+            // Vérifier que les nouveaux mots de passe correspondent
+            if (newPass !== confirmPass) {
+                showToast('Les nouveaux mots de passe ne correspondent pas', 'error');
+                return;
+            }
+
+            // Vérifier la longueur du nouveau mot de passe
+            if (newPass.length < 4) {
+                showToast('Le mot de passe doit contenir au moins 4 caractères', 'error');
+                return;
+            }
+
+            // Vérifier l'ancien mot de passe (par défaut: admin123)
+            if (oldPass !== 'admin123') {
+                showToast('Ancien mot de passe incorrect', 'error');
+                return;
+            }
+
+            // Succès
+            showToast('✅ Mot de passe modifié avec succès !', 'success');
+            annuler();
+        }
+
+        // Attacher les événements
+        document.getElementById('changeBtn').addEventListener('click', changerMotDePasse);
+        document.getElementById('cancelBtn').addEventListener('click', annuler);
+    </script>
+</body>
+</html>

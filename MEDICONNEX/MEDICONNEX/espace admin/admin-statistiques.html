@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiques - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin: #ffaa33;
+            --admin-light: rgba(255,170,51,0.2);
+            --admin-dark: #cc8800;
+            --danger: #ff3366;
+            --success: #00ff88;
+            --info: #00d4ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .stats-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 90vh;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid var(--admin);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 0 50px var(--admin);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            border-right: 2px solid var(--admin);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-logo i {
+            font-size: 2.5rem;
+            color: var(--admin);
+            filter: drop-shadow(0 0 10px var(--admin));
+        }
+
+        .sidebar-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--admin);
+            letter-spacing: 2px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            color: var(--admin);
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu .active a {
+            background: var(--admin-light);
+            border-left: 4px solid var(--admin);
+            color: var(--admin);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--admin);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: var(--danger);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255,51,102,0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: var(--admin);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: var(--admin-light);
+            box-shadow: 0 10px 20px rgba(255,170,51,0.2);
+        }
+
+        .stat-card i {
+            font-size: 2.5rem;
+            color: var(--admin);
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--admin);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        .chart-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 15px;
+            padding: 25px;
+            transition: 0.3s;
+        }
+
+        .chart-card:hover {
+            border-color: var(--admin);
+            box-shadow: 0 0 20px rgba(255,170,51,0.1);
+        }
+
+        .chart-title {
+            color: var(--admin);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-bars {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 200px;
+            gap: 15px;
+        }
+
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .bar {
+            width: 100%;
+            max-width: 60px;
+            background: linear-gradient(to top, var(--admin), #ffcc66);
+            border-radius: 8px 8px 0 0;
+            transition: 0.3s;
+            cursor: pointer;
+            min-height: 5px;
+        }
+
+        .bar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--admin);
+        }
+
+        .bar-value {
+            color: var(--admin);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .bar-label {
+            color: #aaa;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .pie-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pie-chart {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+
+        .pie-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--admin);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid var(--admin); }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stats-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-hospital-user"></i>
+                <span>MédiConnex</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
+                <li><a href="admin-hopitaux.html"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
+                <li><a href="admin-specialites.html"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
+                <li><a href="admin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li class="active"><a href="admin-statistiques.html"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
+                <li><a href="admin-logs.html"><i class="fa-solid fa-history"></i> Logs</a></li>
+                <li><a href="admin-profil.html"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-chart-line"></i> Statistiques système</h1>
+            </div>
+
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <i class="fa-solid fa-user-md"></i>
+                    <div class="stat-number" id="medecinsCount">--</div>
+                    <div class="stat-label">Médecins</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-users"></i>
+                    <div class="stat-number" id="patientsCount">--</div>
+                    <div class="stat-label">Patients</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-hospital"></i>
+                    <div class="stat-number" id="hopitauxCount">--</div>
+                    <div class="stat-label">Hôpitaux</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fa-solid fa-stethoscope"></i>
+                    <div class="stat-number" id="specialitesCount">--</div>
+                    <div class="stat-label">Spécialités</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fa-solid fa-calendar"></i>
+                        Médecins inscrits par mois
+                    </div>
+                    <div id="medecinsChart" class="chart-bars">
+                        <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fa-solid fa-calendar"></i>
+                        Patients inscrits par mois
+                    </div>
+                    <div id="patientsChart" class="chart-bars">
+                        <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fa-solid fa-map-marker-alt"></i>
+                        Médecins par wilaya (Top 5)
+                    </div>
+                    <div id="wilayaChart" class="pie-container">
+                        <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <i class="fa-solid fa-stethoscope"></i>
+                        Médecins par spécialité (Top 5)
+                    </div>
+                    <div id="specialiteChart" class="pie-container">
+                        <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            const moisNoms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+            async function chargerStatistiques() {
+                const { count: medecins } = await supabaseClient.from('medecins').select('*', { count: 'exact', head: true });
+                document.getElementById('medecinsCount').innerText = medecins || 0;
+
+                const { count: patients } = await supabaseClient.from('patients').select('*', { count: 'exact', head: true });
+                document.getElementById('patientsCount').innerText = patients || 0;
+
+                const { count: hopitaux } = await supabaseClient.from('hopitaux').select('*', { count: 'exact', head: true });
+                document.getElementById('hopitauxCount').innerText = hopitaux || 0;
+
+                const { count: specialites } = await supabaseClient.from('specialites').select('*', { count: 'exact', head: true });
+                document.getElementById('specialitesCount').innerText = specialites || 0;
+            }
+
+            async function chargerMedecinsParMois() {
+                const { data } = await supabaseClient.from('medecins').select('date_creation');
+                const moisCount = new Array(12).fill(0);
+                data?.forEach(m => {
+                    if (m.date_creation) {
+                        const mois = new Date(m.date_creation).getMonth();
+                        moisCount[mois]++;
+                    }
+                });
+                const maxValue = Math.max(...moisCount, 1);
+                const container = document.getElementById('medecinsChart');
+                container.innerHTML = '';
+                for (let i = 0; i < 12; i++) {
+                    const height = (moisCount[i] / maxValue) * 150;
+                    container.innerHTML += `
+                        <div class="bar-container">
+                            <div class="bar-value">${moisCount[i]}</div>
+                            <div class="bar" style="height: ${height}px;"></div>
+                            <div class="bar-label">${moisNoms[i]}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            async function chargerPatientsParMois() {
+                const { data } = await supabaseClient.from('patients').select('date_creation');
+                const moisCount = new Array(12).fill(0);
+                data?.forEach(p => {
+                    if (p.date_creation) {
+                        const mois = new Date(p.date_creation).getMonth();
+                        moisCount[mois]++;
+                    }
+                });
+                const maxValue = Math.max(...moisCount, 1);
+                const container = document.getElementById('patientsChart');
+                container.innerHTML = '';
+                for (let i = 0; i < 12; i++) {
+                    const height = (moisCount[i] / maxValue) * 150;
+                    container.innerHTML += `
+                        <div class="bar-container">
+                            <div class="bar-value">${moisCount[i]}</div>
+                            <div class="bar" style="height: ${height}px;"></div>
+                            <div class="bar-label">${moisNoms[i]}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            async function chargerRepartitionWilaya() {
+                const { data: medecins } = await supabaseClient.from('medecins').select('id_wilaya');
+                const { data: wilayas } = await supabaseClient.from('wilayas').select('id_wilaya, nom_wilaya');
+                
+                const wilayaCount = {};
+                wilayas?.forEach(w => wilayaCount[w.nom_wilaya] = 0);
+                medecins?.forEach(m => {
+                    const wilaya = wilayas?.find(w => w.id_wilaya === m.id_wilaya);
+                    if (wilaya) wilayaCount[wilaya.nom_wilaya]++;
+                });
+                
+                const topWilayas = Object.entries(wilayaCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .filter(w => w[1] > 0);
+                
+                const colors = ['#ffaa33', '#ffcc66', '#ff8800', '#ffaa00', '#ff7700'];
+                const container = document.getElementById('wilayaChart');
+                
+                if (topWilayas.length === 0) {
+                    container.innerHTML = '<div class="loading-spinner">Aucune donnée disponible</div>';
+                    return;
+                }
+                
+                const total = topWilayas.reduce((sum, w) => sum + w[1], 0);
+                let currentAngle = 0;
+                const gradients = topWilayas.map((w, i) => {
+                    const percent = (w[1] / total) * 100;
+                    const start = currentAngle;
+                    currentAngle += percent;
+                    return `${colors[i]} ${start}% ${currentAngle}%`;
+                }).join(', ');
+                
+                container.innerHTML = `
+                    <div class="pie-chart" style="background: conic-gradient(${gradients})"></div>
+                    <div class="pie-legend">
+                        ${topWilayas.map((w, i) => `
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: ${colors[i]}"></div>
+                                <span>${w[0]} (${w[1]})</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            async function chargerRepartitionSpecialite() {
+                const { data: medecins } = await supabaseClient.from('medecins').select('id_specialite');
+                const { data: specialites } = await supabaseClient.from('specialites').select('id_specialite, nom_specialite');
+                
+                const specCount = {};
+                specialites?.forEach(s => specCount[s.nom_specialite] = 0);
+                medecins?.forEach(m => {
+                    const spec = specialites?.find(s => s.id_specialite === m.id_specialite);
+                    if (spec) specCount[spec.nom_specialite]++;
+                });
+                
+                const topSpecs = Object.entries(specCount)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .filter(s => s[1] > 0);
+                
+                const colors = ['#ffaa33', '#ffcc66', '#ff8800', '#ffaa00', '#ff7700'];
+                const container = document.getElementById('specialiteChart');
+                
+                if (topSpecs.length === 0) {
+                    container.innerHTML = '<div class="loading-spinner">Aucune donnée disponible</div>';
+                    return;
+                }
+                
+                const total = topSpecs.reduce((sum, s) => sum + s[1], 0);
+                let currentAngle = 0;
+                const gradients = topSpecs.map((s, i) => {
+                    const percent = (s[1] / total) * 100;
+                    const start = currentAngle;
+                    currentAngle += percent;
+                    return `${colors[i]} ${start}% ${currentAngle}%`;
+                }).join(', ');
+                
+                container.innerHTML = `
+                    <div class="pie-chart" style="background: conic-gradient(${gradients})"></div>
+                    <div class="pie-legend">
+                        ${topSpecs.map((s, i) => `
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: ${colors[i]}"></div>
+                                <span>${s[0]} (${s[1]})</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            async function init() {
+                await chargerStatistiques();
+                await chargerMedecinsParMois();
+                await chargerPatientsParMois();
+                await chargerRepartitionWilaya();
+                await chargerRepartitionSpecialite();
+            }
+
+            init();
+        })();
+    </script>
+</body>
+</html>

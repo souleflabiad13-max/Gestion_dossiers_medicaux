@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MédiConnex - Plateforme Médicale</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            color: #fff;
+            background: #1a1a2e;
+        }
+
+        /* ===== IMAGE DE FOND MÉDICALE ===== */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=2073&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.25) blur(3px);
+            z-index: -1;
+        }
+
+        /* ===== SUPERPOSITION ===== */
+        .medical-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(0,212,255,0.08), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== CONTENEUR PRINCIPAL ===== */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            text-align: center;
+        }
+
+        /* ===== TITRE LUMINEUX ===== */
+        .site-title {
+            margin-bottom: 70px;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .site-title h1 {
+            font-size: 5rem;
+            color: #00d4ff;
+            text-shadow: 
+                0 0 10px #00d4ff,
+                0 0 20px #00d4ff,
+                0 0 40px #00d4ff,
+                0 0 80px #00d4ff;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff, 0 0 40px #00d4ff;
+            }
+            50% { 
+                text-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff, 0 0 60px #00d4ff, 0 0 100px #00d4ff;
+            }
+        }
+
+        .site-title p {
+            color: rgba(255,255,255,0.95);
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+            font-weight: 300;
+        }
+
+        .site-title .subtitle {
+            font-size: 1rem;
+            color: #00d4ff;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== GRILLE DES CARTES ===== */
+        .cards-grid {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-bottom: 80px;
+        }
+
+        /* ===== CARTES MODERNES ===== */
+        .role-card {
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(15px);
+            border: 2px solid;
+            border-radius: 35px;
+            padding: 45px 35px;
+            width: 360px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.4);
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .role-card:hover::before {
+            left: 100%;
+        }
+
+        .role-card:hover {
+            transform: translateY(-20px) scale(1.02);
+        }
+
+        /* Couleurs Médecin */
+        .role-card.medecin {
+            border-color: #00d4ff;
+            box-shadow: 0 0 30px rgba(0,212,255,0.2);
+        }
+
+        .role-card.medecin:hover {
+            box-shadow: 0 0 50px #00d4ff, 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(0,212,255,0.15);
+        }
+
+        /* Couleurs Patient */
+        .role-card.patient {
+            border-color: #00ff88;
+            box-shadow: 0 0 30px rgba(0,255,136,0.2);
+        }
+
+        .role-card.patient:hover {
+            box-shadow: 0 0 50px #00ff88, 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(0,255,136,0.1);
+        }
+
+        /* Couleurs Admin */
+        .role-card.admin {
+            border-color: #ffaa33;
+            box-shadow: 0 0 30px rgba(255,170,51,0.2);
+        }
+
+        .role-card.admin:hover {
+            box-shadow: 0 0 50px #ffaa33, 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(255,170,51,0.1);
+        }
+
+        .role-card i {
+            font-size: 5.5rem;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .role-card:hover i {
+            transform: scale(1.1);
+        }
+
+        .role-card.medecin i {
+            color: #00d4ff;
+            text-shadow: 0 0 20px #00d4ff;
+        }
+
+        .role-card.patient i {
+            color: #00ff88;
+            text-shadow: 0 0 20px #00ff88;
+        }
+
+        .role-card.admin i {
+            color: #ffaa33;
+            text-shadow: 0 0 20px #ffaa33;
+        }
+
+        .role-card h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .role-card.medecin h2 {
+            color: #00d4ff;
+        }
+
+        .role-card.patient h2 {
+            color: #00ff88;
+        }
+
+        .role-card.admin h2 {
+            color: #ffaa33;
+        }
+
+        .role-card p {
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .btn-card {
+            display: inline-block;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            border: 2px solid;
+            background: transparent;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .role-card.medecin .btn-card {
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .role-card.medecin .btn-card:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px #00d4ff;
+            transform: scale(1.05);
+        }
+
+        .role-card.patient .btn-card {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .role-card.patient .btn-card:hover {
+            background: #00ff88;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px #00ff88;
+            transform: scale(1.05);
+        }
+
+        .role-card.admin .btn-card {
+            border-color: #ffaa33;
+            color: #ffaa33;
+        }
+
+        .role-card.admin .btn-card:hover {
+            background: #ffaa33;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px #ffaa33;
+            transform: scale(1.05);
+        }
+
+        /* ===== STATS SECTION ===== */
+        .stats-section {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            margin: 60px 0;
+            padding: 35px 40px;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(12px);
+            border-radius: 70px;
+            border: 1px solid rgba(0,212,255,0.2);
+        }
+
+        .stat-item {
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(15px);
+            padding: 50px 30px 25px;
+            margin-top: 60px;
+            border-top: 2px solid #00d4ff33;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 35px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section {
+            text-align: left;
+        }
+
+        .footer-section h3 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, #00d4ff, transparent);
+        }
+
+        .footer-section p {
+            color: rgba(255,255,255,0.65);
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .footer-section p:hover {
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .footer-section i {
+            color: #00d4ff;
+            width: 22px;
+            font-size: 0.9rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            color: #fff;
+            background: rgba(0,212,255,0.12);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+
+        .social-links a:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #00d4ff22;
+            padding-top: 25px;
+            color: rgba(255,255,255,0.45);
+            font-size: 0.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .site-title h1 {
+                font-size: 3.5rem;
+                letter-spacing: 5px;
+            }
+            
+            .cards-grid {
+                gap: 25px;
+            }
+            
+            .role-card {
+                width: 320px;
+                padding: 35px 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px;
+            }
+            
+            .site-title h1 {
+                font-size: 2.5rem;
+                letter-spacing: 3px;
+            }
+            
+            .site-title p {
+                font-size: 1rem;
+            }
+            
+            .cards-grid {
+                gap: 20px;
+            }
+            
+            .role-card {
+                width: 100%;
+                max-width: 340px;
+                padding: 30px 20px;
+            }
+            
+            .role-card i {
+                font-size: 4rem;
+            }
+            
+            .role-card h2 {
+                font-size: 1.6rem;
+            }
+            
+            .stats-section {
+                gap: 25px;
+                padding: 25px;
+                border-radius: 40px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 25px;
+            }
+            
+            .footer-section {
+                text-align: center;
+            }
+            
+            .footer-section h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            
+            .footer-section p {
+                justify-content: center;
+            }
+            
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .site-title h1 {
+                font-size: 1.8rem;
+                letter-spacing: 2px;
+            }
+            
+            .stats-section {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="medical-overlay"></div>
+
+    <div class="container">
+        <!-- Titre lumineux -->
+        <div class="site-title">
+            <h1>MÉDICONNEX</h1>
+            <p>Plateforme médicale sécurisée</p>
+            <div class="subtitle">
+                <i class="fa-solid fa-shield-heart"></i> Votre santé, notre priorité
+            </div>
+        </div>
+
+        <!-- Cartes des espaces -->
+        <div class="cards-grid">
+            <!-- Espace Médecin -->
+            <a href="espace medecin/medecin-login.html" class="role-card medecin">
+                <i class="fa-solid fa-user-md"></i>
+                <h2>Médecin</h2>
+                <p>Accédez à votre espace de travail, gérez vos patients, consultations et prescriptions.</p>
+                <span class="btn-card">Se connecter →</span>
+            </a>
+
+            <!-- Espace Patient -->
+            <a href="espace patient/patient-login.html" class="role-card patient">
+                <i class="fa-solid fa-user-injured"></i>
+                <h2>Patient</h2>
+                <p>Consultez votre dossier médical, vos rendez-vous et vos prescriptions en ligne.</p>
+                <span class="btn-card">Accéder →</span>
+            </a>
+
+            <!-- Espace Administrateur -->
+            <a href="espace admin/admin-login.html" class="role-card admin">
+                <i class="fa-solid fa-user-tie"></i>
+                <h2>Administrateur</h2>
+                <p>Gérez les comptes médecins, les statistiques et la configuration du système.</p>
+                <span class="btn-card">Accéder →</span>
+            </a>
+        </div>
+
+        <!-- Section statistiques -->
+        <div class="stats-section">
+            <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Médecins partenaires</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5000+</div>
+                <div class="stat-label">Patients suivis</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">10000+</div>
+                <div class="stat-label">Consultations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Support disponible</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fa-solid fa-hospital"></i> MédiConnex</h3>
+                <p><i class="fa-solid fa-location-dot"></i> 15 Rue des Médecins, Alger</p>
+                <p><i class="fa-solid fa-phone"></i> +213 23 45 67 89</p>
+                <p><i class="fa-solid fa-envelope"></i> contact@mediconnex.dz</p>
+            </div>
+            <div class="footer-section">
+                <h3>Horaires</h3>
+                <p><i class="fa-solid fa-clock"></i> Lun - Ven : 8h - 18h</p>
+                <p><i class="fa-solid fa-clock"></i> Samedi : 9h - 14h</p>
+                <p><i class="fa-solid fa-clock"></i> Dimanche : Fermé</p>
+                <p><i class="fa-solid fa-truck-medical"></i> Urgences : 24h/24</p>
+            </div>
+            <div class="footer-section">
+                <h3>Liens utiles</h3>
+                <p><i class="fa-solid fa-shield"></i> Confidentialité</p>
+                <p><i class="fa-solid fa-file-contract"></i> Conditions d'utilisation</p>
+                <p><i class="fa-solid fa-headset"></i> Support technique</p>
+                <p><i class="fa-solid fa-question-circle"></i> FAQ</p>
+            </div>
+            <div class="footer-section">
+                <h3>Suivez-nous</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+                <p style="margin-top: 20px;"><i class="fa-solid fa-mobile-alt"></i> Application mobile</p>
+                <p><i class="fa-solid fa-phone-volume"></i> Urgence : 14 00</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 MédiConnex - Tous droits réservés. Plateforme médicale sécurisée certifiée.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Animation d'apparition des cartes
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.role-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+</body>
+</html>

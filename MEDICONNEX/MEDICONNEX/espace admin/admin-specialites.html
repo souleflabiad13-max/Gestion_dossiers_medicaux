@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des spécialités - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --admin: #ffaa33;
+            --admin-light: rgba(255,170,51,0.2);
+            --admin-dark: #cc8800;
+            --danger: #ff3366;
+            --success: #00ff88;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .gestion-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            min-height: 90vh;
+            background: rgba(26,26,46,0.7);
+            border: 2px solid var(--admin);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 0 50px var(--admin);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.3);
+            border-right: 2px solid var(--admin);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .sidebar-logo i {
+            font-size: 2.5rem;
+            color: var(--admin);
+            filter: drop-shadow(0 0 10px var(--admin));
+        }
+
+        .sidebar-logo span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--admin);
+            letter-spacing: 2px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            color: var(--admin);
+            font-size: 1.2rem;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu .active a {
+            background: var(--admin-light);
+            border-left: 4px solid var(--admin);
+            color: var(--admin);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--admin);
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            color: var(--danger);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .sidebar-footer a:hover {
+            background: rgba(255,51,102,0.1);
+            border-left: 4px solid var(--danger);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            color: var(--admin);
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--admin);
+        }
+
+        .header-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .header-stat span {
+            color: var(--admin);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .btn-add {
+            background: rgba(0,0,0,0.2);
+            border: 2px solid var(--admin);
+            border-radius: 40px;
+            padding: 12px 25px;
+            color: var(--admin);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-add:hover {
+            background: var(--admin);
+            color: #1a1a2e;
+            box-shadow: 0 0 30px var(--admin);
+            transform: translateY(-2px);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--admin);
+        }
+
+        .search-wrapper input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin);
+            border-radius: 40px;
+            color: #fff;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .search-wrapper input:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 15px var(--admin);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .btn-refresh {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 40px;
+            padding: 0 20px;
+            color: var(--admin);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-refresh:hover {
+            background: var(--admin);
+            color: #1a1a2e;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--admin);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            color: var(--admin);
+            padding: 15px 10px;
+            text-align: left;
+            border-bottom: 2px solid var(--admin);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255,170,51,0.2);
+            transition: 0.3s;
+            color: #ffffff;
+        }
+
+        tr:hover td {
+            background: var(--admin-light);
+        }
+
+        .badge-id {
+            background: rgba(255,170,51,0.15);
+            color: var(--admin);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-icons i {
+            color: #aaa;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.1rem;
+            padding: 5px;
+            border-radius: 50%;
+        }
+
+        .action-icons i:hover {
+            transform: scale(1.1);
+        }
+
+        .action-icons .fa-pen:hover {
+            color: var(--admin);
+            background: var(--admin-light);
+        }
+
+        .action-icons .fa-trash:hover {
+            color: var(--danger);
+            background: rgba(255,51,102,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid var(--admin);
+            border-radius: 30px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: var(--admin);
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+        }
+
+        .modal-field {
+            margin-bottom: 20px;
+        }
+
+        .modal-field label {
+            color: var(--admin);
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--admin);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .modal-field input:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 15px var(--admin);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid;
+            background: transparent;
+            transition: 0.3s;
+        }
+
+        .modal-btn.save {
+            border-color: var(--admin);
+            color: var(--admin);
+        }
+
+        .modal-btn.save:hover {
+            background: var(--admin);
+            color: #1a1a2e;
+        }
+
+        .modal-btn.cancel {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .modal-btn.cancel:hover {
+            background: var(--danger);
+            color: #1a1a2e;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 1100;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: #1a1a2e;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: var(--admin);
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #aaa;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: var(--admin);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .gestion-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 2px solid var(--admin); }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .search-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gestion-wrapper">
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-hospital-user"></i>
+                <span>MédiConnex</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="admin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="admin-medecins.html"><i class="fa-solid fa-user-md"></i> Médecins</a></li>
+                <li><a href="admin-hopitaux.html"><i class="fa-solid fa-hospital"></i> Hôpitaux</a></li>
+                <li class="active"><a href="admin-specialites.html"><i class="fa-solid fa-stethoscope"></i> Spécialités</a></li>
+                <li><a href="admin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+                <li><a href="admin-statistiques.html"><i class="fa-solid fa-chart-line"></i> Statistiques</a></li>
+                <li><a href="admin-logs.html"><i class="fa-solid fa-history"></i> Logs</a></li>
+                <li><a href="admin-profil.html"><i class="fa-solid fa-user-cog"></i> Profil</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="admin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="page-header">
+                <h1><i class="fa-solid fa-stethoscope"></i> Gestion des spécialités</h1>
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <i class="fa-solid fa-tag"></i>
+                        Total: <span id="totalSpecialites">0</span>
+                    </div>
+                </div>
+                <button class="btn-add" onclick="ouvrirModalAjout()">
+                    <i class="fa-solid fa-plus"></i> Ajouter une spécialité
+                </button>
+            </div>
+
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher une spécialité...">
+                </div>
+                <button class="btn-refresh" onclick="chargerSpecialites()">
+                    <i class="fa-solid fa-rotate-right"></i> Actualiser
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table id="specialitesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Spécialité</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="specialitesBody">
+                        <tr><td colspan="3" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...<\/td><\/tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJOUT -->
+    <div id="modalAjout" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajouter une spécialité</h2>
+                <span class="close-modal" onclick="fermerModal('modalAjout')">&times;</span>
+            </div>
+            <div class="modal-field">
+                <label>Nom de la spécialité</label>
+                <input type="text" id="ajoutNom" placeholder="Ex: Cardiologie">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="fermerModal('modalAjout')">Annuler</button>
+                <button class="modal-btn save" onclick="ajouterSpecialite()">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFICATION -->
+    <div id="modalModif" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Modifier spécialité</h2>
+                <span class="close-modal" onclick="fermerModal('modalModif')">&times;</span>
+            </div>
+            <input type="hidden" id="editId">
+            <div class="modal-field">
+                <label>Nom de la spécialité</label>
+                <input type="text" id="editNom">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="fermerModal('modalModif')">Annuler</button>
+                <button class="modal-btn save" onclick="modifierSpecialite()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Configuration Supabase
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function chargerSpecialites() {
+            const tbody = document.getElementById('specialitesBody');
+            tbody.innerHTML = '<tr><td colspan="3" class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Chargement...<\/td><\/tr>';
+            
+            const { data, error } = await supabaseClient
+                .from('specialites')
+                .select('*')
+                .order('nom_specialite');
+            
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="3" class="loading-spinner">❌ Erreur: ${error.message}<\/td><\/tr>`;
+                showToast('Erreur: ' + error.message, 'error');
+                return;
+            }
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="fa-solid fa-tag"></i><p>Aucune spécialité trouvée</p><\/td><\/tr>';
+                document.getElementById('totalSpecialites').innerText = '0';
+                return;
+            }
+            
+            document.getElementById('totalSpecialites').innerText = data.length;
+            
+            tbody.innerHTML = '';
+            data.forEach(spec => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="badge-id">${spec.id_specialite}</span><\/td>
+                        <td><strong>${spec.nom_specialite}</strong><\/td>
+                        <td class="action-icons">
+                            <i class="fa-solid fa-pen" onclick="ouvrirModification(${spec.id_specialite})"><\/i>
+                            <i class="fa-solid fa-trash" onclick="supprimerSpecialite(${spec.id_specialite})"><\/i>
+                        <\/td>
+                    <\/tr>
+                `;
+            });
+        }
+
+        function ouvrirModalAjout() {
+            document.getElementById('ajoutNom').value = '';
+            document.getElementById('modalAjout').style.display = 'flex';
+        }
+
+        async function ajouterSpecialite() {
+            const nom = document.getElementById('ajoutNom').value.trim();
+            if (!nom) {
+                showToast('Veuillez entrer un nom', 'error');
+                return;
+            }
+            
+            const { error } = await supabaseClient.from('specialites').insert([{ nom_specialite: nom }]);
+            if (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            } else {
+                showToast('Spécialité ajoutée', 'success');
+                fermerModal('modalAjout');
+                chargerSpecialites();
+            }
+        }
+
+        async function ouvrirModification(id) {
+            const { data, error } = await supabaseClient.from('specialites').select('*').eq('id_specialite', id).single();
+            if (error) return;
+            
+            document.getElementById('editId').value = data.id_specialite;
+            document.getElementById('editNom').value = data.nom_specialite;
+            document.getElementById('modalModif').style.display = 'flex';
+        }
+
+        async function modifierSpecialite() {
+            const id = document.getElementById('editId').value;
+            const nom = document.getElementById('editNom').value.trim();
+            
+            if (!nom) {
+                showToast('Veuillez entrer un nom', 'error');
+                return;
+            }
+            
+            const { error } = await supabaseClient.from('specialites').update({ nom_specialite: nom }).eq('id_specialite', id);
+            if (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            } else {
+                showToast('Spécialité modifiée', 'success');
+                fermerModal('modalModif');
+                chargerSpecialites();
+            }
+        }
+
+        async function supprimerSpecialite(id) {
+            if (!confirm('Supprimer cette spécialité ?')) return;
+            
+            const { error } = await supabaseClient.from('specialites').delete().eq('id_specialite', id);
+            if (error) {
+                showToast('Erreur: ' + error.message, 'error');
+            } else {
+                showToast('Spécialité supprimée', 'success');
+                chargerSpecialites();
+            }
+        }
+
+        function fermerModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const search = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#specialitesBody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        chargerSpecialites();
+    </script>
+</body>
+</html>

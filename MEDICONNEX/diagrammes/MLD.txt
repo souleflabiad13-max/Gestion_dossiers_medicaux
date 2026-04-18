@@ -1,0 +1,71 @@
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                              MLD - MÉDICONNEX                                                │
+└─────────────────────────────────────────────────────────────────────────────────────────────┘
+
+                                    ┌─────────────────────────┐
+                                    │        WILAYA           │
+                                    ├─────────────────────────┤
+                                    │ id_wilaya (PK)          │
+                                    │ nom_wilaya VARCHAR(100) │
+                                    └───────────┬─────────────┘
+                                                │
+                    ┌───────────────────────────┼───────────────────────────┐
+                    │                           │                           │
+                    ▼                           ▼                           ▼
+    ┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
+    │        HOPITAL          │   │        MEDECIN          │   │        PATIENT          │
+    ├─────────────────────────┤   ├─────────────────────────┤   ├─────────────────────────┤
+    │ id_hopital (PK)         │   │ id_medecin (PK)         │   │ id_patient (PK)         │
+    │ nom_hopital VARCHAR(200)│   │ code_medecin VARCHAR(50)│   │ id_national VARCHAR(50) │
+    │ adresse TEXT            │   │ nom VARCHAR(100)        │   │ nom VARCHAR(100)        │
+    │ telephone VARCHAR(50)   │   │ prenom VARCHAR(100)     │   │ prenom VARCHAR(100)     │
+    │ id_wilaya (FK)──────────┼──▶│ email VARCHAR(255)      │   │ date_naissance DATE     │
+    └─────────────────────────┘   │ telephone VARCHAR(50)   │   │ age INT                 │
+                                  │ mot_de_passe VARCHAR(255│   │ sexe VARCHAR(10)        │
+                                  │ id_specialite (FK)      │   │ email VARCHAR(255)      │
+                                  │ id_hopital (FK)─────────┼──▶│ telephone VARCHAR(50)   │
+                                  │ id_wilaya (FK)──────────┼──▶│ adresse TEXT            │
+                                  │ date_creation TIMESTAMP │   │ id_wilaya (FK)──────────┼──▶
+                                  └───────────┬─────────────┘   │ mot_de_passe VARCHAR(255)│
+                                              │                   │ groupe_sanguin VARCHAR(5)│
+                    ┌─────────────────────────┼─────────────────┐ │ allergies TEXT          │
+                    │                         │                 │ │ maladies_chroniques TEXT│
+                    ▼                         ▼                 ▼ │ antecedents TEXT        │
+    ┌─────────────────────────┐   ┌─────────────────────────┐   │ id_medecin_traitant (FK)│
+    │     SPECIALITE          │   │    CONSULTATION         │   │ date_creation TIMESTAMP │
+    ├─────────────────────────┤   ├─────────────────────────┤   └─────────────────────────┘
+    │ id_specialite (PK)      │   │ id_consultation (PK)    │
+    │ nom_specialite VARCHAR(100)│ │ id_patient (FK)─────────┼──▶
+    └─────────────────────────┘   │ id_medecin (FK)─────────┼──▶
+                                  │ date_consultation DATE  │
+                                  │ motif TEXT              │
+                                  │ symptomes TEXT          │
+                                  │ diagnostic TEXT         │
+                                  │ traitement TEXT         │
+                                  │ notes TEXT              │
+                                  └─────────────────────────┘
+
+    ┌─────────────────────────┐   ┌─────────────────────────┐   ┌─────────────────────────┐
+    │     RENDEZ_VOUS         │   │     PRESCRIPTION        │   │       MESSAGE           │
+    ├─────────────────────────┤   ├─────────────────────────┤   ├─────────────────────────┤
+    │ id_rdv (PK)             │   │ id_prescription (PK)    │   │ id_message (PK)         │
+    │ id_patient (FK)─────────┼──▶│ id_patient (FK)─────────┼──▶│ id_patient (FK)─────────┼──▶
+    │ id_medecin (FK)─────────┼──▶│ id_medecin (FK)─────────┼──▶│ id_medecin (FK)─────────┼──▶
+    │ date_rdv TIMESTAMP      │   │ medicament VARCHAR(200) │   │ sujet VARCHAR(200)      │
+    │ motif TEXT              │   │ dosage VARCHAR(100)    │   │ contenu TEXT            │
+    │ statut VARCHAR(50)      │   │ frequence VARCHAR(100) │   │ date_envoi TIMESTAMP    │
+    │ created_at TIMESTAMP    │   │ duree VARCHAR(100)      │   │ lu BOOLEAN              │
+    └─────────────────────────┘   │ date_prescription TIMESTAMP│ │ reponse TEXT            │
+                                  └─────────────────────────┘   │ date_reponse TIMESTAMP  │
+                                                                └─────────────────────────┘
+
+    ┌─────────────────────────┐
+    │       DOCUMENT          │
+    ├─────────────────────────┤
+    │ id_document (PK)        │
+    │ id_patient (FK)─────────┼──▶
+    │ nom_fichier VARCHAR(255)│
+    │ url TEXT                │
+    │ type_document VARCHAR(50)│
+    │ date_upload TIMESTAMP   │
+    └─────────────────────────┘

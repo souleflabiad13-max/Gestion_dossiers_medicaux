@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messagerie - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            padding: 30px;
+            position: relative;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 15, 0.75);
+            z-index: 0;
+        }
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .bg-glow .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.1), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 25px 35px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .greeting h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 5px rgba(0, 212, 255, 0.3); }
+            50% { text-shadow: 0 0 15px rgba(0, 212, 255, 0.6); }
+        }
+        .greeting p { color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 5px; }
+
+        .btn-back {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #00d4ff;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-back:hover {
+            background: #00d4ff;
+            color: #0a0c10;
+            transform: translateY(-2px);
+        }
+
+        .messages-container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .messages-list {
+            flex: 1;
+            min-width: 320px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .message-detail {
+            flex: 1.5;
+            min-width: 380px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+        }
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #00d4ff;
+        }
+
+        .message-item {
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .message-item:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .message-item.unread {
+            border-left: 3px solid #00d4ff;
+        }
+        .message-sujet {
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        .message-patient {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .message-date {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .detail-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .detail-sujet {
+            font-size: 20px;
+            font-weight: 600;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .detail-patient {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .detail-date {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .detail-contenu {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .reply-label {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .reply-textarea {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 16px;
+            color: white;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        .reply-textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .btn-send {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #0a0c10;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .loading-spinner { text-align: center; padding: 40px; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 20px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #00d4ff;
+            border-radius: 12px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px; }
+            .messages-container { flex-direction: column; }
+            .messages-list, .message-detail { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="greeting">
+                <h1>Messagerie</h1>
+                <p>Consultez et répondez aux messages de vos patients</p>
+            </div>
+            <a href="medecin-dashboard.html" class="btn-back"><i class="fas fa-arrow-left"></i> Retour</a>
+        </div>
+
+        <div class="messages-container">
+            <div class="messages-list">
+                <div class="section-header"><h3><i class="fas fa-inbox"></i> Messages reçus</h3></div>
+                <div id="messagesList"><div class="loading-spinner"><div class="spinner"></div><p>Chargement...</p></div></div>
+            </div>
+            <div class="message-detail">
+                <div id="messageDetail">
+                    <div class="empty-state">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <p>Sélectionnez un message pour lire et répondre</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const medecinData = localStorage.getItem('medecin');
+        if (!medecinData) window.location.href = 'medecin-login.html';
+        const medecin = JSON.parse(medecinData);
+        const currentMedecinId = medecin.id_medecin;
+
+        let messagesList = [];
+        let patientsCache = {};
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function getPatientName(patientId) {
+            if (patientsCache[patientId]) return patientsCache[patientId];
+            try {
+                const { data, error } = await supabaseClient
+                    .from('patients')
+                    .select('nom, prenom')
+                    .eq('id_patient', patientId)
+                    .single();
+                if (data) {
+                    patientsCache[patientId] = `${data.prenom || ''} ${data.nom || ''}`;
+                    return patientsCache[patientId];
+                }
+                return 'Patient';
+            } catch (err) {
+                return 'Patient';
+            }
+        }
+
+        async function loadMessages() {
+            const container = document.getElementById('messagesList');
+            container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><p>Chargement...</p></div>';
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('messages')
+                    .select('*')
+                    .eq('id_medecin', currentMedecinId)
+                    .order('date_envoi', { ascending: false });
+                
+                if (error) throw error;
+                
+                messagesList = data || [];
+                
+                if (messagesList.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-envelope-open-text"></i><p>Aucun message reçu</p></div>';
+                    return;
+                }
+                
+                for (const msg of messagesList) {
+                    msg.patientName = await getPatientName(msg.id_patient);
+                }
+                
+                container.innerHTML = messagesList.map(msg => `
+                    <div class="message-item ${!msg.lu ? 'unread' : ''}" onclick="selectMessage(${msg.id_message})" data-id="${msg.id_message}">
+                        <div class="message-sujet">${escapeHtml(msg.sujet || 'Sans sujet')}</div>
+                        <div class="message-patient"><i class="fas fa-user"></i> ${escapeHtml(msg.patientName)}</div>
+                        <div class="message-date"><i class="fas fa-clock"></i> ${new Date(msg.date_envoi).toLocaleString('fr-FR')}</div>
+                    </div>
+                `).join('');
+                
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
+            }
+        }
+
+        async function selectMessage(messageId) {
+            const message = messagesList.find(m => m.id_message === messageId);
+            if (!message) return;
+            
+            if (!message.lu) {
+                await supabaseClient
+                    .from('messages')
+                    .update({ lu: true })
+                    .eq('id_message', messageId);
+                message.lu = true;
+                const msgElement = document.querySelector(`.message-item[data-id="${messageId}"]`);
+                if (msgElement) msgElement.classList.remove('unread');
+            }
+            
+            const patientName = await getPatientName(message.id_patient);
+            
+            const detailHtml = `
+                <div class="detail-header">
+                    <div class="detail-sujet">${escapeHtml(message.sujet || 'Sans sujet')}</div>
+                    <div class="detail-patient"><i class="fas fa-user"></i> De: ${escapeHtml(patientName)}</div>
+                    <div class="detail-date"><i class="fas fa-calendar"></i> ${new Date(message.date_envoi).toLocaleString('fr-FR')}</div>
+                </div>
+                <div class="detail-contenu">
+                    ${escapeHtml(message.contenu)}
+                </div>
+                ${message.reponse ? `
+                    <div style="background: rgba(0,212,255,0.05); border-radius: 12px; padding: 15px; margin-top: 15px;">
+                        <strong style="color: #00d4ff;"><i class="fas fa-reply"></i> Votre réponse :</strong>
+                        <p style="margin-top: 10px;">${escapeHtml(message.reponse)}</p>
+                        <small style="color: rgba(255,255,255,0.5);">${new Date(message.date_reponse).toLocaleString('fr-FR')}</small>
+                    </div>
+                ` : ''}
+                <div style="margin-top: 25px;">
+                    <div class="reply-label"><i class="fas fa-reply"></i> Répondre</div>
+                    <textarea id="replyText" class="reply-textarea" rows="4" placeholder="Écrivez votre réponse ici..."></textarea>
+                    <button class="btn-send" onclick="sendReply(${message.id_message})"><i class="fas fa-paper-plane"></i> Envoyer la réponse</button>
+                </div>
+            `;
+            
+            document.getElementById('messageDetail').innerHTML = detailHtml;
+        }
+
+        async function sendReply(messageId) {
+            const replyText = document.getElementById('replyText')?.value.trim();
+            if (!replyText) {
+                showToast('Veuillez écrire une réponse', 'error');
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .update({ 
+                        reponse: replyText, 
+                        date_reponse: new Date().toISOString() 
+                    })
+                    .eq('id_message', messageId);
+                
+                if (error) throw error;
+                
+                showToast('✅ Réponse envoyée avec succès', 'success');
+                
+                const message = messagesList.find(m => m.id_message === messageId);
+                if (message) {
+                    message.reponse = replyText;
+                    message.date_reponse = new Date().toISOString();
+                }
+                
+                selectMessage(messageId);
+                
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Erreur: ' + error.message, 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+        });
+        
+        window.selectMessage = selectMessage;
+        window.sendReply = sendReply;
+    </script>
+</body>
+</html>

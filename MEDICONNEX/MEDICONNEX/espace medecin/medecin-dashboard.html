@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Médecin - MédiConnex</title>
+   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #1a1a2e; color: #fff; display: flex; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 280px; background: linear-gradient(145deg, #16213e, #1a1a2e); border-right: 2px solid #00d4ff33; padding: 30px 20px; height: 100vh; position: fixed; }
+        .sidebar-logo { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; }
+        .sidebar-logo i { font-size: 2.5rem; color: var(--primary); }
+        .sidebar-logo span { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 10px; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 15px; padding: 12px 20px; color: #fff; text-decoration: none; border-radius: 12px; transition: 0.3s; }
+        .sidebar-menu a i { width: 25px; color: var(--primary); }
+        .sidebar-menu a:hover, .sidebar-menu .active a { background: rgba(0,212,255,0.1); border-left: 4px solid var(--primary); }
+        .sidebar-footer { position: absolute; bottom: 30px; left: 20px; right: 20px; padding: 20px; background: rgba(0,212,255,0.05); border-radius: 15px; }
+        .sidebar-footer a { display: flex; align-items: center; gap: 15px; color: #ff3366; text-decoration: none; }
+        
+        /* MAIN CONTENT */
+        .main-content { flex: 1; margin-left: 280px; padding: 30px; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(0,212,255,0.05); padding: 15px 25px; border-radius: 30px; }
+        .doctor-profile { display: flex; align-items: center; gap: 20px; cursor: pointer; }
+        .doctor-avatar { width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), #1a1a2e); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--primary); }
+        .doctor-info h2 { color: var(--primary); font-size: 1.2rem; }
+        .search-bar { display: flex; gap: 10px; }
+        .search-bar input { padding: 12px 20px; background: rgba(255,255,255,0.05); border: 1px solid var(--primary); border-radius: 30px; color: #fff; width: 300px; }
+        .search-bar button { padding: 12px 25px; background: rgba(0,212,255,0.1); border: 1px solid var(--primary); border-radius: 30px; color: var(--primary); cursor: pointer; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
+        .stat-card { background: rgba(0,212,255,0.03); border: 1px solid var(--primary); border-radius: 20px; padding: 25px; text-align: center; }
+        .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+        
+        .section-card { background: rgba(0,212,255,0.03); border: 1px solid var(--primary); border-radius: 20px; padding: 25px; margin-bottom: 30px; }
+        .section-title { color: var(--primary); font-size: 1.3rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .patients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .patient-card { background: rgba(0,212,255,0.02); border: 1px solid var(--primary); border-radius: 15px; padding: 20px; cursor: pointer; transition: 0.3s; }
+        .patient-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .patient-card h4 { color: var(--primary); margin-bottom: 5px; }
+        .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .action-btn { background: rgba(0,212,255,0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
+        .action-btn:hover { background: rgba(0,212,255,0.15); transform: translateY(-3px); }
+        
+        @media (max-width: 768px) { .sidebar { width: 80px; } .sidebar span, .sidebar-footer span { display: none; } .main-content { margin-left: 80px; } .stats-grid { grid-template-columns: 1fr; } .search-bar { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo"><i class="fa-solid fa-staff-snake"></i><span>MédiConnex</span></div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="#"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+          
+            <li><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer"><a href="medecin-login.html"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a></div>
+    </div>
+
+    <div class="main-content">
+        <div class="dashboard-header">
+            <div class="doctor-profile" onclick="window.location.href='medecin-profil.html'">
+                <div class="doctor-avatar"><i class="fa-solid fa-user-md"></i></div>
+                <div class="doctor-info"><h2>Dr. Ahmed Benali</h2><p>Cardiologie</p></div>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchPatient" placeholder="Nom, ID ou téléphone...">
+                <button onclick="rechercherPatient()">Rechercher</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number" id="totalPatients">0</div><div>Patients</div></div>
+            <div class="stat-card"><div class="stat-number" id="totalConsultations">0</div><div>Consultations</div></div>
+            <div class="stat-card"><div class="stat-number" id="todayRdv">0</div><div>Rendez-vous</div></div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title"><i class="fa-solid-folder-open"></i> Dossiers médicaux récents</div>
+            <div class="patients-grid" id="recentPatients">Chargement...</div>
+        </div>
+
+        <div class="actions-grid">
+            <a href="medecin-patients.html" class="action-btn"><i class="fa-solid fa-list"></i> Liste patients</a>
+            <a href="medecin-ajout-patient.html" class="action-btn"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a>
+            <a href="medecin-consultation.html" class="action-btn"><i class="fa-solid fa-stethoscope"></i> Nouvelle consultation</a>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7'; // ← Ta vraie clé
+
+        let allPatients = [];
+
+        async function chargerStats() {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/patients?select=*`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+            const patients = await res.json();
+            allPatients = patients;
+            document.getElementById('totalPatients').innerText = patients.length;
+            
+            const consRes = await fetch(`${SUPABASE_URL}/rest/v1/consultations?select=*`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+            const consultations = await consRes.json();
+            document.getElementById('totalConsultations').innerText = consultations.length;
+            
+            const rdvRes = await fetch(`${SUPABASE_URL}/rest/v1/rendez_vous?select=*`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+            const rdvs = await rdvRes.json();
+            document.getElementById('todayRdv').innerText = rdvs.length;
+            
+            afficherDerniersPatients(patients.slice(0, 4));
+        }
+
+        function afficherDerniersPatients(patients) {
+            const container = document.getElementById('recentPatients');
+            if (!patients.length) { container.innerHTML = '<p>Aucun patient</p>'; return; }
+            container.innerHTML = patients.map(p => `
+                <div class="patient-card" onclick="window.location.href='medecin-dossier.html?id=${p.id_patient}'">
+                    <h4>${p.prenom} ${p.nom}</h4>
+                    <p>ID: ${p.id_national || p.id_patient}</p>
+                    <p>Âge: ${p.age || '?'} ans</p>
+                </div>
+            `).join('');
+        }
+
+        async function rechercherPatient() {
+            const search = document.getElementById('searchPatient').value.trim().toLowerCase();
+            if (!search) { chargerStats(); return; }
+            const filtered = allPatients.filter(p => 
+                (p.nom && p.nom.toLowerCase().includes(search)) ||
+                (p.prenom && p.prenom.toLowerCase().includes(search)) ||
+                (p.id_national && p.id_national.toLowerCase().includes(search)) ||
+                (p.telephone && p.telephone.includes(search))
+            );
+            afficherDerniersPatients(filtered.slice(0, 4));
+        }
+
+        chargerStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Médecin - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --primary-glow: rgba(0, 212, 255, 0.4);
+            --bg-card: rgba(15, 23, 42, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            display: flex;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 15, 0.75);
+            z-index: -1;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .bg-glow .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.1), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: relative;
+            z-index: 2;
+            width: 280px;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px 20px;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .sidebar-logo i {
+            font-size: 2rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 10px var(--primary-glow));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px var(--primary-glow)); }
+            50% { filter: drop-shadow(0 0 15px var(--primary-glow)); }
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar-menu a i { width: 22px; font-size: 1.1rem; color: var(--primary); }
+        .sidebar-menu a:hover, .sidebar-menu .active a {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ff3366;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .sidebar-footer a:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px 35px;
+        }
+
+        /* ========== HEADER LUMINEUX ========== */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .welcome-title {
+            animation: glowTitle 3s ease-in-out infinite;
+        }
+
+        @keyframes glowTitle {
+            0%, 100% { text-shadow: 0 0 5px var(--primary), 0 0 10px rgba(0,212,255,0.3); }
+            50% { text-shadow: 0 0 20px var(--primary), 0 0 30px rgba(0,212,255,0.5); }
+        }
+
+        .welcome-title h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .welcome-title p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .doctor-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 212, 255, 0.05);
+            padding: 8px 20px 8px 12px;
+            border-radius: 60px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .doctor-profile:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .doctor-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        .doctor-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .doctor-info h3 { font-size: 1rem; color: var(--primary); }
+        .doctor-info p { font-size: 0.75rem; color: #94a3b8; }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50px;
+            padding: 5px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .search-bar input {
+            background: transparent;
+            border: none;
+            padding: 10px 15px;
+            color: #fff;
+            width: 250px;
+            outline: none;
+        }
+        .search-bar button {
+            background: var(--primary);
+            border: none;
+            border-radius: 40px;
+            padding: 8px 20px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .search-bar button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* ========== STATS CARDS ========== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transition: 0.5s;
+        }
+        .stat-card:hover::before { left: 100%; }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.2);
+        }
+        .stat-icon { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
+        .stat-number { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 5px; }
+
+        /* ========== CALENDRIER ========== */
+        .calendar-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 30px;
+            max-width: 350px;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-header button {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            color: var(--primary);
+            cursor: pointer;
+        }
+        .calendar-header button:hover {
+            background: var(--primary);
+            color: #1a1a2e;
+            transform: scale(1.05);
+        }
+        .calendar-header h3 { color: var(--primary); font-size: 0.9rem; }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .calendar-day {
+            padding: 6px;
+            text-align: center;
+            font-size: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .calendar-day:hover { background: rgba(0, 212, 255, 0.1); }
+        .calendar-day.has-rdv {
+            background: var(--primary);
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        .calendar-day.today { border: 1px solid var(--primary); font-weight: bold; }
+
+        /* ========== GRAPHIQUE ========== */
+        .chart-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card h3 { color: var(--primary); font-size: 1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        canvas { max-height: 200px; width: 100%; }
+
+        /* ========== PATIENTS RÉCENTS ========== */
+        .section-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .section-title { color: var(--primary); font-size: 1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .patients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .patient-card {
+            background: rgba(0, 212, 255, 0.03);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .patient-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .patient-card h4 { color: var(--primary); margin-bottom: 5px; font-size: 1rem; }
+        .patient-card p { color: #94a3b8; font-size: 0.75rem; }
+
+        /* ========== ACTIONS RAPIDES ========== */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .action-btn {
+            background: rgba(0, 212, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #fff;
+            display: block;
+        }
+        .action-btn i { font-size: 1.5rem; color: var(--primary); margin-bottom: 8px; }
+        .action-btn span { font-size: 0.8rem; }
+        .action-btn:hover {
+            background: rgba(0, 212, 255, 0.15);
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 1100;
+            animation: slideInRight 0.3s ease;
+            font-size: 0.85rem;
+        }
+        .toast.success { background: #00ff88; color: #1a1a2e; }
+        .toast.info { background: var(--primary); color: #1a1a2e; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .actions-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; }
+            .sidebar span, .sidebar-footer span { display: none; }
+            .main-content { margin-left: 80px; padding: 15px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .search-bar input { width: 150px; }
+            .calendar-card { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-staff-snake"></i>
+            <span>MédiConnex</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="medecin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+            <li><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-messagerie.html"><i class="fa-solid fa-comments"></i> Messagerie</a></li>
+            <li><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="dashboard-header">
+            <div class="welcome-title">
+                <h1 id="welcomeMessage">Tableau de bord</h1>
+                <p><i class="fa-solid fa-calendar-alt"></i> <span id="currentDate"></span></p>
+            </div>
+            <div class="doctor-profile" onclick="window.location.href='medecin-profil.html'">
+                <div class="doctor-avatar">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Dr">
+                </div>
+                <div class="doctor-info">
+                    <h3 id="doctorName">Dr. Ahmed Benali</h3>
+                    <p id="doctorSpecialite">Cardiologue</p>
+                </div>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="searchPatient" placeholder="Nom, ID ou téléphone...">
+                <button onclick="rechercherPatient()"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-number" id="totalPatients">0</div><div class="stat-label">Patients</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-stethoscope"></i></div><div class="stat-number" id="totalConsultations">0</div><div class="stat-label">Consultations</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div><div class="stat-number" id="todayRdv">0</div><div class="stat-label">Rendez-vous aujourd'hui</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div><div class="stat-number" id="weekRdv">0</div><div class="stat-label">Cette semaine</div></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 350px 1fr; gap: 20px; margin-bottom: 30px;">
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                    <h3 id="monthYear"></h3>
+                    <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fa-solid fa-chart-line"></i> Consultations par jour de la semaine</h3>
+                <canvas id="consultationsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-title"><i class="fa-solid fa-folder-open"></i> Dossiers médicaux récents</div>
+            <div class="patients-grid" id="recentPatients">Chargement...</div>
+        </div>
+
+        <div class="actions-grid">
+            <a href="medecin-patients.html" class="action-btn"><i class="fa-solid fa-list"></i><span>Liste patients</span></a>
+            <a href="medecin-ajout-patient.html" class="action-btn"><i class="fa-solid fa-user-plus"></i><span>Ajouter patient</span></a>
+            <a href="medecin-consultation.html" class="action-btn"><i class="fa-solid fa-stethoscope"></i><span>Nouvelle consultation</span></a>
+            <a href="medecin-ajout-rendezvous.html" class="action-btn"><i class="fa-solid fa-calendar-plus"></i><span>Nouveau rendez-vous</span></a>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+        const medecinId = medecin.id_medecin || 1;
+
+        if (!localStorage.getItem('medecin')) window.location.href = 'medecin-login.html';
+
+        function logout() { localStorage.removeItem('medecin'); window.location.href = 'medecin-login.html'; }
+
+        const today = new Date();
+        document.getElementById('currentDate').innerHTML = today.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
+
+        let allPatients = [];
+        let rdvDates = [];
+        let currentDate = new Date();
+        let consultationsChart = null;
+
+        async function chargerStats() {
+            const { data: patients } = await supabaseClient.from('patients').select('*');
+            allPatients = patients || [];
+            document.getElementById('totalPatients').innerText = allPatients.length;
+            
+            const { data: consultations } = await supabaseClient.from('consultations').select('*').eq('id_medecin', medecinId);
+            document.getElementById('totalConsultations').innerText = consultations?.length || 0;
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const { data: rdvsToday } = await supabaseClient.from('rendez_vous').select('*').eq('date_rdv', todayStr).eq('id_medecin', medecinId);
+            document.getElementById('todayRdv').innerText = rdvsToday?.length || 0;
+            
+            const startOfWeek = new Date();
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 7);
+            const { data: rdvsWeek } = await supabaseClient.from('rendez_vous').select('*').gte('date_rdv', startOfWeek.toISOString().split('T')[0]).lte('date_rdv', endOfWeek.toISOString().split('T')[0]).eq('id_medecin', medecinId);
+            document.getElementById('weekRdv').innerText = rdvsWeek?.length || 0;
+            
+            await chargerRdvDates();
+            genererCalendrier();
+            await chargerGraphique();
+            afficherDerniersPatients(allPatients.slice(0, 6));
+        }
+
+        async function chargerRdvDates() {
+            const { data } = await supabaseClient.from('rendez_vous').select('date_rdv').eq('id_medecin', medecinId);
+            rdvDates = data?.map(rdv => rdv.date_rdv?.split('T')[0]) || [];
+        }
+
+        function genererCalendrier() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            let startDay = firstDay.getDay();
+            startDay = startDay === 0 ? 6 : startDay - 1;
+            
+            let calendarHTML = '';
+            const jours = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+            calendarHTML += jours.map(j => `<div style="text-align:center; color:var(--primary); font-size:0.7rem; padding:5px;">${j}</div>`).join('');
+            
+            for (let i = 0; i < startDay; i++) calendarHTML += '<div class="calendar-day empty"></div>';
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasRdv = rdvDates.includes(dateStr);
+                const isToday = dateStr === todayStr;
+                calendarHTML += `<div class="calendar-day ${hasRdv ? 'has-rdv' : ''} ${isToday ? 'today' : ''}" onclick="voirRdvJour('${dateStr}')">${day}</div>`;
+            }
+            
+            document.getElementById('calendarGrid').innerHTML = calendarHTML;
+            document.getElementById('monthYear').innerHTML = currentDate.toLocaleString('fr', { month: 'long', year: 'numeric' }).toUpperCase();
+        }
+
+        window.voirRdvJour = async function(date) {
+            const { data } = await supabaseClient.from('rendez_vous').select('*, patients(nom, prenom)').eq('date_rdv', date).eq('id_medecin', medecinId);
+            if (data && data.length > 0) {
+                let msg = `📅 Rendez-vous le ${date}:\n`;
+                data.forEach(rdv => { msg += `- ${rdv.patients?.prenom} ${rdv.patients?.nom} - ${rdv.motif || 'Consultation'}\n`; });
+                alert(msg);
+            } else {
+                alert(`✅ Aucun rendez-vous le ${date}`);
+            }
+        };
+
+        async function chargerGraphique() {
+            const { data } = await supabaseClient.from('consultations').select('date_consultation').eq('id_medecin', medecinId);
+            const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+            const consultationsParJour = [0, 0, 0, 0, 0, 0, 0];
+            
+            data?.forEach(c => {
+                if (c.date_consultation) {
+                    let jour = new Date(c.date_consultation).getDay();
+                    let index = jour === 0 ? 6 : jour - 1;
+                    consultationsParJour[index]++;
+                }
+            });
+            
+            const ctx = document.getElementById('consultationsChart').getContext('2d');
+            if (consultationsChart) consultationsChart.destroy();
+            consultationsChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: jours, datasets: [{ label: 'Consultations', data: consultationsParJour, backgroundColor: '#00d4ff', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }, scales: { y: { ticks: { color: '#94a3b8', stepSize: 1 } }, x: { ticks: { color: '#94a3b8', font: { size: 10 } } } } }
+            });
+        }
+
+        function afficherDerniersPatients(patients) {
+            const container = document.getElementById('recentPatients');
+            if (!patients.length) { container.innerHTML = '<p style="color:#94a3b8;">Aucun patient</p>'; return; }
+            container.innerHTML = patients.map(p => `
+                <div class="patient-card" onclick="window.location.href='medecin-dossier.html?id=${p.id_patient}'">
+                    <h4>${p.prenom} ${p.nom}</h4>
+                    <p><i class="fa-solid fa-id-card"></i> ${p.id_national || p.id_patient}</p>
+                    <p><i class="fa-solid fa-cake-candles"></i> ${p.age || '?'} ans</p>
+                </div>
+            `).join('');
+        }
+
+        async function rechercherPatient() {
+            const search = document.getElementById('searchPatient').value.trim().toLowerCase();
+            if (!search) { chargerStats(); return; }
+            const filtered = allPatients.filter(p => (p.nom?.toLowerCase().includes(search)) || (p.prenom?.toLowerCase().includes(search)) || (p.id_national?.toLowerCase().includes(search)) || (p.telephone?.includes(search)));
+            afficherDerniersPatients(filtered.slice(0, 6));
+        }
+
+        document.getElementById('prevMonth').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); genererCalendrier(); };
+        document.getElementById('nextMonth').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); genererCalendrier(); };
+
+        chargerStats();
+    </script>
+</body>
+</html>

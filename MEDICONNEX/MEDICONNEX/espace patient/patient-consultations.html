@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consultations | MediConnex</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #00ff88;
+      --primary-dark: #00cc6a;
+      --bg-main: #05070f;
+      --bg-card: rgba(15, 23, 42, 0.7);
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border: rgba(0, 255, 136, 0.2);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-primary); }
+    body::before {
+      content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .sidebar {
+      position: fixed; left: 0; top: 0; width: 280px; height: 100%;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px);
+      padding: 30px 20px; border-right: 1px solid var(--border); z-index: 100;
+    }
+    .sidebar-header { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .sidebar-header i { font-size: 32px; color: var(--primary); }
+    .sidebar-header h2 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .sidebar nav ul { list-style: none; }
+    .sidebar nav ul li { margin-bottom: 8px; }
+    .sidebar nav ul li a {
+      color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 14px;
+      padding: 12px 16px; border-radius: 14px; transition: all 0.3s; font-weight: 500; font-size: 14px;
+    }
+    .sidebar nav ul li a i { width: 22px; }
+    .sidebar nav ul li a:hover { background: rgba(0, 255, 136, 0.1); color: var(--primary); transform: translateX(5px); }
+    .sidebar nav ul li a.active { background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05)); color: var(--primary); border-left: 3px solid var(--primary); }
+    .main-content { margin-left: 280px; padding: 30px 40px; position: relative; z-index: 1; }
+    .top-bar {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+      padding: 15px 25px; background: var(--bg-card); backdrop-filter: blur(12px);
+      border-radius: 24px; border: 1px solid var(--border);
+    }
+    .greeting h1 { font-size: 22px; font-weight: 600; }
+    .greeting p { color: var(--text-secondary); font-size: 13px; }
+    .btn-back { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 10px 20px; border-radius: 14px; color: var(--text-secondary); cursor: pointer; transition: 0.3s; }
+    .btn-back:hover { background: var(--primary); color: var(--bg-main); }
+    .section-card {
+      background: var(--bg-card); backdrop-filter: blur(12px); border-radius: 28px;
+      padding: 25px 30px; border: 1px solid var(--border);
+    }
+    .section-header { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
+    .section-header h3 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .section-header h3 i { color: var(--primary); }
+    .consult-item {
+      background: rgba(0, 255, 136, 0.03); border-radius: 20px; padding: 20px;
+      margin-bottom: 15px; border: 1px solid var(--border); transition: 0.3s;
+    }
+    .consult-item:hover { border-color: var(--primary); transform: translateX(5px); }
+    .consult-date { font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+    .consult-detail { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .consult-detail strong { color: white; }
+    .empty-state { text-align: center; padding: 60px; color: var(--text-secondary); }
+    .loading-spinner { text-align: center; padding: 40px; }
+    .spinner { width: 45px; height: 45px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 768px) { .sidebar { left: -280px; } .sidebar.open { left: 0; } .main-content { margin-left: 0; padding: 20px; } .menu-toggle { display: block; position: fixed; top: 15px; left: 15px; z-index: 101; background: var(--primary); border: none; padding: 12px; border-radius: 14px; color: var(--secondary); cursor: pointer; } }
+    @media (min-width: 769px) { .menu-toggle { display: none; } }
+  </style>
+</head>
+<body>
+
+  <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header"><i class="fas fa-heartbeat"></i><h2>MediConnex</h2></div>
+    <nav>
+      <ul>
+        <li><a href="patient-dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+        <li><a href="patient-rendezvous.html"><i class="fas fa-calendar-alt"></i> Mes rendez-vous</a></li>
+        <li><a href="patient-dossier.html"><i class="fas fa-folder-medical"></i> Dossier médical</a></li>
+        <li><a href="patient-consultations.html" class="active"><i class="fas fa-history"></i> Consultations</a></li>
+        <li><a href="patient-profil.html"><i class="fas fa-user"></i> Mon profil</a></li>
+        <li><a href="patient-messagerie.html"><i class="fas fa-comments"></i> Messagerie</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="greeting"><h1>Historique des consultations</h1><p>Toutes vos visites médicales</p></div>
+      <button class="btn-back" onclick="window.location.href='patient-dashboard.html'"><i class="fas fa-arrow-left"></i> Retour</button>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header"><h3><i class="fas fa-stethoscope"></i> Vos consultations</h3></div>
+      <div id="consultListContainer"><div class="loading-spinner"><div class="spinner"></div><p>Chargement...</p></div></div>
+    </div>
+  </div>
+
+  <script>
+    const _supabase = supabase.createClient('https://uuhdpvtnfaycqemhrelo.supabase.co', 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7');
+    let currentPatientId = null;
+
+    async function loadConsultations() {
+      const { data: { user } } = await _supabase.auth.getUser();
+      if (!user) return window.location.href = 'patient-login.html';
+      
+      const { data: patient } = await _supabase.from('patients').select('id_patient').eq('email', user.email).single();
+      if (!patient) return;
+      currentPatientId = patient.id_patient;
+      
+      const { data: consultations } = await _supabase
+        .from('consultation')
+        .select(`*, medecins(nom, prenom)`)
+        .eq('id_patient', currentPatientId)
+        .order('date_consultation', { ascending: false });
+      
+      const container = document.getElementById('consultListContainer');
+      if (!consultations || consultations.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-stethoscope"></i><p>Aucune consultation enregistrée</p></div>`;
+        return;
+      }
+      
+      container.innerHTML = consultations.map(c => {
+        const medecinNom = c.medecins ? `${c.medecins.prenom || ''} ${c.medecins.nom || ''}`.trim() : 'Médecin';
+        return `
+          <div class="consult-item">
+            <div class="consult-date"><i class="fas fa-calendar-day"></i> ${c.date_consultation}</div>
+            <div class="consult-detail"><i class="fas fa-user-md"></i> <strong>Médecin:</strong> Dr. ${medecinNom}</div>
+            <div class="consult-detail"><i class="fas fa-notes-medical"></i> <strong>Motif:</strong> ${c.motif || 'Consultation'}</div>
+            <div class="consult-detail"><i class="fas fa-stethoscope"></i> <strong>Diagnostic:</strong> ${c.diagnostic || '--'}</div>
+            <div class="consult-detail"><i class="fas fa-prescription-bottle"></i> <strong>Traitement:</strong> ${c.traitement || '--'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadConsultations);
+    document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+  </script>
+</body>
+</html>

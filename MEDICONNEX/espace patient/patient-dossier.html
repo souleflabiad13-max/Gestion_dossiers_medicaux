@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dossier médical | MediConnex</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-image: url('https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=1600');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #ffffff;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 7, 15, 0.75);
+      z-index: 0;
+    }
+
+    .bg-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .bg-glow .glow-1 {
+      position: absolute;
+      top: 20%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.15), transparent);
+      border-radius: 50%;
+      animation: floatGlow 20s infinite ease-in-out;
+    }
+    .bg-glow .glow-2 {
+      position: absolute;
+      bottom: 10%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+      border-radius: 50%;
+      animation: floatGlow 25s infinite ease-in-out reverse;
+    }
+    @keyframes floatGlow {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(50px, -50px) scale(1.1); }
+      66% { transform: translate(-30px, 40px) scale(0.9); }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 280px;
+      height: 100%;
+      background: rgba(10, 12, 16, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 30px 20px;
+      border-right: 1px solid rgba(0, 255, 136, 0.2);
+      z-index: 100;
+      transition: all 0.3s;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .sidebar-header i { font-size: 28px; color: #00ff88; filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5)); }
+    .sidebar-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00ff88, #33ff9e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .sidebar nav ul { list-style: none; }
+    .sidebar nav ul li { margin-bottom: 6px; }
+    .sidebar nav ul li a {
+      color: #8a8f9e;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      transition: all 0.3s;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .sidebar nav ul li a i { width: 22px; font-size: 18px; }
+    .sidebar nav ul li a:hover {
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      transform: translateX(5px);
+    }
+    .sidebar nav ul li a.active {
+      background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
+      color: #00ff88;
+      border-left: 3px solid #00ff88;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .sidebar-footer a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #ef4444;
+      text-decoration: none;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: 0.3s;
+    }
+    .sidebar-footer a:hover {
+      background: rgba(239, 68, 68, 0.1);
+      transform: translateX(5px);
+    }
+
+    /* Main Content */
+    .main-content {
+      position: relative;
+      z-index: 2;
+      margin-left: 280px;
+      padding: 25px 35px;
+      min-height: 100vh;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .greeting h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ffffff, #00ff88);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+    @keyframes titleGlow {
+      0%, 100% { text-shadow: 0 0 5px rgba(0, 255, 136, 0.3); }
+      50% { text-shadow: 0 0 15px rgba(0, 255, 136, 0.6); }
+    }
+    .greeting p { color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 5px; }
+
+    .btn-back {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      padding: 10px 20px;
+      border-radius: 30px;
+      color: #00ff88;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-back:hover {
+      background: #00ff88;
+      color: #0a0c10;
+      transform: translateY(-2px);
+    }
+
+    /* Sections */
+    .section-card {
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .section-header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+    }
+    .section-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #00ff88;
+    }
+
+    /* Grids */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .info-item {
+      background: rgba(0, 255, 136, 0.05);
+      border-radius: 16px;
+      padding: 15px;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      transition: 0.3s;
+    }
+    .info-item:hover {
+      border-color: rgba(0, 255, 136, 0.5);
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .info-item label {
+      font-size: 11px;
+      color: #00ff88;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .info-item p {
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(0, 255, 136, 0.3);
+    }
+    .timeline-item {
+      position: relative;
+      padding: 15px 0 15px 25px;
+      margin-bottom: 10px;
+      background: rgba(0, 255, 136, 0.03);
+      border-radius: 12px;
+      transition: 0.3s;
+    }
+    .timeline-item:hover {
+      background: rgba(0, 255, 136, 0.08);
+      transform: translateX(5px);
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -20px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00ff88;
+      border: 2px solid #1a1a2e;
+    }
+    .timeline-date {
+      font-size: 0.7rem;
+      color: #00ff88;
+      margin-bottom: 5px;
+    }
+    .timeline-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .timeline-desc {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Tableaux */
+    .table-wrapper {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.15);
+    }
+    th {
+      color: #00ff88;
+      font-size: 0.8rem;
+      background: rgba(0, 255, 136, 0.05);
+    }
+    td {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    tr:hover td {
+      background: rgba(0, 255, 136, 0.05);
+    }
+
+    /* Badges */
+    .badge {
+      background: rgba(0, 255, 136, 0.15);
+      border-radius: 20px;
+      padding: 5px 12px;
+      display: inline-block;
+      margin: 3px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border-color: #f59e0b;
+    }
+    .badge-success {
+      background: rgba(0, 255, 136, 0.15);
+      color: #00ff88;
+      border-color: #00ff88;
+    }
+
+    /* Document link */
+    .document-link {
+      color: #00ff88;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .document-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Stats rapides */
+    .stats-mini {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    .stat-mini-card {
+      background: rgba(0, 255, 136, 0.05);
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid rgba(0, 255, 136, 0.2);
+    }
+    .stat-mini-number {
+      font-size: 28px;
+      font-weight: 700;
+      color: #00ff88;
+    }
+    .stat-mini-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 5px;
+    }
+
+    /* Alertes */
+    .alerte-rouge {
+      background: rgba(239, 68, 68, 0.15);
+      border-left: 4px solid #ef4444;
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .alerte-orange {
+      background: rgba(245, 158, 11, 0.15);
+      border-left: 4px solid #f59e0b;
+      padding: 12px 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      z-index: 101;
+      background: #00ff88;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      color: #0a0c10;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { left: -280px; }
+      .sidebar.open { left: 0; }
+      .main-content { margin-left: 0; padding: 20px; }
+      .menu-toggle { display: block; }
+      .stats-mini { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+  <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header"><i class="fas fa-heartbeat"></i><h2>MediConnex</h2></div>
+    <nav>
+      <ul>
+        <li><a href="patient-dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+        <li><a href="patient-rendezvous.html"><i class="fas fa-calendar-alt"></i> Mes rendez-vous</a></li>
+        <li><a href="patient-dossier.html" class="active"><i class="fas fa-folder-medical"></i> Dossier médical</a></li>
+        <li><a href="patient-consultations.html"><i class="fas fa-history"></i> Consultations</a></li>
+        <li><a href="patient-profil.html"><i class="fas fa-user"></i> Mon profil</a></li>
+        <li><a href="patient-messagerie.html"><i class="fas fa-comments"></i> Messagerie</a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="greeting"><h1>Dossier médical</h1><p>Vos informations de santé</p></div>
+      <button class="btn-back" onclick="window.location.href='patient-dashboard.html'"><i class="fas fa-arrow-left"></i> Retour</button>
+    </div>
+
+    <div id="dossierContent">Chargement...</div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const patientData = localStorage.getItem('patient');
+    if (!patientData) window.location.href = 'patient-login.html';
+    const patient = JSON.parse(patientData);
+    const currentPatientId = patient.id_patient;
+
+    function logout() { localStorage.removeItem('patient'); window.location.href = 'patient-login.html'; }
+
+    async function loadDossier() {
+      const container = document.getElementById('dossierContent');
+      container.innerHTML = '<div class="loading-spinner" style="text-align:center; padding:40px;"><div class="spinner" style="width:40px;height:40px;border:3px solid rgba(0,255,136,0.2);border-top-color:#00ff88;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 15px;"></div><p>Chargement...</p></div>';
+      
+      // Charger toutes les données en parallèle
+      const [patientInfo, consultations, prescriptions, documents, rdvs] = await Promise.all([
+        supabaseClient.from('patients').select('*').eq('id_patient', currentPatientId).single(),
+        supabaseClient.from('consultations').select('*, medecins(nom, prenom)').eq('id_patient', currentPatientId).order('date_consultation', { ascending: false }),
+        supabaseClient.from('prescriptions').select('*').eq('id_patient', currentPatientId).order('date_prescription', { ascending: false }),
+        supabaseClient.from('documents').select('*').eq('id_patient', currentPatientId).order('date_upload', { ascending: false }),
+        supabaseClient.from('rendez_vous').select('*, medecins(nom, prenom)').eq('id_patient', currentPatientId).order('date_rdv', { ascending: false })
+      ]);
+
+      const p = patientInfo.data;
+      const consultationsList = consultations.data || [];
+      const prescriptionsList = prescriptions.data || [];
+      const documentsList = documents.data || [];
+      const rdvsList = rdvs.data || [];
+
+      // Calculer les stats
+      const lastConsult = consultationsList.length > 0 ? new Date(consultationsList[0].date_consultation) : null;
+      const daysSinceLastConsult = lastConsult ? Math.floor((new Date() - lastConsult) / (1000 * 60 * 60 * 24)) : null;
+
+      // Alertes
+      let alertesHtml = '';
+      if (p?.allergies && p.allergies !== 'Aucune' && p.allergies !== 'null' && p.allergies !== '') {
+        alertesHtml += `<div class="alerte-rouge"><i class="fas fa-exclamation-triangle"></i> <strong>⚠️ ALERTE ALLERGIE :</strong> ${p.allergies}</div>`;
+      }
+      if (p?.maladies_chroniques && p.maladies_chroniques !== 'Aucune' && p.maladies_chroniques !== 'null' && p.maladies_chroniques !== '') {
+        alertesHtml += `<div class="alerte-orange"><i class="fas fa-heartbeat"></i> <strong>Maladie chronique :</strong> ${p.maladies_chroniques}</div>`;
+      }
+
+      // Stats mini
+      const statsMiniHtml = `
+        <div class="stats-mini">
+          <div class="stat-mini-card"><div class="stat-mini-number">${p?.age || '?'}</div><div class="stat-mini-label">Âge (ans)</div></div>
+          <div class="stat-mini-card"><div class="stat-mini-number">${p?.groupe_sanguin || '?'}</div><div class="stat-mini-label">Groupe sanguin</div></div>
+          <div class="stat-mini-card"><div class="stat-mini-number">${consultationsList.length}</div><div class="stat-mini-label">Consultations</div></div>
+          <div class="stat-mini-card"><div class="stat-mini-number">${prescriptionsList.length}</div><div class="stat-mini-label">Prescriptions</div></div>
+        </div>
+      `;
+
+      // Informations personnelles
+      const personalInfoHtml = `
+        <div class="section-card">
+          <div class="section-header"><h3><i class="fas fa-user-md"></i> Informations personnelles</h3></div>
+          <div class="info-grid">
+            <div class="info-item"><label>Nom complet</label><p>${p?.prenom || ''} ${p?.nom || ''}</p></div>
+            <div class="info-item"><label>Date de naissance</label><p>${p?.date_naissance || '--'}</p></div>
+            <div class="info-item"><label>Âge</label><p>${p?.age || '--'} ans</p></div>
+            <div class="info-item"><label>Sexe</label><p>${p?.sexe === 'M' ? 'Masculin' : (p?.sexe === 'F' ? 'Féminin' : '--')}</p></div>
+            <div class="info-item"><label>Téléphone</label><p>${p?.telephone || '--'}</p></div>
+            <div class="info-item"><label>Email</label><p>${p?.email || '--'}</p></div>
+            <div class="info-item"><label>Adresse</label><p>${p?.adresse || '--'}</p></div>
+          </div>
+        </div>
+      `;
+
+      // Informations médicales
+      const medicalInfoHtml = `
+        <div class="section-card">
+          <div class="section-header"><h3><i class="fas fa-notes-medical"></i> Informations médicales</h3></div>
+          <div class="info-grid">
+            <div class="info-item"><label>Groupe sanguin</label><p><span class="badge ${p?.groupe_sanguin ? 'badge-danger' : ''}">${p?.groupe_sanguin || 'Non spécifié'}</span></p></div>
+            <div class="info-item"><label>Allergies</label><p>${p?.allergies && p?.allergies !== 'null' ? `<span class="badge badge-danger">${p.allergies}</span>` : 'Aucune'}</p></div>
+            <div class="info-item"><label>Maladies chroniques</label><p>${p?.maladies_chroniques && p?.maladies_chroniques !== 'null' ? `<span class="badge badge-warning">${p.maladies_chroniques}</span>` : 'Aucune'}</p></div>
+            <div class="info-item"><label>Antécédents</label><p>${p?.antecedents && p?.antecedents !== 'null' ? p.antecedents : 'Aucun'}</p></div>
+            <div class="info-item"><label>Dernière consultation</label><p>${lastConsult ? lastConsult.toLocaleDateString('fr-FR') + ` <span class="badge">(il y a ${daysSinceLastConsult} jours)</span>` : 'Aucune'}</p></div>
+          </div>
+        </div>
+      `;
+
+      // Historique des consultations (timeline)
+      let consultationsHtml = '<div class="section-card"><div class="section-header"><h3><i class="fas fa-history"></i> Historique des consultations</h3></div>';
+      if (consultationsList.length > 0) {
+        consultationsHtml += '<div class="timeline">';
+        consultationsList.slice(0, 5).forEach(c => {
+          const medecinNom = c.medecins ? `${c.medecins.prenom || ''} ${c.medecins.nom || ''}`.trim() : 'Médecin';
+          consultationsHtml += `
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">${new Date(c.date_consultation).toLocaleDateString('fr-FR')}</div>
+              <div class="timeline-title">${c.motif || 'Consultation'}</div>
+              <div class="timeline-desc"><strong>Médecin:</strong> Dr. ${medecinNom}</div>
+              <div class="timeline-desc"><strong>Diagnostic:</strong> ${c.diagnostic || '-'}</div>
+              <div class="timeline-desc"><strong>Traitement:</strong> ${c.traitement || '-'}</div>
+            </div>
+          `;
+        });
+        if (consultationsList.length > 5) {
+          consultationsHtml += `<div style="text-align: center; margin-top: 10px;"><span class="badge">+ ${consultationsList.length - 5} autres consultations</span></div>`;
+        }
+        consultationsHtml += '</div>';
+      } else {
+        consultationsHtml += '<div class="empty-state"><i class="fas fa-stethoscope"></i><p>Aucune consultation enregistrée</p></div>';
+      }
+      consultationsHtml += '</div>';
+
+      // Prescriptions
+      let prescriptionsHtml = '<div class="section-card"><div class="section-header"><h3><i class="fas fa-prescription-bottle"></i> Prescriptions médicales</h3></div>';
+      if (prescriptionsList.length > 0) {
+        prescriptionsHtml += '<div class="table-wrapper"><table><thead><tr><th>Médicament</th><th>Dosage</th><th>Fréquence</th><th>Durée</th><th>Date</th></tr></thead><tbody>';
+        prescriptionsList.forEach(p => {
+          prescriptionsHtml += `
+            <tr>
+              <td><strong>${p.medicament || '-'}</strong></td>
+              <td>${p.dosage || '-'}</td>
+              <td>${p.frequence || '-'}</td>
+              <td>${p.duree || '-'}</td>
+              <td>${new Date(p.date_prescription).toLocaleDateString('fr-FR')}</td>
+            </tr>
+          `;
+        });
+        prescriptionsHtml += '</tbody></table></div>';
+      } else {
+        prescriptionsHtml += '<div class="empty-state"><i class="fas fa-prescription-bottle"></i><p>Aucune prescription médicale</p></div>';
+      }
+      prescriptionsHtml += '</div>';
+
+      // Documents
+      let documentsHtml = '<div class="section-card"><div class="section-header"><h3><i class="fas fa-file-alt"></i> Documents médicaux</h3></div>';
+      if (documentsList.length > 0) {
+        documentsHtml += '<div class="table-wrapper"><table><thead><tr><th>Type</th><th>Nom du fichier</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+        documentsList.forEach(d => {
+          documentsHtml += `
+            <tr>
+              <td><span class="badge">${d.type_document || 'Document'}</span></td>
+              <td>${d.nom_fichier || '-'}</td>
+              <td>${new Date(d.date_upload).toLocaleDateString('fr-FR')}</td>
+              <td>${d.url ? `<a href="${d.url}" target="_blank" class="document-link"><i class="fas fa-download"></i> Télécharger</a>` : '-'}</td>
+            </tr>
+          `;
+        });
+        documentsHtml += '</tbody></table></div>';
+      } else {
+        documentsHtml += '<div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun document médical</p></div>';
+      }
+      documentsHtml += '</div>';
+
+      // Rendez-vous passés
+      let rdvsHtml = '<div class="section-card"><div class="section-header"><h3><i class="fas fa-calendar-alt"></i> Rendez-vous passés</h3></div>';
+      if (rdvsList.length > 0) {
+        rdvsHtml += '<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Médecin</th><th>Motif</th><th>Statut</th></tr></thead><tbody>';
+        rdvsList.forEach(rdv => {
+          const medecinNom = rdv.medecins ? `${rdv.medecins.prenom || ''} ${rdv.medecins.nom || ''}`.trim() : 'Médecin';
+          let statusClass = '';
+          let statusText = rdv.statut || 'En attente';
+          if (rdv.statut === 'confirme') statusClass = 'badge-success';
+          else if (rdv.statut === 'annulé') statusClass = 'badge-danger';
+          else statusClass = 'badge-warning';
+          rdvsHtml += `
+            <tr>
+              <td>${new Date(rdv.date_rdv).toLocaleDateString('fr-FR')} à ${new Date(rdv.date_rdv).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})}</td>
+              <td>Dr. ${medecinNom}</td>
+              <td>${rdv.motif || 'Consultation'}</td>
+              <td><span class="badge ${statusClass}">${statusText}</span></td>
+            </tr>
+          `;
+        });
+        rdvsHtml += '</tbody></table></div>';
+      } else {
+        rdvsHtml += '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>Aucun rendez-vous</p></div>';
+      }
+      rdvsHtml += '</div>';
+
+      // Assembler la page
+      container.innerHTML = `
+        ${alertesHtml}
+        ${statsMiniHtml}
+        ${personalInfoHtml}
+        ${medicalInfoHtml}
+        ${consultationsHtml}
+        ${prescriptionsHtml}
+        ${documentsHtml}
+        ${rdvsHtml}
+      `;
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadDossier);
+    document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+  </script>
+</body>
+</html>

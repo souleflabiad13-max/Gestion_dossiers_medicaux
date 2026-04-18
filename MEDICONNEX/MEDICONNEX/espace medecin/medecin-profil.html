@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon profil - MédiConnex</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #1a1a2e; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 30px; }
+        .card { max-width: 700px; width: 100%; background: rgba(26,26,46,0.8); border-radius: 30px; padding: 35px; border: 2px solid #00d4ff33; backdrop-filter: blur(10px); }
+        h1 { color: #00d4ff; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #00d4ff22; }
+        .label { color: #aaa; font-weight: 500; }
+        .value { color: #fff; }
+        input, select { background: rgba(255,255,255,0.05); border: 1px solid #00d4ff33; border-radius: 10px; padding: 8px 12px; color: #fff; width: 60%; }
+        input:focus { outline: none; border-color: #00d4ff; }
+        .btn { background: rgba(0,212,255,0.1); border: 2px solid #00d4ff; border-radius: 40px; padding: 12px 25px; color: #00d4ff; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; }
+        .btn:hover { background: #00d4ff; color: #1a1a2e; }
+        .back-link { color: #aaa; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .edit-mode .value { display: none; }
+        .edit-mode .edit-input { display: inline-block; }
+        .edit-input { display: none; width: 60%; }
+        .view-mode .edit-input { display: none; }
+        .view-mode .value { display: inline-block; }
+    </style>
+</head>
+<body>
+<div class="card" id="profilCard">
+    <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+    <h1><i class="fas fa-user-md"></i> Mon profil</h1>
+
+    <div id="profilInfo">
+        <div class="info-row"><span class="label">Code médecin</span><span class="value" id="code"></span><input class="edit-input" id="codeInput" readonly></div>
+        <div class="info-row"><span class="label">Nom</span><span class="value" id="nom"></span><input class="edit-input" id="nomInput"></div>
+        <div class="info-row"><span class="label">Prénom</span><span class="value" id="prenom"></span><input class="edit-input" id="prenomInput"></div>
+        <div class="info-row"><span class="label">Email</span><span class="value" id="email"></span><input class="edit-input" id="emailInput"></div>
+        <div class="info-row"><span class="label">Téléphone</span><span class="value" id="tel"></span><input class="edit-input" id="telInput"></div>
+        <div class="info-row"><span class="label">Spécialité</span><span class="value" id="specialite"></span><input class="edit-input" id="specialiteInput"></div>
+        <div class="info-row"><span class="label">Hôpital</span><span class="value" id="hopital"></span><input class="edit-input" id="hopitalInput"></div>
+        <div class="info-row"><span class="label">Wilaya</span><span class="value" id="wilaya"></span><input class="edit-input" id="wilayaInput"></div>
+    </div>
+
+    <button id="editBtn" class="btn"><i class="fas fa-pen"></i> Modifier</button>
+    <button id="saveBtn" class="btn" style="display:none;"><i class="fas fa-save"></i> Enregistrer</button>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7'; // ⚠️ Remplace par TA clé
+
+    const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+    const medecinId = medecin.id_medecin;
+
+    if (!medecinId) window.location.href = 'medecin-login.html';
+
+    async function chargerProfil() {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medecins?id_medecin=eq.${medecinId}`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await res.json();
+        const m = data[0];
+        document.getElementById('code').innerText = m.code_medecin;
+        document.getElementById('codeInput').value = m.code_medecin;
+        document.getElementById('nom').innerText = m.nom;
+        document.getElementById('nomInput').value = m.nom;
+        document.getElementById('prenom').innerText = m.prenom;
+        document.getElementById('prenomInput').value = m.prenom;
+        document.getElementById('email').innerText = m.email;
+        document.getElementById('emailInput').value = m.email;
+        document.getElementById('tel').innerText = m.telephone;
+        document.getElementById('telInput').value = m.telephone;
+        document.getElementById('specialite').innerText = m.specialite;
+        document.getElementById('specialiteInput').value = m.specialite;
+        document.getElementById('hopital').innerText = m.hopital;
+        document.getElementById('hopitalInput').value = m.hopital;
+        document.getElementById('wilaya').innerText = m.wilaya;
+        document.getElementById('wilayaInput').value = m.wilaya;
+    }
+
+    document.getElementById('editBtn').onclick = () => {
+        document.getElementById('profilCard').classList.add('edit-mode');
+        document.getElementById('profilCard').classList.remove('view-mode');
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'block';
+    };
+
+    document.getElementById('saveBtn').onclick = async () => {
+        const updated = {
+            nom: document.getElementById('nomInput').value,
+            prenom: document.getElementById('prenomInput').value,
+            email: document.getElementById('emailInput').value,
+            telephone: document.getElementById('telInput').value,
+            specialite: document.getElementById('specialiteInput').value,
+            hopital: document.getElementById('hopitalInput').value,
+            wilaya: document.getElementById('wilayaInput').value
+        };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/medecins?id_medecin=eq.${medecinId}`, {
+            method: 'PATCH',
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated)
+        });
+        if (res.ok) {
+            alert('✅ Profil mis à jour');
+            location.reload();
+        } else alert('❌ Erreur');
+    };
+
+    chargerProfil();
+</script>
+</body>
+</html>
