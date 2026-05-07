@@ -2,20 +2,28 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des rendez-vous - MédiConnex</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         body {
             background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            padding: 30px;
+            color: #fff;
+            display: flex;
             position: relative;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -24,8 +32,9 @@
             width: 100%;
             height: 100%;
             background: rgba(5, 7, 15, 0.75);
-            z-index: 0;
+            z-index: -1;
         }
+
         .bg-glow {
             position: fixed;
             top: 0;
@@ -62,68 +71,540 @@
             66% { transform: translate(-30px, 40px) scale(0.9); }
         }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(15px);
-            border-radius: 32px;
-            padding: 30px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            width: 280px;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px 20px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
         }
 
-        h1 { color: #00d4ff; text-align: center; margin-bottom: 30px; font-size: 1.8rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,212,255,0.15); }
-        th { color: #00d4ff; }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
 
-        .statut { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
-        .statut-attente { background: #ffaa3322; color: #ffaa33; border: 1px solid #ffaa33; }
+        .sidebar-logo i {
+            font-size: 2rem;
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.6)); }
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar-menu a i { width: 22px; font-size: 1.1rem; color: #00d4ff; }
+        .sidebar-menu a:hover, .sidebar-menu .active a {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ff3366;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .sidebar-footer a:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px 35px;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER ========== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .page-header h1 {
+            color: #00d4ff;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .doctor-info-mini {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .doctor-avatar-mini {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .doctor-avatar-mini i { font-size: 1.3rem; color: #0a0c10; }
+        .doctor-text-mini h3 { font-size: 0.9rem; color: #00d4ff; }
+        .doctor-text-mini p { font-size: 0.7rem; color: #94a3b8; }
+
+        .btn-add {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 40px;
+            padding: 10px 25px;
+            color: #00d4ff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+        .btn-add:hover {
+            background: #00d4ff;
+            color: #0a0c10;
+            transform: translateY(-2px);
+        }
+
+        /* ========== FILTRES SIMPLIFIÉS ========== */
+        .filters-card {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            align-items: end;
+        }
+        .filter-group label {
+            display: block;
+            color: #00d4ff;
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 10px;
+            color: #fff;
+        }
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .btn-filter {
+            background: #00d4ff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: #0a0c10;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-filter:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,212,255,0.3); }
+        .btn-reset {
+            background: transparent;
+            border: 1px solid #94a3b8;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .btn-reset:hover { background: rgba(148,163,184,0.1); }
+
+        /* ========== STATS RAPIDES ========== */
+        .stats-rapides {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            background: rgba(0,212,255,0.1);
+            border-radius: 30px;
+            padding: 6px 15px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stat-chip i { color: #00d4ff; }
+        .stat-chip span { font-weight: bold; color: #00d4ff; }
+
+        /* ========== TABLEAU ========== */
+        .table-container {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid rgba(0,212,255,0.15); }
+        th { color: #00d4ff; font-size: 0.8rem; background: rgba(0,212,255,0.05); cursor: pointer; }
+        th:hover { color: #00d4ffcc; }
+        td { font-size: 0.85rem; color: rgba(255,255,255,0.9); }
+        tr:hover td { background: rgba(0,212,255,0.05); }
+
+        .statut {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .statut-en_attente { background: #ffaa3322; color: #ffaa33; border: 1px solid #ffaa33; }
         .statut-confirme { background: #00d4ff22; color: #00d4ff; border: 1px solid #00d4ff; }
         .statut-termine { background: #00ff8822; color: #00ff88; border: 1px solid #00ff88; }
+        .statut-annule { background: #ef444422; color: #ef4444; border: 1px solid #ef4444; }
 
-        select { background: rgba(0,0,0,0.4); color: #fff; border: 1px solid rgba(0,212,255,0.3); border-radius: 8px; padding: 5px; cursor: pointer; }
+        select.statut-select {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        select.statut-select option { background: #1a1a2e; color: white; }
 
-        .btn-add { background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 40px; padding: 10px 20px; color: #00d4ff; text-decoration: none; display: inline-block; transition: 0.3s; }
-        .btn-add:hover { background: #00d4ff; color: #0a0c10; transform: translateY(-2px); }
-        .back-link { color: #94a3b8; text-decoration: none; display: inline-block; margin-right: 20px; transition: 0.3s; }
-        .back-link:hover { color: #00d4ff; }
+        .action-icons { display: flex; gap: 12px; }
+        .action-icons i { color: #94a3b8; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .action-icons .fa-trash:hover { color: #ef4444; }
+        .action-icons .fa-edit:hover { color: #00d4ff; }
 
-        .toast { position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; background: rgba(15,23,42,0.95); border-left: 4px solid #00ff88; border-radius: 12px; z-index: 1100; animation: slideIn 0.3s ease; }
+        .empty-state { text-align: center; padding: 50px; color: #94a3b8; }
+        .empty-state i { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 20px;
+            background: rgba(15,23,42,0.95);
+            border-left: 4px solid #00ff88;
+            border-radius: 12px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @media (max-width: 768px) { .container { padding: 20px; margin: 15px; } }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* MODAL MODIFICATION */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid #00d4ff;
+            border-radius: 30px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 { color: #00d4ff; }
+        .close-modal { color: #aaa; font-size: 2rem; cursor: pointer; transition: 0.3s; }
+        .close-modal:hover { color: #ef4444; transform: rotate(90deg); }
+        .modal-field { margin-bottom: 20px; }
+        .modal-field label { color: #00d4ff; display: block; margin-bottom: 8px; }
+        .modal-field input, .modal-field select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            color: #fff;
+        }
+        .modal-buttons { display: flex; gap: 15px; margin-top: 25px; }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid;
+            background: transparent;
+        }
+        .modal-btn.save { border-color: #00d4ff; color: #00d4ff; }
+        .modal-btn.save:hover { background: #00d4ff; color: #0a0c10; }
+        .modal-btn.cancel { border-color: #ef4444; color: #ef4444; }
+        .modal-btn.cancel:hover { background: #ef4444; color: #fff; }
+
+        @media (max-width: 900px) {
+            .filters-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; }
+            .sidebar span, .sidebar-footer span { display: none; }
+            .main-content { margin-left: 80px; padding: 15px; }
+            .page-header { flex-direction: column; align-items: flex-start; }
+            .stats-rapides { justify-content: center; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loading-spinner"></div></div>
 
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
-            <h1><i class="fas fa-calendar-check"></i> Gestion des rendez-vous</h1>
-            <div>
-                <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-staff-snake"></i>
+            <span>MédiConnex</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="medecin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+            <li><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li class="active"><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-messagerie.html"><i class="fa-solid fa-comments"></i> Messagerie</a></li>
+            <li><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-calendar-check"></i> Gestion des rendez-vous</h1>
+            <div class="doctor-info-mini">
+                <div class="doctor-avatar-mini">
+                    <i class="fa-solid fa-user-md"></i>
+                </div>
+                <div class="doctor-text-mini">
+                    <h3 id="doctorName">Dr. Chargement...</h3>
+                    <p id="doctorSpecialite">Médecin</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats rapides -->
+        <div class="stats-rapides" id="statsRapides">
+            <div class="stat-chip"><i class="fas fa-calendar-day"></i> Aujourd'hui: <span id="statsToday">0</span></div>
+            <div class="stat-chip"><i class="fas fa-calendar-week"></i> Cette semaine: <span id="statsWeek">0</span></div>
+            <div class="stat-chip"><i class="fas fa-clock"></i> En attente: <span id="statsEnAttente">0</span></div>
+            <div class="stat-chip"><i class="fas fa-check-circle"></i> Confirmés: <span id="statsConfirmes">0</span></div>
+        </div>
+
+        <!-- Barre de recherche et filtres (simplifiée) -->
+        <div class="filters-card">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Patient</label>
+                    <input type="text" id="searchPatient" placeholder="Nom ou prénom...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Filtrer par date</label>
+                    <input type="date" id="filterDate">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-tag"></i> Statut</label>
+                    <select id="filterStatut">
+                        <option value="all">Tous</option>
+                        <option value="en_attente">⏳ En attente</option>
+                        <option value="confirme">✅ Confirmé</option>
+                        <option value="annule">❌ Annulé</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-filter" onclick="filtrerRendezVous()"><i class="fas fa-filter"></i> Filtrer</button>
+                    <button class="btn-reset" onclick="resetFiltres()"><i class="fas fa-undo"></i> Reset</button>
+                </div>
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
                 <a href="medecin-ajout-rendezvous.html" class="btn-add"><i class="fas fa-plus"></i> Nouveau rendez-vous</a>
             </div>
         </div>
 
-        <div style="overflow-x: auto;">
+        <!-- Tableau des rendez-vous -->
+        <div class="table-container">
             <table id="rdvTable">
-                <thead><tr><th>Patient</th><th>Date</th><th>Heure</th><th>Motif</th><th>Statut</th></tr></thead>
-                <tbody id="rdvBody"><tr><td colspan="5" style="text-align:center; padding:40px;">Chargement...</td></tr></tbody>
+                <thead>
+                    <tr>
+                        <th onclick="trierPar('patient')">Patient <i class="fas fa-sort"></i></th>
+                        <th onclick="trierPar('date')">Date et heure <i class="fas fa-sort"></i></th>
+                        <th onclick="trierPar('motif')">Motif <i class="fas fa-sort"></i></th>
+                        <th onclick="trierPar('statut')">Statut <i class="fas fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rdvBody">
+                    <tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i> Chargement...<\/td><\/tr>
+                </tbody>
             </table>
         </div>
     </div>
 
+    <!-- MODAL MODIFICATION -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-pen"></i> Modifier le rendez-vous</h2>
+                <span class="close-modal" onclick="fermerModal()">&times;</span>
+            </div>
+            <input type="hidden" id="editRdvId">
+            <div class="modal-field">
+                <label>Date et heure</label>
+                <input type="datetime-local" id="editDateRdv">
+            </div>
+            <div class="modal-field">
+                <label>Motif</label>
+                <input type="text" id="editMotif" placeholder="Motif de la consultation">
+            </div>
+            <div class="modal-field">
+                <label>Statut</label>
+                <select id="editStatut">
+                    <option value="en_attente">⏳ En attente</option>
+                    <option value="confirme">✅ Confirmé</option>
+                    <option value="annule">❌ Annulé</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn save" onclick="enregistrerModification()">Enregistrer</button>
+                <button class="modal-btn cancel" onclick="fermerModal()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ========== VÉRIFICATION SESSION ==========
         const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
         const medecinId = medecin.id_medecin || 1;
+        if (!medecin.id_medecin) window.location.href = 'medecin-login.html';
 
-        function showToast(msg, type) {
+        // ========== AFFICHAGE INFOS MÉDECIN ==========
+        document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
+
+        // ========== VARIABLES ==========
+        let tousRendezVous = [];
+        let rendezVousFiltres = [];
+        let triColonne = 'date';
+        let triOrdre = 'asc';
+
+        // ========== DÉCONNEXION ==========
+        function logout() { 
+            localStorage.removeItem('medecin'); 
+            window.location.href = '../index.html'; 
+        }
+
+        // ========== TOAST ==========
+        function showToast(msg, type = 'success') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
@@ -133,36 +614,309 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        async function chargerRendezVous() {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/rendez_vous?id_medecin=eq.${medecinId}&select=*,patients(nom,prenom)`, {
-                headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-            });
-            const rdvs = await res.json();
-            const tbody = document.getElementById('rdvBody');
-            if (!rdvs.length) { tbody.innerHTML = '<tr><td colspan="5">Aucun rendez-vous</td></tr>'; return; }
-            tbody.innerHTML = rdvs.map(rdv => `
-                <tr>
-                    <td>${rdv.patients?.prenom || ''} ${rdv.patients?.nom || ''}</td>
-                    <td>${rdv.date_rdv?.slice(0,10) || ''}</td>
-                    <td>${rdv.date_rdv?.slice(11,16) || ''}</td>
-                    <td>${rdv.motif || '-'}</td>
-                    <td><select class="statut statut-${rdv.statut}" data-id="${rdv.id_rdv}" data-statut="${rdv.statut}" onchange="changerStatut(this)"><option value="en_attente" ${rdv.statut === 'en_attente' ? 'selected' : ''}>⏳ En attente</option><option value="confirme" ${rdv.statut === 'confirme' ? 'selected' : ''}>✅ Confirmé</option><option value="termine" ${rdv.statut === 'termine' ? 'selected' : ''}>✔️ Terminé</option></select></td>
-                </tr>
-            `).join('');
+        // ========== LOADING ==========
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        window.changerStatut = async function(select) {
-            const newStatut = select.value, rdvId = select.dataset.id;
-            if (newStatut === select.dataset.statut) return;
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/rendez_vous?id_rdv=eq.${rdvId}`, {
-                method: 'PATCH',
-                headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ statut: newStatut })
+        // ========== VALIDATION DATE PASSÉE ==========
+        function isDateFuture(dateStr) {
+            const selectedDate = new Date(dateStr);
+            const now = new Date();
+            return selectedDate > now;
+        }
+
+        // ========== CALCUL STATS ==========
+        function calculerStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const startOfWeek = new Date();
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 7);
+            
+            let todayCount = 0, weekCount = 0, enAttente = 0, confirmes = 0;
+            
+            tousRendezVous.forEach(rdv => {
+                const rdvDate = rdv.date_rdv.split('T')[0];
+                if (rdvDate === today) todayCount++;
+                if (rdvDate >= startOfWeek.toISOString().split('T')[0] && rdvDate <= endOfWeek.toISOString().split('T')[0]) weekCount++;
+                if (rdv.statut === 'en_attente') enAttente++;
+                if (rdv.statut === 'confirme') confirmes++;
             });
-            if (res.ok) { select.dataset.statut = newStatut; select.className = `statut statut-${newStatut}`; showToast('Statut mis à jour', 'success'); }
-            else showToast('Erreur', 'error');
+            
+            document.getElementById('statsToday').innerText = todayCount;
+            document.getElementById('statsWeek').innerText = weekCount;
+            document.getElementById('statsEnAttente').innerText = enAttente;
+            document.getElementById('statsConfirmes').innerText = confirmes;
+        }
+
+        // ========== CHARGEMENT RENDEZ-VOUS ==========
+        async function chargerRendezVous() {
+            showLoading();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('rendez_vous')
+                    .select(`
+                        id_rdv,
+                        date_rdv,
+                        motif,
+                        statut,
+                        patients (id_patient, nom, prenom)
+                    `)
+                    .eq('id_medecin', medecinId)
+                    .order('date_rdv', { ascending: true });
+
+                if (error) throw error;
+
+                tousRendezVous = data || [];
+                rendezVousFiltres = [...tousRendezVous];
+                calculerStats();
+                afficherTableau();
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('rdvBody').innerHTML = `<table><td colspan="5" class="empty-state"><i class="fas fa-exclamation-triangle"></i> Erreur de chargement<\/td><\/tr>`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ========== AFFICHAGE TABLEAU ==========
+        function afficherTableau() {
+            const tbody = document.getElementById('rdvBody');
+            
+            if (rendezVousFiltres.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="fas fa-calendar-times"></i> Aucun rendez-vous trouvé<\/td><\/tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rendezVousFiltres.map(rdv => {
+                const patientNom = rdv.patients?.prenom || '';
+                const patientPrenom = rdv.patients?.nom || '';
+                const dateObj = new Date(rdv.date_rdv);
+                const date = dateObj.toLocaleDateString('fr-FR');
+                const heure = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                let statutClass = 'statut-en_attente';
+                if (rdv.statut === 'confirme') statutClass = 'statut-confirme';
+                else if (rdv.statut === 'termine') statutClass = 'statut-termine';
+                else if (rdv.statut === 'annule') statutClass = 'statut-annule';
+                
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(patientNom)} ${escapeHtml(patientPrenom)}</strong></td>
+                        <td>${date} à ${heure}</td>
+                        <td>${escapeHtml(rdv.motif || 'Consultation')}</td>
+                        <td>
+                            <select class="statut-select ${statutClass}" data-id="${rdv.id_rdv}" data-statut="${rdv.statut}" onchange="changerStatut(this)">
+                                <option value="en_attente" ${rdv.statut === 'en_attente' ? 'selected' : ''}>⏳ En attente</option>
+                                <option value="confirme" ${rdv.statut === 'confirme' ? 'selected' : ''}>✅ Confirmé</option>
+                                <option value="termine" ${rdv.statut === 'termine' ? 'selected' : ''}>✔️ Terminé</option>
+                                <option value="annule" ${rdv.statut === 'annule' ? 'selected' : ''}>❌ Annulé</option>
+                            </select>
+                        </td>
+                        <td class="action-icons">
+                            <i class="fas fa-edit" title="Modifier" onclick="ouvrirModalModification(${rdv.id_rdv})"></i>
+                            <i class="fas fa-trash" title="Supprimer" onclick="supprimerRendezVous(${rdv.id_rdv})"></i>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ========== CHANGEMENT STATUT ==========
+        window.changerStatut = async function(select) {
+            const newStatut = select.value;
+            const rdvId = select.dataset.id;
+            
+            if (newStatut === select.dataset.statut) return;
+            
+            showLoading();
+            try {
+                const { error } = await supabaseClient
+                    .from('rendez_vous')
+                    .update({ statut: newStatut })
+                    .eq('id_rdv', rdvId);
+                
+                if (error) throw error;
+                
+                select.dataset.statut = newStatut;
+                let statutClass = 'statut-en_attente';
+                if (newStatut === 'confirme') statutClass = 'statut-confirme';
+                else if (newStatut === 'termine') statutClass = 'statut-termine';
+                else if (newStatut === 'annule') statutClass = 'statut-annule';
+                select.className = `statut-select ${statutClass}`;
+                
+                showToast('✅ Statut mis à jour', 'success');
+                chargerRendezVous();
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Erreur lors de la mise à jour', 'error');
+            } finally {
+                hideLoading();
+            }
         };
 
+        // ========== FILTRES SIMPLIFIÉS ==========
+        function filtrerRendezVous() {
+            const search = document.getElementById('searchPatient').value.toLowerCase().trim();
+            const filterDate = document.getElementById('filterDate').value;
+            const statut = document.getElementById('filterStatut').value;
+            
+            rendezVousFiltres = tousRendezVous.filter(rdv => {
+                const patientNom = `${rdv.patients?.prenom || ''} ${rdv.patients?.nom || ''}`.toLowerCase();
+                const matchSearch = !search || patientNom.includes(search);
+                
+                const dateRdv = rdv.date_rdv.split('T')[0];
+                const matchDate = !filterDate || dateRdv === filterDate;
+                
+                const matchStatut = statut === 'all' || rdv.statut === statut;
+                
+                return matchSearch && matchDate && matchStatut;
+            });
+            
+            trierRendezVous();
+        }
+
+        function resetFiltres() {
+            document.getElementById('searchPatient').value = '';
+            document.getElementById('filterDate').value = '';
+            document.getElementById('filterStatut').value = 'all';
+            rendezVousFiltres = [...tousRendezVous];
+            trierRendezVous();
+            showToast('Filtres réinitialisés', 'info');
+        }
+
+        // ========== TRI ==========
+        function trierPar(colonne) {
+            if (triColonne === colonne) {
+                triOrdre = triOrdre === 'asc' ? 'desc' : 'asc';
+            } else {
+                triColonne = colonne;
+                triOrdre = 'asc';
+            }
+            trierRendezVous();
+        }
+
+        function trierRendezVous() {
+            rendezVousFiltres.sort((a, b) => {
+                let valA, valB;
+                if (triColonne === 'patient') {
+                    valA = `${a.patients?.prenom || ''} ${a.patients?.nom || ''}`;
+                    valB = `${b.patients?.prenom || ''} ${b.patients?.nom || ''}`;
+                } else if (triColonne === 'date') {
+                    valA = new Date(a.date_rdv);
+                    valB = new Date(b.date_rdv);
+                } else if (triColonne === 'motif') {
+                    valA = a.motif || '';
+                    valB = b.motif || '';
+                } else {
+                    valA = a.statut || '';
+                    valB = b.statut || '';
+                }
+                
+                if (valA < valB) return triOrdre === 'asc' ? -1 : 1;
+                if (valA > valB) return triOrdre === 'asc' ? 1 : -1;
+                return 0;
+            });
+            afficherTableau();
+        }
+
+        window.trierPar = trierPar;
+
+        // ========== MODIFICATION RENDEZ-VOUS ==========
+        let currentRdvId = null;
+
+        window.ouvrirModalModification = function(id) {
+            const rdv = tousRendezVous.find(r => r.id_rdv === id);
+            if (!rdv) return;
+            
+            currentRdvId = id;
+            document.getElementById('editRdvId').value = id;
+            const dateValue = rdv.date_rdv.slice(0, 16);
+            document.getElementById('editDateRdv').value = dateValue;
+            document.getElementById('editMotif').value = rdv.motif || '';
+            document.getElementById('editStatut').value = rdv.statut || 'en_attente';
+            document.getElementById('editModal').style.display = 'flex';
+        };
+
+        window.fermerModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+            currentRdvId = null;
+        };
+
+        window.enregistrerModification = async function() {
+            const newDate = document.getElementById('editDateRdv').value;
+            const newMotif = document.getElementById('editMotif').value;
+            const newStatut = document.getElementById('editStatut').value;
+            
+            if (!isDateFuture(newDate) && newStatut !== 'annule' && newStatut !== 'termine') {
+                showToast('❌ Impossible de programmer un rendez-vous dans le passé', 'error');
+                return;
+            }
+            
+            showLoading();
+            try {
+                const { error } = await supabaseClient
+                    .from('rendez_vous')
+                    .update({
+                        date_rdv: new Date(newDate).toISOString(),
+                        motif: newMotif,
+                        statut: newStatut
+                    })
+                    .eq('id_rdv', currentRdvId);
+                
+                if (error) throw error;
+                
+                showToast('✅ Rendez-vous modifié avec succès', 'success');
+                fermerModal();
+                chargerRendezVous();
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Erreur: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // ========== SUPPRESSION RENDEZ-VOUS ==========
+        window.supprimerRendezVous = async function(id) {
+            if (!confirm('🗑️ Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) return;
+            
+            showLoading();
+            try {
+                const { error } = await supabaseClient
+                    .from('rendez_vous')
+                    .delete()
+                    .eq('id_rdv', id);
+                
+                if (error) throw error;
+                
+                showToast('✅ Rendez-vous supprimé', 'success');
+                chargerRendezVous();
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Erreur: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        };
+
+        // ========== INITIALISATION ==========
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) fermerModal();
+        };
+        
+        window.filtrerRendezVous = filtrerRendezVous;
+        window.resetFiltres = resetFiltres;
+        
         chargerRendezVous();
     </script>
 </body>

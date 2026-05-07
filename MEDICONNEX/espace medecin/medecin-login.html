@@ -9,6 +9,10 @@
     <style>
         :root {
             --medecin: #00d4ff;
+            --medecin-light: rgba(0,212,255,0.2);
+            --medecin-glow: rgba(0,212,255,0.4);
+            --medecin-border: #00d4ff;
+            --medecin-hover: #00d4ff;
         }
 
         * {
@@ -32,7 +36,7 @@
             align-items: center;
         }
 
-        /* Overlay sombre pour que le texte soit lisible */
+        /* Overlay plus élégant */
         body::before {
             content: '';
             position: fixed;
@@ -40,78 +44,78 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.55);
+            background: linear-gradient(135deg, rgba(5, 7, 15, 0.75), rgba(0, 212, 255, 0.15));
             z-index: 0;
         }
 
-        .error-message {
-            color: #ff4444;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-            background: rgba(255,68,68,0.1);
-            padding: 10px;
-            border-radius: 10px;
+        /* Effet de brillance animé en fond */
+        .glow-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .glow-effect .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.12), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .glow-effect .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.08), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
         }
 
-        .success-message {
-            color: #00ff88;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-            background: rgba(0,255,136,0.1);
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 15px;
-            color: var(--medecin);
-        }
-
-        .forgot-password {
-            text-align: right;
-            margin-top: 8px;
-            margin-bottom: 5px;
-        }
-
-        .forgot-password a {
-            color: var(--medecin);
-            text-decoration: none;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .forgot-password a:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
-        /* AUTH WRAPPER - TRANSPARENT */
+        /* ========== AUTH WRAPPER (style patient mais amélioré) ========== */
         .auth-wrapper {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             width: 100%;
-            max-width: 900px;
-            background: transparent;
-            border-radius: 30px;
+            max-width: 1000px;
+            min-height: 580px;
+            background: rgba(26, 26, 46, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
             overflow: hidden;
+            border: 2px solid var(--medecin);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.25), 0 25px 50px rgba(0,0,0,0.3);
             display: flex;
-            min-height: 550px;
+            transition: all 0.4s ease;
         }
 
+        .auth-wrapper:hover {
+            box-shadow: 0 0 70px rgba(0, 212, 255, 0.4);
+            border-color: var(--medecin);
+        }
+
+        /* ========== PANEL CREDENTIALS ========== */
         .credentials-panel {
             flex: 1;
-            padding: 50px 40px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(12px);
-            border-radius: 30px;
-            border: 2px solid var(--medecin);
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.2);
+            padding: 50px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(5px);
         }
 
         .credentials-panel h2 {
@@ -122,6 +126,12 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            animation: titlePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 5px rgba(0,212,255,0.3); }
+            50% { text-shadow: 0 0 20px rgba(0,212,255,0.5); }
         }
 
         .subtitle {
@@ -129,63 +139,133 @@
             color: rgba(255, 255, 255, 0.6);
             font-size: 13px;
             margin-bottom: 35px;
+            letter-spacing: 1px;
         }
 
+        /* ========== CHAMPS DE FORMULAIRE STYLE LUXE ========== */
         .field-wrapper {
-            margin-bottom: 25px;
             position: relative;
-        }
-
-        .field-wrapper label {
-            display: block;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 13px;
-            margin-bottom: 8px;
-            font-weight: 500;
+            width: 100%;
+            margin-top: 25px;
+            margin-bottom: 5px;
         }
 
         .field-wrapper input {
             width: 100%;
-            padding: 14px 15px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.4);
-            border-radius: 12px;
+            padding: 16px 16px 16px 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 212, 255, 0.25);
+            border-radius: 18px;
             color: #fff;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
             transition: all 0.3s ease;
         }
 
         .field-wrapper input:focus {
             outline: none;
             border-color: var(--medecin);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+            background: rgba(0, 212, 255, 0.05);
         }
 
-        .field-wrapper input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+        .field-wrapper input:focus ~ label,
+        .field-wrapper input:not(:placeholder-shown) ~ label {
+            top: -12px;
+            left: 15px;
+            font-size: 11px;
+            padding: 0 8px;
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 20px;
+            color: var(--medecin);
         }
 
+        .field-wrapper label {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            font-weight: 500;
+        }
+
+        .field-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--medecin);
+            transition: all 0.3s ease;
+        }
+
+        .field-wrapper input:focus ~ i {
+            color: var(--medecin);
+            text-shadow: 0 0 10px var(--medecin);
+        }
+
+        /* ========== MOT DE PASSE OUBLIÉ ========== */
+        .forgot-password {
+            text-align: right;
+            margin: 15px 0 25px;
+        }
+
+        .forgot-password a {
+            color: var(--medecin);
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.8;
+            transition: 0.3s;
+        }
+
+        .forgot-password a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* ========== BOUTON DE CONNEXION WAW ========== */
         .submit-button {
+            position: relative;
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, var(--medecin), #0099cc);
             border: none;
             border-radius: 50px;
-            color: #1a1a2e;
+            color: #0a0c10;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
+            overflow: hidden;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            z-index: 1;
+        }
+
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .submit-button:hover::before {
+            left: 100%;
         }
 
         .submit-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
         }
 
         .submit-button:disabled {
@@ -194,79 +274,317 @@
             cursor: not-allowed;
         }
 
+        /* ========== LIEN INSCRIPTION ========== */
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.15);
+        }
+
+        .register-link p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        .register-link a {
+            color: var(--medecin);
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ========== SECTION WELCOME (STYLE PATIENT AMÉLIORÉ) ========== */
         .welcome-section {
             flex: 1;
-            background: rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 0, 0, 0.3));
             backdrop-filter: blur(8px);
-            border-radius: 30px;
-            border: 2px solid var(--medecin);
             display: flex;
             flex-direction: column;
             justify-content: center;
             text-align: center;
             padding: 50px 40px;
-            margin-left: 20px;
-        }
-
-        .welcome-section h2 {
-            font-size: 36px;
-            margin-bottom: 20px;
-            color: var(--medecin);
-        }
-
-        .welcome-section p {
-            color: rgba(255, 255, 255, 0.9);
-            line-height: 1.6;
+            border-left: 1px solid rgba(0, 212, 255, 0.2);
         }
 
         .welcome-section i {
             font-size: 80px;
             color: var(--medecin);
-            margin-bottom: 30px;
-            opacity: 0.9;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+            animation: iconFloat 3s ease-in-out infinite;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .welcome-section h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: var(--medecin);
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .welcome-section p {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .welcome-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--medecin);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ========== MESSAGES ========== */
+        .error-message, .success-message, .loading {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            padding: 10px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border-left: 3px solid #ef4444;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 136, 0.12);
+            color: #00ff88;
+            border-left: 3px solid #00ff88;
+        }
+
+        .loading {
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--medecin);
+        }
+
+        /* ========== MODAL MOT DE PASSE OUBLIÉ ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid var(--medecin);
+            border-radius: 30px;
+            padding: 35px;
+            width: 90%;
+            max-width: 450px;
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            color: var(--medecin);
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .modal-field {
+            margin-bottom: 20px;
+        }
+
+        .modal-field label {
+            display: block;
+            color: var(--medecin);
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .modal-field input:focus {
+            outline: none;
+            border-color: var(--medecin);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--medecin), #0099cc);
+            border: none;
+            color: #0a0c10;
+        }
+
+        .modal-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .modal-btn.cancel {
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .modal-btn.cancel:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .modal-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 850px) {
             .auth-wrapper {
                 flex-direction: column;
                 margin: 20px;
                 max-width: 500px;
             }
             .welcome-section {
-                margin-left: 0;
-                margin-top: 20px;
-                padding: 40px;
+                border-left: none;
+                border-top: 1px solid rgba(0, 212, 255, 0.2);
+                padding: 35px;
             }
             .credentials-panel {
                 padding: 40px 30px;
             }
         }
+
+        @media (max-width: 480px) {
+            .credentials-panel {
+                padding: 30px 25px;
+            }
+            .credentials-panel h2 {
+                font-size: 26px;
+            }
+            .welcome-section h2 {
+                font-size: 24px;
+            }
+            .welcome-section i {
+                font-size: 60px;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <div class="glow-effect">
+        <div class="glow-1"></div>
+        <div class="glow-2"></div>
+    </div>
+
     <div class="auth-wrapper">
         <div class="credentials-panel">
             <h2>Connexion Médecin</h2>
-            <div class="subtitle">Entrez vos identifiants médicaux</div>
+            <div class="subtitle">Accès sécurisé à votre espace professionnel</div>
 
             <form id="loginForm">
                 <div class="field-wrapper">
-                    <label>Code médecin</label>
-                    <input type="text" id="code" placeholder="Entrez votre code médecin" required>
+                    <input type="email" id="email" placeholder=" " required>
+                    <label>Adresse email</label>
+                    <i class="fa-solid fa-envelope"></i>
                 </div>
 
                 <div class="field-wrapper">
-                    <label>Nom complet</label>
-                    <input type="text" id="nom" placeholder="Entrez votre nom complet" required>
-                </div>
-
-                <div class="field-wrapper">
+                    <input type="password" id="motDePasse" placeholder=" " required>
                     <label>Mot de passe</label>
-                    <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+                    <i class="fa-solid fa-lock"></i>
                 </div>
 
-                
+                <div class="forgot-password">
+                    <a href="javascript:void(0)" onclick="openResetModal()">Mot de passe oublié ?</a>
+                </div>
 
                 <button type="submit" class="submit-button" id="submitBtn">
                     <i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter
@@ -278,19 +596,68 @@
                 <div class="error-message" id="errorMsg"></div>
                 <div class="success-message" id="successMsg"></div>
             </form>
+
+            <div class="register-link">
+                <p>Pas encore de compte ? <a href="#">Contacter l'administration</a></p>
+            </div>
         </div>
 
         <div class="welcome-section">
             <i class="fa-solid fa-user-md"></i>
             <h2>ESPACE MÉDECIN</h2>
-            <p>Accès sécurisé à vos patients, consultations et prescriptions médicales.</p>
+            <p>Plateforme sécurisée pour la gestion de vos patients, consultations et prescriptions médicales.</p>
+            <div class="welcome-stats">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Accès permanent</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Sécurisé</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">📱</div>
+                    <div class="stat-label">Mobile friendly</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MOT DE PASSE OUBLIÉ -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-key"></i> Réinitialisation</h2>
+                <span class="close-modal" onclick="closeResetModal()">&times;</span>
+            </div>
+            <div class="modal-field">
+                <label>Email du compte médecin</label>
+                <input type="email" id="resetEmail" placeholder="ex: dr.benali@mediconnex.dz">
+            </div>
+            <div class="modal-field">
+                <label>Nouveau mot de passe</label>
+                <input type="password" id="newPassword" placeholder="Min. 4 caractères">
+            </div>
+            <div class="modal-field">
+                <label>Confirmer le mot de passe</label>
+                <input type="password" id="confirmPassword" placeholder="Retapez le mot de passe">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" onclick="resetPassword()">Réinitialiser</button>
+                <button class="modal-btn cancel" onclick="closeResetModal()">Annuler</button>
+            </div>
+            <div id="resetMessage" class="modal-message"></div>
+            <div id="resetError" class="modal-message"></div>
         </div>
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // ========== FONCTIONS HASH ==========
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -304,12 +671,12 @@
             return hash === hashedPassword;
         }
 
+        // ========== CONNEXION ==========
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const code = document.getElementById('code').value.trim();
-            const nom = document.getElementById('nom').value.trim();
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const motDePasse = document.getElementById('motDePasse').value;
             const errorDiv = document.getElementById('errorMsg');
             const successDiv = document.getElementById('successMsg');
             const loadingDiv = document.getElementById('loadingMsg');
@@ -321,8 +688,8 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connexion...';
 
-            if (!code || !nom || !password) {
-                errorDiv.innerHTML = '❌ Tous les champs sont requis';
+            if (!email || !motDePasse) {
+                errorDiv.innerHTML = '❌ Veuillez remplir tous les champs';
                 errorDiv.style.display = 'block';
                 loadingDiv.style.display = 'none';
                 submitBtn.disabled = false;
@@ -331,42 +698,45 @@
             }
             
             try {
-                const url = `${SUPABASE_URL}/rest/v1/medecins?select=*&code_medecin=eq.${encodeURIComponent(code)}&nom=eq.${encodeURIComponent(nom)}`;
-                const response = await fetch(url, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': 'Bearer ' + SUPABASE_KEY
-                    }
-                });
-                const data = await response.json();
-                
-                if (data && data.length > 0) {
-                    const medecin = data[0];
-                    const isValid = await verifyPassword(password, medecin.mot_de_passe);
-                    
-                    if (isValid) {
-                        localStorage.setItem('medecin', JSON.stringify({
-                            id_medecin: medecin.id_medecin,
-                            code_medecin: medecin.code_medecin,
-                            nom: medecin.nom,
-                            prenom: medecin.prenom,
-                            email: medecin.email,
-                            telephone: medecin.telephone,
-                            specialite: medecin.specialite,
-                            id_hopital: medecin.id_hopital,
-                            id_wilaya: medecin.id_wilaya
-                        }));
-                        successDiv.innerHTML = '✅ Connexion réussie ! Redirection...';
-                        successDiv.style.display = 'block';
-                        setTimeout(() => {
-                            window.location.href = 'medecin-dashboard.html';
-                        }, 1000);
-                    } else {
-                        errorDiv.innerHTML = '❌ Code, nom ou mot de passe incorrect';
-                        errorDiv.style.display = 'block';
-                    }
+                const { data: medecins, error } = await supabaseClient
+                    .from('medecins')
+                    .select('*')
+                    .eq('email', email);
+
+                if (error) throw error;
+
+                if (!medecins || medecins.length === 0) {
+                    errorDiv.innerHTML = '❌ Email ou mot de passe incorrect';
+                    errorDiv.style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
+                    return;
+                }
+
+                const medecin = medecins[0];
+                const isValid = await verifyPassword(motDePasse, medecin.mot_de_passe);
+
+                if (isValid) {
+                    localStorage.setItem('medecin', JSON.stringify({
+                        id_medecin: medecin.id_medecin,
+                        code_medecin: medecin.code_medecin,
+                        nom: medecin.nom,
+                        prenom: medecin.prenom,
+                        email: medecin.email,
+                        telephone: medecin.telephone,
+                        specialite: medecin.specialite,
+                        hopital: medecin.hopital,
+                        wilaya: medecin.wilaya
+                    }));
+
+                    successDiv.innerHTML = '✅ Connexion réussie ! Redirection...';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = 'medecin-dashboard.html';
+                    }, 1000);
                 } else {
-                    errorDiv.innerHTML = '❌ Code, nom ou mot de passe incorrect';
+                    errorDiv.innerHTML = '❌ Email ou mot de passe incorrect';
                     errorDiv.style.display = 'block';
                 }
             } catch (erreur) {
@@ -379,6 +749,90 @@
                 submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
             }
         });
+
+        // ========== MODAL MOT DE PASSE OUBLIÉ ==========
+        function openResetModal() {
+            document.getElementById('resetModal').style.display = 'flex';
+            document.getElementById('resetEmail').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            document.getElementById('resetMessage').style.display = 'none';
+            document.getElementById('resetError').style.display = 'none';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('resetEmail').value.trim().toLowerCase();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const resetMessage = document.getElementById('resetMessage');
+            const resetError = document.getElementById('resetError');
+
+            resetMessage.style.display = 'none';
+            resetError.style.display = 'none';
+
+            if (!email) {
+                resetError.innerHTML = '❌ Veuillez entrer votre email';
+                resetError.style.display = 'block';
+                return;
+            }
+
+            if (!newPassword || newPassword.length < 4) {
+                resetError.innerHTML = '❌ Le mot de passe doit contenir au moins 4 caractères';
+                resetError.style.display = 'block';
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                resetError.innerHTML = '❌ Les mots de passe ne correspondent pas';
+                resetError.style.display = 'block';
+                return;
+            }
+
+            try {
+                const { data: medecins, error: fetchError } = await supabaseClient
+                    .from('medecins')
+                    .select('id_medecin')
+                    .eq('email', email);
+
+                if (fetchError) throw fetchError;
+
+                if (!medecins || medecins.length === 0) {
+                    resetError.innerHTML = '❌ Aucun compte trouvé avec cet email';
+                    resetError.style.display = 'block';
+                    return;
+                }
+
+                const hashedPassword = await hashPassword(newPassword);
+
+                const { error: updateError } = await supabaseClient
+                    .from('medecins')
+                    .update({ mot_de_passe: hashedPassword })
+                    .eq('email', email);
+
+                if (updateError) throw updateError;
+
+                resetMessage.innerHTML = '✅ Mot de passe réinitialisé avec succès !';
+                resetMessage.style.display = 'block';
+
+                setTimeout(() => {
+                    closeResetModal();
+                }, 2000);
+
+            } catch (err) {
+                console.error(err);
+                resetError.innerHTML = '❌ Erreur: ' + err.message;
+                resetError.style.display = 'block';
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('resetModal');
+            if (event.target === modal) closeResetModal();
+        }
     </script>
 </body>
 </html>

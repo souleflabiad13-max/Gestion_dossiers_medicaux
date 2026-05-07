@@ -2,21 +2,29 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consultation médicale - MédiConnex</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         body {
             background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            padding: 30px;
+            color: #fff;
+            display: flex;
             position: relative;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -25,8 +33,9 @@
             width: 100%;
             height: 100%;
             background: rgba(5, 7, 15, 0.75);
-            z-index: 0;
+            z-index: -1;
         }
+
         .bg-glow {
             position: fixed;
             top: 0;
@@ -63,12 +72,104 @@
             66% { transform: translate(-30px, 40px) scale(0.9); }
         }
 
-        .container {
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            width: 280px;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px 20px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .sidebar-logo i {
+            font-size: 2rem;
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.6)); }
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar-menu a i { width: 22px; font-size: 1.1rem; color: #00d4ff; }
+        .sidebar-menu a:hover, .sidebar-menu .active a {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ff3366;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .sidebar-footer a:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
             position: relative;
             z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px 35px;
+            min-height: 100vh;
         }
+
+        /* ========== HEADER ========== */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -76,6 +177,11 @@
             margin-bottom: 30px;
             flex-wrap: wrap;
             gap: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
         }
         .page-header h1 {
             color: #00d4ff;
@@ -84,6 +190,24 @@
             align-items: center;
             gap: 12px;
         }
+        .doctor-info-mini {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .doctor-avatar-mini {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .doctor-avatar-mini i { font-size: 1.3rem; color: #0a0c10; }
+        .doctor-text-mini h3 { font-size: 0.9rem; color: #00d4ff; }
+        .doctor-text-mini p { font-size: 0.7rem; color: #94a3b8; }
+
         .back-link {
             color: #94a3b8;
             text-decoration: none;
@@ -94,6 +218,7 @@
         }
         .back-link:hover { color: #00d4ff; background: rgba(0,212,255,0.1); }
 
+        /* ========== CARDS ========== */
         .grid-2 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; }
         .card {
             background: rgba(15, 23, 42, 0.5);
@@ -144,6 +269,7 @@
             border-radius: 12px;
             color: #00d4ff;
             cursor: pointer;
+            transition: 0.3s;
         }
         .search-patient button:hover { background: #00d4ff; color: #0a0c10; }
 
@@ -157,6 +283,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            transition: 0.3s;
         }
         .btn-pdf {
             background: rgba(0, 212, 255, 0.1);
@@ -171,6 +298,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            transition: 0.3s;
         }
         .btn-pdf:hover, .btn-add:hover { background: #00d4ff; color: #0a0c10; }
 
@@ -205,7 +333,9 @@
             color: #0a0c10;
             font-weight: 600;
             cursor: pointer;
+            transition: 0.3s;
         }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,212,255,0.3); }
         .btn-secondary {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid #ef4444;
@@ -213,7 +343,9 @@
             padding: 12px 32px;
             color: #ef4444;
             cursor: pointer;
+            transition: 0.3s;
         }
+        .btn-secondary:hover { background: rgba(239, 68, 68, 0.2); transform: translateY(-2px); }
 
         .toast {
             position: fixed;
@@ -228,16 +360,74 @@
         }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .row-2 { grid-template-columns: 1fr; } }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; }
+            .sidebar span, .sidebar-footer span { display: none; }
+            .main-content { margin-left: 80px; padding: 15px; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .row-2 { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loading-spinner"></div></div>
 
-    <div class="container">
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-staff-snake"></i>
+            <span>MédiConnex</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="medecin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+            <li class="active"><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-messagerie.html"><i class="fa-solid fa-comments"></i> Messagerie</a></li>
+            <li><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="main-content">
         <div class="page-header">
             <h1><i class="fas fa-stethoscope"></i> Consultation médicale</h1>
-            <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
+            <div class="doctor-info-mini">
+                <div class="doctor-avatar-mini">
+                    <i class="fa-solid fa-user-md"></i>
+                </div>
+                <div class="doctor-text-mini">
+                    <h3 id="doctorName">Dr. Chargement...</h3>
+                    <p id="doctorSpecialite">Médecin</p>
+                </div>
+            </div>
         </div>
 
         <div class="grid-2">
@@ -256,7 +446,12 @@
 
                 <div class="card">
                     <div class="card-title"><i class="fas fa-user"></i> Informations patient</div>
-                    <div id="patientDetails">Aucun patient sélectionné</div>
+                    <div id="patientDetails">
+                        <div style="text-align:center; padding:20px; color:#94a3b8;">
+                            <i class="fas fa-user-circle" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                            <p>Aucun patient sélectionné</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -278,36 +473,40 @@
                         <div class="form-group"><label>Date</label><input type="date" id="dateConsult"></div>
                         <div class="form-group"><label>Motif</label><input type="text" id="motif" placeholder="Consultation de suivi"></div>
                     </div>
-                    <div class="form-group"><label>Symptômes</label><textarea id="symptomes" rows="2"></textarea></div>
+                    <div class="form-group"><label>Symptômes</label><textarea id="symptomes" rows="2" placeholder="Décrivez les symptômes..."></textarea></div>
                     <div class="row-2">
-                        <div class="form-group"><label>Température</label><input type="text" id="temperature" placeholder="36.5"></div>
+                        <div class="form-group"><label>Température (°C)</label><input type="number" id="temperature" placeholder="36.5" step="0.1"></div>
                         <div class="form-group"><label>Tension</label><input type="text" id="tension" placeholder="120/80"></div>
                     </div>
                     <div class="form-group"><label>Diagnostic *</label><textarea id="diagnostic" rows="2" required></textarea></div>
-                    <div class="form-group"><label>Notes</label><textarea id="notes" rows="2"></textarea></div>
+                    <div class="form-group"><label>Notes / Traitement</label><textarea id="notes" rows="2" placeholder="Recommandations, conseils..."></textarea></div>
                 </div>
 
                 <div class="card">
                     <div class="card-title"><i class="fas fa-prescription-bottle"></i> Prescriptions</div>
                     <div class="row-2">
                         <div class="form-group"><input type="text" id="medicament" placeholder="Médicament"></div>
-                        <div class="form-group"><input type="text" id="dosage" placeholder="Dosage"></div>
-                        <div class="form-group"><input type="text" id="frequence" placeholder="Fréquence"></div>
-                        <div class="form-group"><input type="text" id="duree" placeholder="Durée"></div>
+                        <div class="form-group"><input type="text" id="dosage" placeholder="Dosage (ex: 500mg)"></div>
+                        <div class="form-group"><input type="text" id="frequence" placeholder="Fréquence (ex: 2x/jour)"></div>
+                        <div class="form-group"><input type="text" id="duree" placeholder="Durée (ex: 7 jours)"></div>
                     </div>
                     <button class="btn-add" onclick="ajouterPrescriptionTemp()" style="width:100%; justify-content:center;"><i class="fas fa-plus"></i> Ajouter à l'ordonnance</button>
-                    <div class="prescriptions-list" id="prescriptionsList"></div>
+                    <div class="prescriptions-list" id="prescriptionsList">
+                        <div style="text-align:center; padding:15px; color:#aaa;">Aucune prescription</div>
+                    </div>
                 </div>
 
                 <div class="card">
                     <div class="card-title"><i class="fas fa-prescription"></i> Ordonnance</div>
-                    <div id="medicamentsList"></div>
+                    <div id="medicamentsList">
+                        <div style="text-align:center; padding:15px; color:#aaa;">Aucun médicament ajouté</div>
+                    </div>
                     <button class="btn-pdf" onclick="genererOrdonnancePDF()"><i class="fas fa-file-pdf"></i> Générer PDF</button>
                     <button class="btn-pdf" onclick="imprimerOrdonnance()" style="background: rgba(0,255,136,0.1); border-color:#00ff88; color:#00ff88;"><i class="fas fa-print"></i> Imprimer</button>
                 </div>
 
                 <div class="form-actions">
-                    <button class="btn-secondary" onclick="window.location.href='medecin-dashboard.html'">Annuler</button>
+                    <button class="btn-secondary" onclick="annulerConsultation()">Annuler</button>
                     <button class="btn-primary" onclick="enregistrerConsultation()">Enregistrer</button>
                 </div>
             </div>
@@ -315,15 +514,36 @@
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // ========== VÉRIFICATION SESSION ==========
         const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
         const medecinId = medecin.id_medecin;
         if (!medecinId) window.location.href = 'medecin-login.html';
 
-        function showToast(msg, type) {
+        // ========== AFFICHAGE INFOS MÉDECIN ==========
+        document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
+
+        // ========== VARIABLES ==========
+        let patientActuel = null;
+        let prescriptionsTemporaires = [];
+        let consultationIdEnregistree = null;
+
+        // ========== DATE PAR DÉFAUT ==========
+        document.getElementById('dateConsult').value = new Date().toISOString().slice(0,10);
+
+        // ========== DÉCONNEXION ==========
+        function logout() { 
+            localStorage.removeItem('medecin'); 
+            window.location.href = '../index.html'; 
+        }
+
+        // ========== TOAST ==========
+        function showToast(msg, type = 'success') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
@@ -333,155 +553,625 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        let patientActuel = null;
-        let prescriptionsTemporaires = [];
+        // ========== LOADING OVERLAY ==========
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
 
-        document.getElementById('dateConsult').value = new Date().toISOString().slice(0,10);
+        // ========== ESCAPE HTML (SÉCURITÉ) ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
+        // ========== AFFICHAGE PRESCRIPTIONS TEMPORAIRES ==========
         function afficherPrescriptionsTemp() {
             const container = document.getElementById('prescriptionsList');
-            if (prescriptionsTemporaires.length === 0) { container.innerHTML = '<div style="text-align:center; padding:15px; color:#aaa;">Aucune prescription</div>'; return; }
+            if (prescriptionsTemporaires.length === 0) { 
+                container.innerHTML = '<div style="text-align:center; padding:15px; color:#aaa;">Aucune prescription</div>'; 
+                document.getElementById('medicamentsList').innerHTML = '<div style="text-align:center; padding:15px; color:#aaa;">Aucun médicament ajouté</div>';
+                return; 
+            }
             container.innerHTML = prescriptionsTemporaires.map((p, i) => `
                 <div class="prescription-item">
-                    <div><span class="prescription-med">💊 ${p.medicament}</span><br><span style="font-size:12px;">${p.dosage} | ${p.frequence} | ${p.duree}</span></div>
+                    <div><span class="prescription-med">💊 ${escapeHtml(p.medicament)}</span><br><span style="font-size:12px;">${escapeHtml(p.dosage)} | ${escapeHtml(p.frequence)} | ${escapeHtml(p.duree)}</span></div>
                     <i class="fas fa-trash delete-prescription" onclick="supprimerPrescriptionTemp(${i})"></i>
                 </div>
             `).join('');
+            
             document.getElementById('medicamentsList').innerHTML = prescriptionsTemporaires.map(p => `
                 <div style="background:rgba(0,212,255,0.05); padding:10px; margin-bottom:8px; border-radius:10px;">
-                    <strong>${p.medicament}</strong> - ${p.dosage} - ${p.frequence} - ${p.duree}
+                    <strong>${escapeHtml(p.medicament)}</strong> - ${escapeHtml(p.dosage)} - ${escapeHtml(p.frequence)} - ${escapeHtml(p.duree)}
                 </div>
             `).join('');
         }
 
+        // ========== AJOUTER PRESCRIPTION TEMPORAIRE ==========
         function ajouterPrescriptionTemp() {
             const medicament = document.getElementById('medicament').value.trim();
-            if (!medicament) { showToast('Entrez un médicament', 'error'); return; }
+            if (!medicament) { 
+                showToast('Entrez un médicament', 'error'); 
+                return; 
+            }
             prescriptionsTemporaires.push({
-                medicament, dosage: document.getElementById('dosage').value.trim() || 'NS',
-                frequence: document.getElementById('frequence').value.trim() || 'NS',
-                duree: document.getElementById('duree').value.trim() || 'NS'
+                medicament: medicament,
+                dosage: document.getElementById('dosage').value.trim() || 'Non spécifié',
+                frequence: document.getElementById('frequence').value.trim() || 'Non spécifiée',
+                duree: document.getElementById('duree').value.trim() || 'Non spécifiée'
             });
             afficherPrescriptionsTemp();
-            document.getElementById('medicament').value = ''; document.getElementById('dosage').value = ''; document.getElementById('frequence').value = ''; document.getElementById('duree').value = '';
+            document.getElementById('medicament').value = '';
+            document.getElementById('dosage').value = '';
+            document.getElementById('frequence').value = '';
+            document.getElementById('duree').value = '';
             showToast('Prescription ajoutée', 'success');
         }
 
-        function supprimerPrescriptionTemp(index) { prescriptionsTemporaires.splice(index, 1); afficherPrescriptionsTemp(); }
-
-        async function rechercherPatient() {
-            const search = document.getElementById('searchPatient').value.trim();
-            if (!search) return showToast('Entrez un nom ou ID', 'info');
-            const url = `${SUPABASE_URL}/rest/v1/patients?select=*&or=(nom.ilike.%25${search}%25,prenom.ilike.%25${search}%25,id_national.ilike.%25${search}%25)`;
-            const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-            const patients = await res.json();
-            if (!patients.length) return showToast('Aucun patient', 'error');
-            patientActuel = patients[0];
-            document.getElementById('patientDetails').innerHTML = `
-                <div class="patient-info-grid">
-                    <div><div class="info-label">ID</div><div class="info-value">${patientActuel.id_national || patientActuel.id_patient}</div></div>
-                    <div><div class="info-label">Nom</div><div class="info-value">${patientActuel.prenom} ${patientActuel.nom}</div></div>
-                    <div><div class="info-label">Âge</div><div class="info-value">${patientActuel.age || '-'} ans</div></div>
-                    <div><div class="info-label">Tél</div><div class="info-value">${patientActuel.telephone || '-'}</div></div>
-                </div>
-            `;
-            showToast(`Patient ${patientActuel.prenom} ${patientActuel.nom} sélectionné`, 'success');
+        // ========== SUPPRIMER PRESCRIPTION TEMPORAIRE ==========
+        function supprimerPrescriptionTemp(index) { 
+            prescriptionsTemporaires.splice(index, 1); 
+            afficherPrescriptionsTemp(); 
         }
 
-        function nouveauPatient() { window.location.href = 'medecin-ajout-patient.html'; }
+        // ========== RECHERCHE PATIENT ==========
+        async function rechercherPatient() {
+            const search = document.getElementById('searchPatient').value.trim();
+            if (!search) {
+                showToast('Entrez un nom ou ID', 'info');
+                return;
+            }
+            
+            showLoading();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('patients')
+                    .select('*')
+                    .or(`nom.ilike.%${search}%,prenom.ilike.%${search}%,id_national.ilike.%${search}%`);
+                
+                if (error) throw error;
+                
+                if (!data || data.length === 0) {
+                    showToast('Aucun patient trouvé', 'error');
+                    hideLoading();
+                    return;
+                }
+                
+                patientActuel = data[0];
+                afficherInfosPatient();
+                showToast(`Patient ${patientActuel.prenom} ${patientActuel.nom} sélectionné`, 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Erreur lors de la recherche', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
 
-        async function enregistrerPrescriptions(patientId) {
+        // ========== AFFICHER INFOS PATIENT ==========
+        function afficherInfosPatient() {
+            if (!patientActuel) return;
+            
+            let age = '?';
+            if (patientActuel.date_naissance) {
+                const birthDate = new Date(patientActuel.date_naissance);
+                age = new Date().getFullYear() - birthDate.getFullYear();
+            }
+            
+            document.getElementById('patientDetails').innerHTML = `
+                <div class="patient-info-grid">
+                    <div><div class="info-label">ID National</div><div class="info-value">${escapeHtml(patientActuel.id_national || patientActuel.id_patient)}</div></div>
+                    <div><div class="info-label">Nom complet</div><div class="info-value">${escapeHtml(patientActuel.prenom || '')} ${escapeHtml(patientActuel.nom || '')}</div></div>
+                    <div><div class="info-label">Âge</div><div class="info-value">${age} ans</div></div>
+                    <div><div class="info-label">Téléphone</div><div class="info-value">${escapeHtml(patientActuel.telephone || '-')}</div></div>
+                    <div><div class="info-label">Email</div><div class="info-value">${escapeHtml(patientActuel.email || '-')}</div></div>
+                    <div><div class="info-label">Groupe sanguin</div><div class="info-value">${escapeHtml(patientActuel.groupe_sanguin || '-')}</div></div>
+                </div>
+            `;
+        }
+
+        // ========== NOUVEAU PATIENT ==========
+        function nouveauPatient() {
+            sessionStorage.setItem('medecinIdRetour', medecinId);
+            sessionStorage.setItem('pageRetour', 'consultation');
+            window.location.href = 'medecin-ajout-patient.html';
+        }
+
+        // ========== ANNULER CONSULTATION ==========
+        function annulerConsultation() {
+            if (prescriptionsTemporaires.length > 0 || document.getElementById('diagnostic').value.trim()) {
+                if (confirm('Voulez-vous vraiment annuler cette consultation ? Les données non sauvegardées seront perdues.')) {
+                    window.location.href = 'medecin-dashboard.html';
+                }
+            } else {
+                window.location.href = 'medecin-dashboard.html';
+            }
+        }
+
+        // ========== SAUVEGARDER PRESCRIPTIONS ==========
+        async function enregistrerPrescriptions(consultationId) {
             if (prescriptionsTemporaires.length === 0) return 0;
+            
             let saved = 0;
             for (const p of prescriptionsTemporaires) {
-                const { error } = await supabaseClient.from('prescriptions').insert({
-                    id_patient: patientId, id_medecin: medecinId,
-                    medicament: p.medicament, dosage: p.dosage, frequence: p.frequence, duree: p.duree,
-                    date_prescription: new Date().toISOString()
-                });
+                const { error } = await supabaseClient
+                    .from('prescriptions')
+                    .insert({
+                        id_patient: patientActuel.id_patient,
+                        id_medecin: medecinId,
+                        id_consultation: consultationId,
+                        medicament: p.medicament,
+                        dosage: p.dosage,
+                        frequence: p.frequence,
+                        duree: p.duree,
+                        date_prescription: new Date().toISOString()
+                    });
                 if (!error) saved++;
             }
             return saved;
         }
 
+        // ========== GÉNÉRER ORDONNANCE PDF ULTRA PRO ==========
         async function genererOrdonnancePDF() {
-            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
-            if (prescriptionsTemporaires.length === 0) return showToast('Ajoutez des médicaments', 'error');
+            if (!patientActuel) {
+                showToast('Sélectionnez un patient', 'error');
+                return;
+            }
+            if (prescriptionsTemporaires.length === 0) {
+                showToast('Ajoutez des médicaments à l\'ordonnance', 'error');
+                return;
+            }
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const date = new Date().toLocaleDateString();
-            doc.setFontSize(22);
-            doc.setTextColor(0,0,128);
-            doc.text('ORDONNANCE MÉDICALE', 20, 20);
+            const date = new Date().toLocaleDateString('fr-FR');
+            const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            
+            // ========== CADRE DÉCORATIF ==========
+            doc.setDrawColor(0, 212, 255);
+            doc.setLineWidth(0.5);
+            doc.rect(10, 10, 190, 277);
+            
+            // ========== EN-TÊTE ==========
+            doc.setFillColor(0, 212, 255, 0.1);
+            doc.rect(10, 10, 190, 40, 'F');
+            
+            doc.setFontSize(24);
+            doc.setTextColor(0, 212, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text('MÉDICONNEX', 105, 30, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Plateforme médicale sécurisée', 105, 40, { align: 'center' });
+            
+            // ========== TITRE ORDONNANCE ==========
+            doc.setFontSize(18);
+            doc.setTextColor(0, 0, 128);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ORDONNANCE MÉDICALE', 105, 65, { align: 'center' });
+            
+            doc.setDrawColor(0, 212, 255);
+            doc.setLineWidth(0.3);
+            doc.line(40, 72, 170, 72);
+            
+            // ========== INFORMATIONS MÉDECIN ==========
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`, 20, 85);
+            doc.text(`Spécialité: ${medecin.specialite || 'Médecin généraliste'}`, 20, 92);
+            if (medecin.hopital) doc.text(`Hôpital: ${medecin.hopital}`, 20, 99);
+            
+            // ========== INFORMATIONS PATIENT ==========
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Patient: ${patientActuel.prenom} ${patientActuel.nom}`, 20, 115);
+            doc.text(`Date de naissance: ${patientActuel.date_naissance ? new Date(patientActuel.date_naissance).toLocaleDateString('fr-FR') : 'Non renseignée'}`, 20, 122);
+            if (patientActuel.age) doc.text(`Âge: ${patientActuel.age} ans`, 20, 129);
+            
+            // ========== DATE ==========
+            doc.text(`Date: ${date} à ${heure}`, 140, 115);
+            
+            // ========== LIGNE DE SÉPARATION ==========
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, 138, 190, 138);
+            
+            // ========== PRESCRIPTIONS ==========
             doc.setFontSize(12);
-            doc.setTextColor(0,0,0);
-            doc.text(`Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`, 20, 30);
-            doc.text(`Patient: ${patientActuel.prenom} ${patientActuel.nom}`, 20, 50);
-            doc.text(`Date: ${date}`, 20, 60);
-            let y = 80;
+            doc.setTextColor(0, 212, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.text('PRESCRIPTIONS :', 20, 150);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            
+            let y = 162;
             prescriptionsTemporaires.forEach((p, i) => {
-                doc.text(`${i+1}. ${p.medicament} - ${p.dosage} - ${p.frequence} - ${p.duree}`, 20, y);
-                y += 10;
+                doc.text(`${i+1}. ${p.medicament}`, 25, y);
+                doc.text(`   Posologie: ${p.dosage} - ${p.frequence} - Durée: ${p.duree}`, 25, y + 5);
+                y += 14;
             });
-            doc.text('_________________________', 20, y+10);
-            doc.text('Signature', 20, y+18);
-            doc.save(`ordonnance_${patientActuel.prenom}_${patientActuel.nom}.pdf`);
-            showToast('PDF généré', 'success');
+            
+            // ========== RECOMMANDATIONS ==========
+            if (document.getElementById('notes').value.trim()) {
+                y += 5;
+                doc.setFontSize(11);
+                doc.setTextColor(0, 212, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.text('RECOMMANDATIONS :', 20, y);
+                y += 7;
+                doc.setFontSize(9);
+                doc.setTextColor(80, 80, 80);
+                doc.setFont('helvetica', 'normal');
+                const recommandations = doc.splitTextToSize(document.getElementById('notes').value, 170);
+                doc.text(recommandations, 20, y);
+                y += recommandations.length * 5 + 10;
+            } else {
+                y += 10;
+            }
+            
+            // ========== SIGNATURE ==========
+            doc.setDrawColor(0, 0, 0);
+            doc.line(20, y + 20, 90, y + 20);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Signature et cachet du médecin', 20, y + 28);
+            
+            // ========== TIMBRE ==========
+            doc.setDrawColor(0, 212, 255);
+            doc.setLineWidth(0.3);
+            doc.circle(170, y + 15, 15);
+            doc.setFontSize(7);
+            doc.setTextColor(0, 212, 255);
+            doc.text('MédiConnex', 170, y + 12, { align: 'center' });
+            doc.text('Médecin', 170, y + 18, { align: 'center' });
+            
+            // ========== PIED DE PAGE ==========
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Ordonnance valable uniquement avec signature et cachet du médecin', 105, 280, { align: 'center' });
+            
+            doc.save(`ordonnance_${patientActuel.prenom}_${patientActuel.nom}_${date.replace(/\//g, '-')}.pdf`);
+            showToast('PDF généré avec succès', 'success');
         }
 
+        // ========== IMPRIMER ORDONNANCE ==========
         function imprimerOrdonnance() {
-            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
-            if (prescriptionsTemporaires.length === 0) return showToast('Ajoutez des médicaments', 'error');
+            if (!patientActuel) {
+                showToast('Sélectionnez un patient', 'error');
+                return;
+            }
+            if (prescriptionsTemporaires.length === 0) {
+                showToast('Ajoutez des médicaments', 'error');
+                return;
+            }
+            
+            const date = new Date().toLocaleDateString('fr-FR');
             const win = window.open('', '_blank');
-            let html = `<html><head><title>Ordonnance</title></head><body style="font-family:Arial; padding:40px;"><h1>ORDONNANCE MÉDICALE</h1>`;
-            html += `<p><strong>Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}</strong><br>Patient: ${patientActuel.prenom} ${patientActuel.nom}<br>Date: ${new Date().toLocaleDateString()}</p>`;
-            html += `<h3>Prescriptions:</h3><ul>`;
-            prescriptionsTemporaires.forEach(p => { html += `<li><strong>${p.medicament}</strong> - ${p.dosage} - ${p.frequence} - ${p.duree}</li>`; });
-            html += `</ul><p>_________________________<br>Signature</p></body></html>`;
+            let html = `<!DOCTYPE html>
+            <html>
+            <head>
+                <title>Ordonnance médicale</title>
+                <meta charset="UTF-8">
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Times New Roman', serif; 
+                        padding: 40px; 
+                        background: white;
+                    }
+                    .ordonnance {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        border: 2px solid #00d4ff;
+                        padding: 30px;
+                        position: relative;
+                    }
+                    .header {
+                        text-align: center;
+                        border-bottom: 2px solid #00d4ff;
+                        padding-bottom: 15px;
+                        margin-bottom: 20px;
+                    }
+                    .header h1 { color: #00d4ff; font-size: 28px; letter-spacing: 2px; }
+                    .header p { color: #666; font-size: 12px; }
+                    .title {
+                        text-align: center;
+                        margin: 20px 0;
+                    }
+                    .title h2 {
+                        color: #1a1a2e;
+                        font-size: 22px;
+                        text-decoration: underline;
+                    }
+                    .medecin-info, .patient-info {
+                        margin: 15px 0;
+                        padding: 10px;
+                        background: #f5f5f5;
+                        border-radius: 8px;
+                    }
+                    .medecin-info h3, .patient-info h3 {
+                        color: #00d4ff;
+                        margin-bottom: 8px;
+                        font-size: 14px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }
+                    th, td {
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        text-align: left;
+                    }
+                    th {
+                        background: #00d4ff;
+                        color: white;
+                    }
+                    .signature {
+                        margin-top: 40px;
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .signature-line {
+                        width: 200px;
+                        border-top: 1px solid black;
+                        margin-top: 30px;
+                        padding-top: 5px;
+                        text-align: center;
+                        font-size: 11px;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        font-size: 10px;
+                        color: #999;
+                        border-top: 1px solid #eee;
+                        padding-top: 15px;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .ordonnance { border: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="ordonnance">
+                    <div class="header">
+                        <h1>MÉDICONNEX</h1>
+                        <p>Plateforme médicale sécurisée</p>
+                    </div>
+                    <div class="title">
+                        <h2>ORDONNANCE MÉDICALE</h2>
+                    </div>
+                    <div class="medecin-info">
+                        <h3>👨‍⚕️ Médecin prescripteur</h3>
+                        <p><strong>Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}</strong><br>
+                        Spécialité: ${medecin.specialite || 'Médecin généraliste'}<br>
+                        ${medecin.hopital ? `Hôpital: ${medecin.hopital}<br>` : ''}
+                        ${medecin.wilaya ? `Wilaya: ${medecin.wilaya}` : ''}</p>
+                    </div>
+                    <div class="patient-info">
+                        <h3>👤 Patient</h3>
+                        <p><strong>${patientActuel.prenom} ${patientActuel.nom}</strong><br>
+                        Date de naissance: ${patientActuel.date_naissance ? new Date(patientActuel.date_naissance).toLocaleDateString('fr-FR') : 'Non renseignée'}<br>
+                        ${patientActuel.age ? `Âge: ${patientActuel.age} ans` : ''}</p>
+                    </div>
+                    <p><strong>Date:</strong> ${date}</p>
+                    <h3>💊 Prescriptions médicales :</h3>
+                    <table>
+                        <thead>
+                            <tr><th>N°</th><th>Médicament</th><th>Dosage</th><th>Fréquence</th><th>Durée</th></tr>
+                        </thead>
+                        <tbody>
+                            ${prescriptionsTemporaires.map((p, i) => `
+                                <tr>
+                                    <td>${i+1}</td>
+                                    <td><strong>${p.medicament}</strong></td>
+                                    <td>${p.dosage}</td>
+                                    <td>${p.frequence}</td>
+                                    <td>${p.duree}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    ${document.getElementById('notes').value ? `
+                        <h3>📋 Recommandations :</h3>
+                        <p style="margin: 10px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #00d4ff;">
+                            ${document.getElementById('notes').value}
+                        </p>
+                    ` : ''}
+                    <div class="signature">
+                        <div class="signature-line">Signature du médecin</div>
+                        <div class="signature-line">Cachet du cabinet</div>
+                    </div>
+                    <div class="footer">
+                        <p>Ordonnance valable uniquement accompagnée de la signature et du cachet du médecin</p>
+                        <p>MédiConnex - Votre santé, notre priorité</p>
+                    </div>
+                </div>
+                <script>window.print();<\/script>
+            </body>
+            </html>`;
             win.document.write(html);
             win.document.close();
-            win.print();
         }
 
+        // ========== GÉNÉRER DOCUMENT PDF ULTRA PRO ==========
         async function genererDocumentPDF(type) {
-            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
+            if (!patientActuel) {
+                showToast('Sélectionnez un patient', 'error');
+                return;
+            }
+            
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const date = new Date().toLocaleDateString();
+            const date = new Date().toLocaleDateString('fr-FR');
             const patient = `${patientActuel.prenom} ${patientActuel.nom}`;
-            let titre = '', contenu = '';
-            if (type === 'analyse') { titre = "DEMANDE D'ANALYSE"; contenu = `Patient: ${patient}\nDate: ${date}\nAnalyses: Bilan sanguin, Glycémie, Cholestérol`; }
-            if (type === 'radiographie') { titre = "DEMANDE DE RADIOGRAPHIE"; contenu = `Patient: ${patient}\nDate: ${date}\nExamen: Radiographie thoracique`; }
-            if (type === 'certificat') { titre = "CERTIFICAT MÉDICAL"; contenu = `Je certifie avoir examiné ${patient} le ${date}.`; }
-            if (type === 'compte_rendu') { titre = "COMPTE RENDU"; contenu = `Patient: ${patient}\nDate: ${date}\nDiagnostic: ${document.getElementById('diagnostic').value || '--'}`; }
-            doc.setFontSize(18);
-            doc.text(titre, 20, 20);
-            doc.setFontSize(12);
-            doc.text(contenu, 20, 40);
-            doc.save(`${type}_${patient}.pdf`);
-            showToast('Document généré', 'success');
+            
+            let titre = '', contenu = '', sousTitre = '';
+            
+            // Configuration selon le type de document
+            const configs = {
+                'analyse': {
+                    titre: "DEMANDE D'ANALYSE BIOLOGIQUE",
+                    sousTitre: "Prescription d'examens de laboratoire",
+                    contenu: `Patient: ${patient}\nDate de naissance: ${patientActuel.date_naissance ? new Date(patientActuel.date_naissance).toLocaleDateString('fr-FR') : 'Non renseignée'}\n\nExamens demandés:\n✓ Bilan sanguin complet (NFS)\n✓ Glycémie à jeun\n✓ Bilan lipidique (Cholestérol, Triglycérides)\n✓ Créatininémie, Urée\n✓ VS, CRP\n✓ Bilan hépatique (ASAT, ALAT, GGT)\n✓ Électrophorèse des protéines`
+                },
+                'radiographie': {
+                    titre: "DEMANDE DE RADIOGRAPHIE",
+                    sousTitre: "Prescription d'examens d'imagerie médicale",
+                    contenu: `Patient: ${patient}\nDate de naissance: ${patientActuel.date_naissance ? new Date(patientActuel.date_naissance).toLocaleDateString('fr-FR') : 'Non renseignée'}\n\nExamen demandé: Radiographie thoracique\nIncidence: Face + Profil\n\nMotif clinique: À préciser par le médecin`
+                },
+                'certificat': {
+                    titre: "CERTIFICAT MÉDICAL",
+                    sousTitre: "Certificat d'examen clinique",
+                    contenu: `Je soussigné, Dr. ${medecin.prenom || ''} ${medecin.nom || ''}, certifie avoir examiné ${patient} le ${date}.\n\n${document.getElementById('diagnostic').value || 'Aucune observation particulière.'}\n\n${document.getElementById('notes').value ? `\nRecommandations: ${document.getElementById('notes').value}` : ''}`
+                },
+                'compte_rendu': {
+                    titre: "COMPTE RENDU DE CONSULTATION",
+                    sousTitre: "Récapitulatif de la consultation médicale",
+                    contenu: `Patient: ${patient}\nDate de naissance: ${patientActuel.date_naissance ? new Date(patientActuel.date_naissance).toLocaleDateString('fr-FR') : 'Non renseignée'}\nDate de consultation: ${date}\nMédecin traitant: Dr. ${medecin.prenom || ''} ${medecin.nom || ''}\n\nMOTIF DE LA CONSULTATION:\n${document.getElementById('motif').value || 'Consultation générale'}\n\nSYMPTÔMES:\n${document.getElementById('symptomes').value || 'Non renseignés'}\n\nDIAGNOSTIC:\n${document.getElementById('diagnostic').value || 'Non renseigné'}\n\nTRAITEMENT PRESCRIT:\n${document.getElementById('notes').value || 'Aucun traitement prescrit'}\n\nPROCHAINE CONSULTATION:\nÀ convenir selon évolution`
+                }
+            };
+            
+            const cfg = configs[type];
+            titre = cfg.titre;
+            sousTitre = cfg.sousTitre;
+            contenu = cfg.contenu;
+            
+            // ========== CADRE ==========
+            doc.setDrawColor(0, 100, 200);
+            doc.setLineWidth(0.5);
+            doc.rect(10, 10, 190, 277);
+            
+            // ========== EN-TÊTE ==========
+            doc.setFillColor(0, 100, 200, 0.1);
+            doc.rect(10, 10, 190, 40, 'F');
+            
+            doc.setFontSize(20);
+            doc.setTextColor(0, 100, 200);
+            doc.setFont('helvetica', 'bold');
+            doc.text('MÉDICONNEX', 105, 28, { align: 'center' });
+            
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Plateforme médicale sécurisée', 105, 38, { align: 'center' });
+            
+            // ========== TITRE ==========
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 80);
+            doc.text(titre, 105, 58, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(sousTitre, 105, 68, { align: 'center' });
+            
+            doc.setDrawColor(0, 100, 200);
+            doc.line(30, 74, 180, 74);
+            
+            // ========== CONTENU ==========
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont('helvetica', 'normal');
+            
+            const splitText = doc.splitTextToSize(contenu, 170);
+            doc.text(splitText, 20, 90);
+            
+            // ========== INFORMATIONS MÉDECIN ==========
+            let yPos = 90 + (splitText.length * 6);
+            doc.setFontSize(9);
+            doc.setTextColor(80, 80, 80);
+            doc.text(`Médecin prescripteur: Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`, 20, yPos + 15);
+            if (medecin.hopital) doc.text(`Hôpital: ${medecin.hopital}`, 20, yPos + 22);
+            if (medecin.wilaya) doc.text(`Wilaya: ${medecin.wilaya}`, 20, yPos + 29);
+            
+            // ========== SIGNATURE ==========
+            doc.setDrawColor(0, 0, 0);
+            doc.line(20, yPos + 55, 90, yPos + 55);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Signature et cachet du médecin', 20, yPos + 63);
+            
+            // ========== TIMBRE ==========
+            doc.setDrawColor(0, 100, 200);
+            doc.circle(170, yPos + 45, 15);
+            doc.setFontSize(7);
+            doc.setTextColor(0, 100, 200);
+            doc.text('MédiConnex', 170, yPos + 42, { align: 'center' });
+            doc.text('Médecin', 170, yPos + 48, { align: 'center' });
+            
+            // ========== PIED ==========
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Document médical confidentiel', 105, 280, { align: 'center' });
+            
+            doc.save(`${type}_${patient}_${date.replace(/\//g, '-')}.pdf`);
+            showToast('Document généré avec succès', 'success');
         }
 
+        // ========== ENREGISTRER CONSULTATION ==========
         async function enregistrerConsultation() {
-            if (!patientActuel) return showToast('Sélectionnez un patient', 'error');
-            const diagnostic = document.getElementById('diagnostic').value;
-            if (!diagnostic) return showToast('Diagnostic requis', 'error');
-            const consultationData = {
-                id_patient: patientActuel.id_patient, id_medecin: medecinId,
-                date_consultation: document.getElementById('dateConsult').value,
-                motif: document.getElementById('motif').value || '',
-                symptomes: document.getElementById('symptomes').value || '',
-                diagnostic: diagnostic, traitement: document.getElementById('notes').value || ''
-            };
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/consultations`, {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(consultationData)
-            });
-            if (!response.ok) return showToast('Erreur enregistrement', 'error');
-            const saved = await enregistrerPrescriptions(patientActuel.id_patient);
-            showToast(`✅ Consultation enregistrée + ${saved} prescription(s)`, 'success');
-            setTimeout(() => window.location.href = 'medecin-dashboard.html', 1500);
+            if (!patientActuel) {
+                showToast('Sélectionnez un patient', 'error');
+                return;
+            }
+            
+            const diagnostic = document.getElementById('diagnostic').value.trim();
+            if (!diagnostic) {
+                showToast('Le diagnostic est requis', 'error');
+                document.getElementById('diagnostic').focus();
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const consultationData = {
+                    id_patient: patientActuel.id_patient,
+                    id_medecin: medecinId,
+                    date_consultation: document.getElementById('dateConsult').value,
+                    motif: document.getElementById('motif').value || '',
+                    symptomes: document.getElementById('symptomes').value || '',
+                    diagnostic: diagnostic,
+                    traitement: document.getElementById('notes').value || ''
+                };
+                
+                const { data: consultation, error: consultationError } = await supabaseClient
+                    .from('consultations')
+                    .insert(consultationData)
+                    .select()
+                    .single();
+                
+                if (consultationError) throw consultationError;
+                
+                const savedPrescriptions = await enregistrerPrescriptions(consultation.id_consultation);
+                
+                showToast(`✅ Consultation enregistrée avec ${savedPrescriptions} prescription(s)`, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'medecin-dashboard.html';
+                }, 1500);
+                
+            } catch (err) {
+                console.error('Erreur:', err);
+                showToast('❌ Erreur: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ========== VÉRIFICATION RETOUR AJOUT PATIENT ==========
+        if (sessionStorage.getItem('patientAjoute')) {
+            sessionStorage.removeItem('patientAjoute');
+            showToast('Patient créé avec succès ! Vous pouvez maintenant le sélectionner.', 'success');
         }
     </script>
 </body>

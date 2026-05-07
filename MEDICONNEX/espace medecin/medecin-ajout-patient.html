@@ -2,12 +2,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Ajouter un patient - MédiConnex</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         body {
             background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
@@ -15,10 +20,10 @@
             background-position: center;
             background-attachment: fixed;
             color: #fff;
-            min-height: 100vh;
-            padding: 30px;
+            display: flex;
             position: relative;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -27,8 +32,9 @@
             width: 100%;
             height: 100%;
             background: rgba(5, 7, 15, 0.75);
-            z-index: 0;
+            z-index: -1;
         }
+
         .bg-glow {
             position: fixed;
             top: 0;
@@ -65,151 +71,289 @@
             66% { transform: translate(-30px, 40px) scale(0.9); }
         }
 
-        .form-container {
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            width: 280px;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px 20px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .sidebar-logo i {
+            font-size: 2rem;
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.6)); }
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar-menu a i { width: 22px; font-size: 1.1rem; color: #00d4ff; }
+        .sidebar-menu a:hover, .sidebar-menu .active a {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ff3366;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .sidebar-footer a:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateX(5px);
+        }
+
+        .main-content {
             position: relative;
             z-index: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(15px);
-            border-radius: 32px;
-            padding: 35px;
-            border: 1px solid rgba(0, 212, 255, 0.3);
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px 35px;
+            min-height: 100vh;
         }
 
-        .form-header {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .form-header h1 {
-            color: #00d4ff;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .patient-id {
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid #00d4ff;
-            border-radius: 40px;
-            padding: 8px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .patient-id strong { color: #00d4ff; font-size: 1.1rem; letter-spacing: 1px; }
-        .back-link { color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
-        .back-link:hover { color: #00d4ff; }
-
-        .doctor-context {
-            background: rgba(0, 212, 255, 0.05);
-            border-left: 4px solid #00d4ff;
-            padding: 15px 20px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            display: flex;
             flex-wrap: wrap;
             gap: 15px;
-            align-items: center;
-            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
         }
-        .doctor-info { display: flex; align-items: center; gap: 15px; }
-        .doctor-avatar {
-            width: 50px;
-            height: 50px;
+        .page-header h1 {
+            color: #00d4ff;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .doctor-info-mini {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .doctor-avatar-mini {
+            width: 45px;
+            height: 45px;
             background: linear-gradient(135deg, #00d4ff, #0099cc);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .doctor-avatar i { font-size: 1.5rem; color: #0a0c10; }
-        .doctor-text h3 { color: #00d4ff; font-size: 1rem; }
-        .doctor-text p { color: #94a3b8; font-size: 0.8rem; }
+        .doctor-avatar-mini i { font-size: 1.3rem; color: #0a0c10; }
+        .doctor-text-mini h3 { font-size: 0.9rem; color: #00d4ff; }
+        .doctor-text-mini p { font-size: 0.7rem; color: #94a3b8; }
 
-        .form-section {
-            background: rgba(0, 212, 255, 0.03);
-            border: 1px solid rgba(0, 212, 255, 0.15);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 25px;
+        .form-container {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 32px;
+            padding: 30px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
         }
-        .section-title {
+
+        .form-card {
+            background: rgba(0,212,255,0.03);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            transition: all 0.3s;
+        }
+        .form-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .card-title {
             color: #00d4ff;
             font-size: 1.1rem;
+            font-weight: 600;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
+            border-left: 3px solid #00d4ff;
+            padding-left: 12px;
         }
+
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
         }
-        .form-group.full-width { grid-column: span 2; }
+        .form-group.full-width { grid-column: span 3; }
         .form-group label {
             display: block;
             color: #00d4ff;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
+            font-weight: 500;
             margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .input-wrapper { position: relative; }
+        .input-wrapper {
+            position: relative;
+        }
         .input-wrapper i {
             position: absolute;
             left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: #00d4ff99;
+            font-size: 0.9rem;
         }
         .input-wrapper input, .input-wrapper select, .input-wrapper textarea {
             width: 100%;
-            padding: 12px 12px 12px 42px;
+            padding: 12px 12px 12px 40px;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 14px;
+            border-radius: 12px;
             color: #fff;
             font-size: 0.9rem;
-            transition: 0.3s;
+            transition: all 0.3s;
         }
         .input-wrapper input:focus, .input-wrapper select:focus, .input-wrapper textarea:focus {
             outline: none;
             border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
         }
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 10px;
+        .input-wrapper textarea {
+            resize: vertical;
+            min-height: 80px;
+            padding-top: 12px;
         }
-        .checkbox-item {
-            background: rgba(0, 212, 255, 0.03);
-            padding: 10px 15px;
-            border-radius: 12px;
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .imc-display {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #00d4ff;
+        }
+
+        .dynamic-item {
+            background: rgba(0, 212, 255, 0.05);
             border: 1px solid rgba(0, 212, 255, 0.15);
-            display: flex;
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .dynamic-item .delete-item {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ef4444;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .dynamic-item .delete-item:hover { transform: scale(1.1); }
+        .dynamic-item .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .btn-add {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px dashed #00d4ff;
+            border-radius: 40px;
+            padding: 10px 20px;
+            color: #00d4ff;
+            cursor: pointer;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .btn-add:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         .upload-area {
             border: 2px dashed rgba(0, 212, 255, 0.3);
-            border-radius: 16px;
-            padding: 25px;
+            border-radius: 20px;
+            padding: 30px;
             text-align: center;
             cursor: pointer;
             transition: 0.3s;
+            margin-bottom: 20px;
         }
-        .upload-area:hover { border-color: #00d4ff; background: rgba(0, 212, 255, 0.05); }
-        .upload-area i { font-size: 2.5rem; color: #00d4ff; margin-bottom: 10px; }
+        .upload-area:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        .upload-area i { font-size: 3rem; color: #00d4ff; margin-bottom: 10px; }
         .file-list { margin-top: 15px; }
         .file-item {
             background: rgba(0, 212, 255, 0.05);
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 10px 15px;
             margin-bottom: 8px;
             display: flex;
@@ -227,141 +371,213 @@
             background: linear-gradient(135deg, #00d4ff, #0099cc);
             border: none;
             border-radius: 40px;
-            padding: 12px 35px;
+            padding: 14px 35px;
             color: #0a0c10;
             font-weight: 600;
             cursor: pointer;
             transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3); }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
         .btn-secondary {
             background: transparent;
             border: 1px solid #ef4444;
             border-radius: 40px;
-            padding: 12px 35px;
+            padding: 14px 35px;
             color: #ef4444;
             cursor: pointer;
             transition: 0.3s;
         }
-        .btn-secondary:hover { background: rgba(239, 68, 68, 0.1); }
+        .btn-secondary:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: translateY(-2px);
+        }
 
         .toast {
             position: fixed;
             bottom: 30px;
             right: 30px;
             padding: 12px 20px;
-            border-radius: 10px;
             background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
             border-left: 4px solid #00ff88;
+            border-radius: 12px;
             z-index: 1100;
             animation: slideIn 0.3s ease;
+            font-size: 0.85rem;
         }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
-        @media (max-width: 768px) {
-            .form-container { padding: 20px; }
-            .form-grid { grid-template-columns: 1fr; }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .info-banner {
+            background: rgba(0, 212, 255, 0.15);
+            border-left: 4px solid #00d4ff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .info-banner i { font-size: 1.2rem; color: #00d4ff; }
+        .info-banner span { color: #00d4ff; font-weight: 600; }
+
+        @media (max-width: 900px) {
+            .form-grid { grid-template-columns: 1fr; gap: 15px; }
             .form-group.full-width { grid-column: span 1; }
+            .dynamic-item .grid-2 { grid-template-columns: 1fr; }
             .form-actions { flex-direction: column; }
-            .btn-primary, .btn-secondary { width: 100%; text-align: center; justify-content: center; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; }
+            .sidebar span, .sidebar-footer span { display: none; }
+            .main-content { margin-left: 80px; padding: 15px; }
+            .form-container { padding: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loading-spinner"></div></div>
 
-    <div class="form-container">
-        <div class="form-header">
-            <h1><i class="fa-solid fa-user-plus"></i> Nouveau patient</h1>
-            <div class="patient-id">
-                <span>ID National:</span>
-                <strong id="patientId">DZ-25-03-001</strong>
-                <i class="fa-solid fa-copy" style="color: #00d4ff; cursor: pointer;" onclick="copierId()"></i>
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-staff-snake"></i>
+            <span>MédiConnex</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="medecin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li class="active"><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+            <li><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-messagerie.html"><i class="fa-solid fa-comments"></i> Messagerie</a></li>
+            <li><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-user-plus"></i> <span id="pageTitle">Nouveau patient</span></h1>
+            <div class="doctor-info-mini">
+                <div class="doctor-avatar-mini">
+                    <i class="fa-solid fa-user-md"></i>
+                </div>
+                <div class="doctor-text-mini">
+                    <h3 id="doctorName">Dr. Chargement...</h3>
+                    <p id="doctorSpecialite">Médecin</p>
+                </div>
             </div>
-            <a href="medecin-patients.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Retour</a>
         </div>
 
-        <div class="doctor-context">
-            <div class="doctor-info">
-                <div class="doctor-avatar"><i class="fa-solid fa-user-md"></i></div>
-                <div class="doctor-text">
-                    <h3 id="doctorName">Dr. Ahmed Benali</h3>
-                    <p id="doctorSpecialite">Cardiologie</p>
+        <div class="form-container">
+            <div id="modeBanner" class="info-banner" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <span>Mode ajout :</span> vous ajoutez des informations à un patient existant.
+            </div>
+            <form id="patientForm">
+                <div class="form-card" id="infosPersonnellesCard">
+                    <div class="card-title"><i class="fa-solid fa-user"></i> Informations personnelles</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ID National *</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-id-card"></i>
+                                <input type="text" id="idNational" placeholder="Généré automatiquement" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Nom *</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="nom" placeholder="Benali"></div></div>
+                        <div class="form-group"><label>Prénom *</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="prenom" placeholder="Ahmed"></div></div>
+                        <div class="form-group"><label>Date de naissance</label><div class="input-wrapper"><i class="fa-solid fa-calendar"></i><input type="date" id="dateNaissance"></div></div>
+                        <div class="form-group"><label>Sexe</label><div class="input-wrapper"><i class="fa-solid fa-venus-mars"></i><select id="sexe"><option value="">Sélectionner</option><option value="M">Masculin</option><option value="F">Féminin</option></select></div></div>
+                        <div class="form-group"><label>Téléphone</label><div class="input-wrapper"><i class="fa-solid fa-phone"></i><input type="tel" id="telephone" placeholder="0550 12 34 56"></div></div>
+                        <div class="form-group"><label>Email *</label><div class="input-wrapper"><i class="fa-solid fa-envelope"></i><input type="email" id="email" placeholder="patient@email.com"></div></div>
+                        <div class="form-group"><label>Mot de passe *</label><div class="input-wrapper"><i class="fa-solid fa-lock"></i><input type="password" id="motDePasse" placeholder="••••••••"></div></div>
+                        <div class="form-group full-width"><label>Adresse</label><div class="input-wrapper"><i class="fa-solid fa-location-dot"></i><input type="text" id="adresse" placeholder="Adresse complète"></div></div>
+                    </div>
                 </div>
-            </div>
-            <div class="context-badge" style="background: rgba(0,212,255,0.1); padding: 6px 15px; border-radius: 30px; color:#00d4ff;">
-                <i class="fa-solid fa-shield"></i> Création dossier patient
-            </div>
+
+                <div class="form-card">
+                    <div class="card-title"><i class="fa-solid fa-heart-pulse"></i> Informations médicales</div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Groupe sanguin</label><div class="input-wrapper"><i class="fa-solid fa-droplet"></i><select id="groupeSanguin"><option value="">Non spécifié</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="O+">O+</option><option value="O-">O-</option><option value="AB+">AB+</option><option value="AB-">AB-</option></select></div></div>
+                        <div class="form-group"><label>Poids (kg)</label><div class="input-wrapper"><i class="fa-solid fa-weight-scale"></i><input type="number" id="poids" placeholder="70" step="0.1"></div></div>
+                        <div class="form-group"><label>Taille (cm)</label><div class="input-wrapper"><i class="fa-solid fa-ruler"></i><input type="number" id="taille" placeholder="170" step="1"></div></div>
+                        <div class="form-group full-width"><div class="imc-display" id="imcDisplay">📊 IMC : --</div></div>
+                        <div class="form-group"><label>Tension artérielle</label><div class="input-wrapper"><i class="fa-solid fa-heartbeat"></i><input type="text" id="tension" placeholder="120/80"></div></div>
+                        <div class="form-group"><label>Allergies</label><div class="input-wrapper"><i class="fa-solid fa-allergies"></i><input type="text" id="allergies" placeholder="Ex: Pénicilline, Arachides..."></div></div>
+                        <div class="form-group full-width"><label>Observations générales</label><div class="input-wrapper"><i class="fa-solid fa-notes-medical"></i><textarea id="observations" rows="2" placeholder="Remarques particulières..."></textarea></div></div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="card-title"><i class="fa-solid fa-notes-medical"></i> Antécédents</div>
+                    <div id="antecedentsList"></div>
+                    <button type="button" class="btn-add" onclick="ajouterAntecedent()"><i class="fa-solid fa-plus"></i> Ajouter un antécédent</button>
+                </div>
+
+                <div class="form-card">
+                    <div class="card-title"><i class="fa-solid fa-prescription-bottle"></i> Traitements actuels</div>
+                    <div id="traitementsList"></div>
+                    <button type="button" class="btn-add" onclick="ajouterTraitement()"><i class="fa-solid fa-plus"></i> Ajouter un traitement</button>
+                </div>
+
+                <div class="form-card">
+                    <div class="card-title"><i class="fa-solid fa-file-upload"></i> Documents médicaux</div>
+                    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-cloud-upload-alt"></i>
+                        <p>Cliquez ou glissez vos fichiers ici</p>
+                        <p style="font-size: 11px; opacity: 0.7;">PDF, JPG, PNG (max 10MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" multiple style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="ajouterFichiers(this)">
+                    <div class="file-list" id="fileList"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="annuler()">Annuler</button>
+                    <button type="submit" class="btn-primary" id="submitBtn"><i class="fa-solid fa-save"></i> <span id="submitBtnText">Enregistrer le patient</span></button>
+                </div>
+            </form>
         </div>
-
-        <form id="ajoutPatientForm">
-            <!-- Informations personnelles -->
-            <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-user"></i> Informations personnelles</div>
-                <div class="form-grid">
-                    <div class="form-group"><label>Nom *</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="nom" placeholder="Benali" required></div></div>
-                    <div class="form-group"><label>Prénom *</label><div class="input-wrapper"><i class="fa-solid fa-user"></i><input type="text" id="prenom" placeholder="Sarah" required></div></div>
-                    <div class="form-group"><label>Date de naissance</label><div class="input-wrapper"><i class="fa-solid fa-calendar"></i><input type="date" id="dateNaissance"></div></div>
-                    <div class="form-group"><label>Genre</label><div class="input-wrapper"><i class="fa-solid fa-venus-mars"></i><select id="genre"><option value="">Sélectionner</option><option value="F">Féminin</option><option value="M">Masculin</option></select></div></div>
-                    <div class="form-group"><label>Téléphone</label><div class="input-wrapper"><i class="fa-solid fa-phone"></i><input type="tel" id="telephone" placeholder="0550 12 34 56"></div></div>
-                    <div class="form-group"><label>Email *</label><div class="input-wrapper"><i class="fa-solid fa-envelope"></i><input type="email" id="email" placeholder="patient@email.com" required></div></div>
-                    <div class="form-group full-width"><label>Adresse</label><div class="input-wrapper"><i class="fa-solid fa-location-dot"></i><input type="text" id="adresse" placeholder="Adresse complète"></div></div>
-                    <div class="form-group"><label>Wilaya</label><div class="input-wrapper"><i class="fa-solid fa-map"></i><select id="wilaya"><option value="">Sélectionner</option></select></div></div>
-                </div>
-            </div>
-
-            <!-- Informations médicales -->
-            <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-heart-pulse"></i> Informations médicales</div>
-                <div class="form-grid">
-                    <div class="form-group"><label>Groupe sanguin</label><div class="input-wrapper"><i class="fa-solid fa-droplet"></i><select id="groupeSanguin"><option value="">Non spécifié</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="O+">O+</option><option value="O-">O-</option></select></div></div>
-                    <div class="form-group"><label>Taille (cm)</label><div class="input-wrapper"><i class="fa-solid fa-ruler"></i><input type="number" id="taille" placeholder="168"></div></div>
-                    <div class="form-group"><label>Poids (kg)</label><div class="input-wrapper"><i class="fa-solid fa-weight-scale"></i><input type="number" id="poids" placeholder="70"></div></div>
-                    <div class="form-group"><label>Médecin traitant</label><div class="input-wrapper"><i class="fa-solid fa-user-md"></i><input type="text" id="medecinTraitant" readonly></div></div>
-                </div>
-            </div>
-
-            <!-- Antécédents -->
-            <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-notes-medical"></i> Antécédents</div>
-                <div class="checkbox-grid">
-                    <div class="checkbox-item"><input type="checkbox" id="diabete"><label>Diabète</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="hypertension"><label>Hypertension</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="asthme"><label>Asthme</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="cardiaque"><label>Cardiaque</label></div>
-                </div>
-                <div class="form-group full-width"><label>Autres</label><div class="input-wrapper"><i class="fa-solid fa-pen"></i><textarea id="autresAntecedents" rows="2" placeholder="Informations complémentaires..."></textarea></div></div>
-            </div>
-
-            <!-- Allergies -->
-            <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> Allergies</div>
-                <div class="checkbox-grid">
-                    <div class="checkbox-item"><input type="checkbox" id="allergieMedicament"><label>Médicaments</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="allergieAliment"><label>Aliments</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="allergiePollens"><label>Pollens</label></div>
-                    <div class="checkbox-item"><input type="checkbox" id="allergieAnimaux"><label>Animaux</label></div>
-                </div>
-                <div class="form-group full-width"><label>Détail</label><div class="input-wrapper"><i class="fa-solid fa-pen"></i><textarea id="detailAllergies" rows="2" placeholder="Ex: Pénicilline, Arachides..."></textarea></div></div>
-            </div>
-
-            <!-- Upload documents -->
-            <div class="form-section">
-                <div class="section-title"><i class="fa-solid fa-file-upload"></i> Documents médicaux</div>
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <i class="fa-solid fa-cloud-upload-alt"></i>
-                    <p>Cliquez pour uploader des fichiers</p>
-                    <p style="font-size: 12px; opacity:0.7;">PDF, JPG, PNG</p>
-                </div>
-                <input type="file" id="fileInput" multiple style="display: none;" accept=".pdf,.jpg,.jpeg,.png" onchange="ajouterFichiers(this)">
-                <div class="file-list" id="fileList"></div>
-            </div>
-
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="window.location.href='medecin-patients.html'">Annuler</button>
-                <button type="submit" class="btn-primary" id="submitBtn">Enregistrer</button>
-            </div>
-        </form>
     </div>
 
     <script>
@@ -370,107 +586,494 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
-        const medecinId = medecin.id_medecin || 1;
+        const medecinId = medecin.id_medecin;
+        if (!medecinId) window.location.href = 'medecin-login.html';
 
-        if (medecin.nom) {
-            document.getElementById('doctorName').innerText = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
-            document.getElementById('doctorSpecialite').innerText = medecin.specialite || 'Médecin généraliste';
-            document.getElementById('medecinTraitant').value = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
+
+        let antecedentsList = [];
+        let traitementsList = [];
+        let fichiersList = [];
+        let antecedentId = 0;
+        let traitementId = 0;
+
+        // ========== DÉTECTION MODE AJOUT À PATIENT EXISTANT ==========
+        const urlParams = new URLSearchParams(window.location.search);
+        const idPatientExistant = urlParams.get('id_patient');
+        const isAjoutMode = idPatientExistant && idPatientExistant !== 'null' && idPatientExistant !== 'undefined';
+
+        if (isAjoutMode) {
+            document.getElementById('pageTitle').innerText = 'Ajouter au dossier patient';
+            document.getElementById('submitBtnText').innerText = 'Ajouter au dossier';
+            document.getElementById('modeBanner').style.display = 'flex';
+            // Désactiver les champs obligatoires pour ne pas forcer la saisie
+            document.getElementById('nom').removeAttribute('required');
+            document.getElementById('prenom').removeAttribute('required');
+            document.getElementById('email').removeAttribute('required');
+            document.getElementById('motDePasse').removeAttribute('required');
+            // Masquer la section des infos personnelles (optionnel)
+            // document.getElementById('infosPersonnellesCard').style.opacity = '0.7';
         }
 
-        let fichiers = [];
+        function logout() { 
+            localStorage.removeItem('medecin'); 
+            window.location.href = '../index.html'; 
+        }
 
-        function showToast(message, type = 'success') {
+        function showToast(msg, type = 'success') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${message}`;
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}" style="color:#00d4ff"></i> ${msg}`;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
+        }
+
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function genererIdNational() {
             const date = new Date();
             const annee = date.getFullYear().toString().slice(-2);
             const mois = (date.getMonth() + 1).toString().padStart(2, '0');
-            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-            return `DZ-${annee}${mois}-${random}`;
+            const jour = date.getDate().toString().padStart(2, '0');
+            const heure = date.getHours().toString().padStart(2, '0');
+            const minute = date.getMinutes().toString().padStart(2, '0');
+            const seconde = date.getSeconds().toString().padStart(2, '0');
+            return `DZ-${annee}${mois}${jour}-${heure}${minute}${seconde}`;
         }
 
-        document.getElementById('patientId').textContent = genererIdNational();
-        window.copierId = () => { navigator.clipboard.writeText(document.getElementById('patientId').textContent); showToast('ID copié !', 'info'); };
-
-        window.ajouterFichiers = function(input) {
-            const fileList = document.getElementById('fileList');
-            for (let i = 0; i < input.files.length; i++) {
-                const file = input.files[i];
-                fichiers.push(file);
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `<span><i class="fas fa-file"></i> ${file.name}</span><i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="this.parentElement.remove(); fichiers = fichiers.filter(f => f.name !== '${file.name}')"></i>`;
-                fileList.appendChild(fileItem);
-            }
-        };
-
-        async function uploadFilesToSupabase(patientId) {
-            if (fichiers.length === 0) return [];
-            const uploadedFiles = [];
-            for (const file of fichiers) {
-                const fileName = `${patientId}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-                const { error: uploadError } = await supabaseClient.storage.from('documents').upload(fileName, file);
-                if (uploadError) continue;
-                const { data: publicUrlData } = supabaseClient.storage.from('documents').getPublicUrl(fileName);
-                await supabaseClient.from('documents').insert({
-                    id_patient: patientId,
-                    nom_fichier: file.name,
-                    url: publicUrlData.publicUrl,
-                    type_document: file.type.includes('pdf') ? 'PDF' : 'IMAGE',
-                    date_upload: new Date().toISOString()
-                });
-                uploadedFiles.push(file.name);
-            }
-            return uploadedFiles;
+        function calculerAge(dateNaissance) {
+            if (!dateNaissance) return null;
+            const today = new Date();
+            const birth = new Date(dateNaissance);
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            return age;
         }
+
+        function calculerIMC() {
+            const poids = parseFloat(document.getElementById('poids').value);
+            const taille = parseFloat(document.getElementById('taille').value) / 100;
+            if (poids && taille && taille > 0) {
+                const imc = poids / (taille * taille);
+                let interpretation = '';
+                if (imc < 18.5) interpretation = 'Maigreur';
+                else if (imc < 25) interpretation = 'Normal';
+                else if (imc < 30) interpretation = 'Surpoids';
+                else if (imc < 35) interpretation = 'Obésité modérée';
+                else interpretation = 'Obésité sévère';
+                document.getElementById('imcDisplay').innerHTML = `📊 IMC : ${imc.toFixed(1)} (${interpretation})`;
+            } else {
+                document.getElementById('imcDisplay').innerHTML = `📊 IMC : --`;
+            }
+        }
+        document.getElementById('poids').addEventListener('input', calculerIMC);
+        document.getElementById('taille').addEventListener('input', calculerIMC);
 
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        document.getElementById('ajoutPatientForm').addEventListener('submit', async (e) => {
+        function afficherAntecedents() {
+            const container = document.getElementById('antecedentsList');
+            if (antecedentsList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Aucun antécédent ajouté</div>';
+                return;
+            }
+            container.innerHTML = antecedentsList.map((a, idx) => `
+                <div class="dynamic-item">
+                    <i class="fas fa-trash delete-item" onclick="supprimerAntecedent(${idx})"></i>
+                    <div class="grid-2">
+                        <div>
+                            <label style="color:#00d4ff; font-size:11px;">Type</label>
+                            <select class="antecedent-type" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;">
+                                <option value="Maladie" ${a.type === 'Maladie' ? 'selected' : ''}>🏥 Maladie</option>
+                                <option value="Chirurgie" ${a.type === 'Chirurgie' ? 'selected' : ''}>🔪 Chirurgie</option>
+                                <option value="Allergie" ${a.type === 'Allergie' ? 'selected' : ''}>⚠️ Allergie</option>
+                                <option value="Familial" ${a.type === 'Familial' ? 'selected' : ''}>👨‍👩‍👧 Familial</option>
+                                <option value="Traumatisme" ${a.type === 'Traumatisme' ? 'selected' : ''}>💥 Traumatisme</option>
+                                <option value="Hospitalisation" ${a.type === 'Hospitalisation' ? 'selected' : ''}>🏥 Hospitalisation</option>
+                                <option value="Autre" ${a.type === 'Autre' ? 'selected' : ''}>📝 Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color:#00d4ff; font-size:11px;">Gravité</label>
+                            <select class="antecedent-gravite" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;">
+                                <option value="Faible" ${a.gravite === 'Faible' ? 'selected' : ''}>🟢 Faible</option>
+                                <option value="Moyenne" ${a.gravite === 'Moyenne' ? 'selected' : ''}>🟡 Moyenne</option>
+                                <option value="Élevée" ${a.gravite === 'Élevée' ? 'selected' : ''}>🟠 Élevée</option>
+                                <option value="Critique" ${a.gravite === 'Critique' ? 'selected' : ''}>🔴 Critique</option>
+                            </select>
+                        </div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Description</label><input type="text" value="${escapeHtml(a.description)}" class="antecedent-description" data-idx="${idx}" placeholder="Description" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Date début</label><input type="date" value="${a.date_debut}" class="antecedent-dateDebut" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Date fin</label><input type="date" value="${a.date_fin}" class="antecedent-dateFin" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.antecedent-type').forEach(el => {
+                el.addEventListener('change', (e) => { antecedentsList[parseInt(el.dataset.idx)].type = el.value; });
+            });
+            document.querySelectorAll('.antecedent-gravite').forEach(el => {
+                el.addEventListener('change', (e) => { antecedentsList[parseInt(el.dataset.idx)].gravite = el.value; });
+            });
+            document.querySelectorAll('.antecedent-description').forEach(el => {
+                el.addEventListener('change', (e) => { antecedentsList[parseInt(el.dataset.idx)].description = el.value; });
+            });
+            document.querySelectorAll('.antecedent-dateDebut').forEach(el => {
+                el.addEventListener('change', (e) => { antecedentsList[parseInt(el.dataset.idx)].date_debut = el.value; });
+            });
+            document.querySelectorAll('.antecedent-dateFin').forEach(el => {
+                el.addEventListener('change', (e) => { antecedentsList[parseInt(el.dataset.idx)].date_fin = el.value; });
+            });
+        }
+
+        function ajouterAntecedent() {
+            antecedentsList.push({
+                id: antecedentId++,
+                type: 'Maladie',
+                description: '',
+                date_debut: '',
+                date_fin: '',
+                gravite: 'Moyenne'
+            });
+            afficherAntecedents();
+        }
+
+        function supprimerAntecedent(index) {
+            antecedentsList.splice(index, 1);
+            afficherAntecedents();
+        }
+
+        function afficherTraitements() {
+            const container = document.getElementById('traitementsList');
+            if (traitementsList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Aucun traitement ajouté</div>';
+                return;
+            }
+            container.innerHTML = traitementsList.map((t, idx) => `
+                <div class="dynamic-item">
+                    <i class="fas fa-trash delete-item" onclick="supprimerTraitement(${idx})"></i>
+                    <div class="grid-2">
+                        <div><label style="color:#00d4ff; font-size:11px;">Médicament</label><input type="text" value="${escapeHtml(t.medicament)}" class="traitement-medicament" data-idx="${idx}" placeholder="Médicament" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Posologie</label><input type="text" value="${escapeHtml(t.posologie)}" class="traitement-posologie" data-idx="${idx}" placeholder="Ex: 2x/jour" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Date début</label><input type="date" value="${t.date_debut}" class="traitement-dateDebut" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Date fin</label><input type="date" value="${t.date_fin}" class="traitement-dateFin" data-idx="${idx}" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                        <div><label style="color:#00d4ff; font-size:11px;">Médecin prescripteur</label><input type="text" value="${escapeHtml(t.medecin)}" class="traitement-medecin" data-idx="${idx}" placeholder="Dr. X" style="background:rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3); border-radius:10px; padding:8px; width:100%; color:#fff;"></div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.traitement-medicament').forEach(el => {
+                el.addEventListener('change', (e) => { traitementsList[parseInt(el.dataset.idx)].medicament = el.value; });
+            });
+            document.querySelectorAll('.traitement-posologie').forEach(el => {
+                el.addEventListener('change', (e) => { traitementsList[parseInt(el.dataset.idx)].posologie = el.value; });
+            });
+            document.querySelectorAll('.traitement-dateDebut').forEach(el => {
+                el.addEventListener('change', (e) => { traitementsList[parseInt(el.dataset.idx)].date_debut = el.value; });
+            });
+            document.querySelectorAll('.traitement-dateFin').forEach(el => {
+                el.addEventListener('change', (e) => { traitementsList[parseInt(el.dataset.idx)].date_fin = el.value; });
+            });
+            document.querySelectorAll('.traitement-medecin').forEach(el => {
+                el.addEventListener('change', (e) => { traitementsList[parseInt(el.dataset.idx)].medecin = el.value; });
+            });
+        }
+
+        function ajouterTraitement() {
+            traitementsList.push({
+                id: traitementId++,
+                medicament: '',
+                posologie: '',
+                date_debut: '',
+                date_fin: '',
+                medecin: `Dr. ${medecin.prenom || ''} ${medecin.nom || ''}`
+            });
+            afficherTraitements();
+        }
+
+        function supprimerTraitement(index) {
+            traitementsList.splice(index, 1);
+            afficherTraitements();
+        }
+
+        window.ajouterFichiers = (input) => {
+            const files = Array.from(input.files);
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast(`❌ ${file.name} dépasse 10MB`, 'error');
+                    return;
+                }
+                fichiersList.push({
+                    id: Date.now() + Math.random(),
+                    nom: file.name,
+                    taille: file.size,
+                    type: file.type,
+                    file: file
+                });
+            });
+            afficherFichiers();
+            input.value = '';
+        };
+
+        function afficherFichiers() {
+            const container = document.getElementById('fileList');
+            if (fichiersList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Aucun fichier sélectionné</div>';
+                return;
+            }
+            container.innerHTML = fichiersList.map((f, idx) => `
+                <div class="file-item">
+                    <span><i class="fa-solid fa-file"></i> ${escapeHtml(f.nom)} (${(f.taille / 1024).toFixed(1)} KB)</span>
+                    <i class="fa-solid fa-trash" style="color:#ef4444; cursor:pointer;" onclick="supprimerFichier(${idx})"></i>
+                </div>
+            `).join('');
+        }
+
+        function supprimerFichier(index) {
+            fichiersList.splice(index, 1);
+            afficherFichiers();
+        }
+
+        async function uploadFiles(patientId) {
+            const uploadedFiles = [];
+            const uploadedPaths = [];
+            
+            for (const file of fichiersList) {
+                const fileExt = file.nom.split('.').pop();
+                const fileName = `${patientId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                
+                const { error, data } = await supabaseClient.storage
+                    .from('documents')
+                    .upload(fileName, file.file);
+                
+                if (error) {
+                    for (const path of uploadedPaths) {
+                        await supabaseClient.storage.from('documents').remove([path]);
+                    }
+                    throw new Error(`Erreur upload ${file.nom}: ${error.message}`);
+                }
+                
+                uploadedPaths.push(fileName);
+                
+                const { data: urlData } = supabaseClient.storage
+                    .from('documents')
+                    .getPublicUrl(fileName);
+                
+                uploadedFiles.push({
+                    nom: file.nom,
+                    url: urlData.publicUrl,
+                    type: file.type,
+                    taille: file.taille
+                });
+            }
+            return uploadedFiles;
+        }
+
+        function annuler() {
+            if (isAjoutMode) {
+                window.location.href = `medecin-dossier.html?id=${idPatientExistant}`;
+            } else {
+                if (confirm('Annuler la création du patient ? Toutes les données seront perdues.')) {
+                    window.location.href = 'medecin-patients.html';
+                }
+            }
+        }
+
+        document.getElementById('patientForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nom = document.getElementById('nom').value.trim();
-            const prenom = document.getElementById('prenom').value.trim();
-            const email = document.getElementById('email').value.trim();
-            if (!nom || !prenom || !email) { showToast('❌ Nom, prénom et email requis', 'error'); return; }
-
-            const patientId = document.getElementById('patientId').textContent;
-            const hashedPassword = await hashPassword(patientId);
-            const patientData = {
-                id_national: patientId, nom, prenom, email, telephone: document.getElementById('telephone').value.trim() || null,
-                date_naissance: document.getElementById('dateNaissance').value || null, sexe: document.getElementById('genre').value || null,
-                adresse: document.getElementById('adresse').value.trim() || null, groupe_sanguin: document.getElementById('groupeSanguin').value || null,
-                allergies: document.getElementById('detailAllergies').value || null, maladies_chroniques: document.getElementById('autresAntecedents').value || null,
-                mot_de_passe: hashedPassword, id_medecin_traitant: medecinId, date_creation: new Date().toISOString()
-            };
-
+            
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
-
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enregistrement...';
+            showLoading();
+            
             try {
-                const { data, error } = await supabaseClient.from('patients').insert([patientData]).select();
-                if (error) throw error;
-                const newPatientId = data?.[0]?.id_patient;
-                let uploadedCount = 0;
-                if (fichiers.length > 0 && newPatientId) uploadedCount = (await uploadFilesToSupabase(newPatientId)).length;
-                showToast(`✅ Patient ajouté avec ${uploadedCount} document(s)`, 'success');
-                setTimeout(() => { window.location.href = 'medecin-patients.html'; }, 2000);
-            } catch (error) { showToast('❌ Erreur: ' + error.message, 'error'); submitBtn.disabled = false; submitBtn.innerHTML = 'Enregistrer'; }
+                let patientIdInserted;
+                
+                // ========== CAS 1 : AJOUT À PATIENT EXISTANT ==========
+                if (isAjoutMode) {
+                    patientIdInserted = parseInt(idPatientExistant);
+                    
+                    // Vérifier que le patient existe
+                    const { data: patientCheck, error: checkError } = await supabaseClient
+                        .from('patients')
+                        .select('id_patient')
+                        .eq('id_patient', patientIdInserted)
+                        .single();
+                    
+                    if (checkError || !patientCheck) {
+                        throw new Error("Patient introuvable. Vérifiez l'ID.");
+                    }
+                    
+                    showToast(`📌 Ajout au dossier patient ID: ${patientIdInserted}`, 'success');
+                    
+                } else {
+                    // ========== CAS 2 : CRÉATION NOUVEAU PATIENT ==========
+                    const nom = document.getElementById('nom').value.trim();
+                    const prenom = document.getElementById('prenom').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const motDePasse = document.getElementById('motDePasse').value;
+                    
+                    if (!nom || !prenom || !email || !motDePasse) {
+                        showToast('Veuillez remplir tous les champs obligatoires (*)', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> Enregistrer le patient';
+                        hideLoading();
+                        return;
+                    }
+                    
+                    if (motDePasse.length < 4) {
+                        showToast('Le mot de passe doit contenir au moins 4 caractères', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> Enregistrer le patient';
+                        hideLoading();
+                        return;
+                    }
+                    
+                    const hashedPassword = await hashPassword(motDePasse);
+                    const dateNaissance = document.getElementById('dateNaissance').value;
+                    const age = calculerAge(dateNaissance);
+                    
+                    const patientData = {
+                        id_national: genererIdNational(),
+                        nom: nom,
+                        prenom: prenom,
+                        date_naissance: dateNaissance || null,
+                        age: age,
+                        sexe: document.getElementById('sexe').value || null,
+                        telephone: document.getElementById('telephone').value || null,
+                        email: email,
+                        adresse: document.getElementById('adresse').value || null,
+                        mot_de_passe: hashedPassword,
+                        groupe_sanguin: document.getElementById('groupeSanguin').value || null,
+                        poids: document.getElementById('poids').value ? parseFloat(document.getElementById('poids').value) : null,
+                        taille_cm: document.getElementById('taille').value ? parseFloat(document.getElementById('taille').value) : null,
+                        tension_arterielle: document.getElementById('tension').value || null,
+                        allergies: document.getElementById('allergies').value || null,
+                        observations: document.getElementById('observations').value || null,
+                        medecin_traitant_id: medecinId,
+                        created_by: medecinId,
+                        created_at: new Date().toISOString()
+                    };
+                    
+                    const { data: patient, error: patientError } = await supabaseClient
+                        .from('patients')
+                        .insert(patientData)
+                        .select()
+                        .single();
+                    
+                    if (patientError) throw patientError;
+                    patientIdInserted = patient.id_patient;
+                    showToast('✅ Patient créé avec succès', 'success');
+                }
+                
+                // ========== AJOUT DES ANTÉCÉDENTS ==========
+                if (antecedentsList.length > 0) {
+                    for (const a of antecedentsList) {
+                        if (a.description) {
+                            await supabaseClient
+                                .from('antecedents')
+                                .insert({
+                                    id_patient: patientIdInserted,
+                                    type: a.type,
+                                    description: a.description,
+                                    date_debut: a.date_debut || null,
+                                    date_fin: a.date_fin || null,
+                                    gravite: a.gravite || 'Moyenne'
+                                });
+                        }
+                    }
+                    showToast(`📋 ${antecedentsList.length} antécédent(s) ajouté(s)`, 'success');
+                }
+                
+                // ========== AJOUT DES TRAITEMENTS ==========
+                if (traitementsList.length > 0) {
+                    for (const t of traitementsList) {
+                        if (t.medicament) {
+                            await supabaseClient
+                                .from('traitements')
+                                .insert({
+                                    id_patient: patientIdInserted,
+                                    medicament: t.medicament,
+                                    posologie: t.posologie,
+                                    date_debut: t.date_debut || null,
+                                    date_fin: t.date_fin || null,
+                                    medecin_prescripteur: t.medecin || `Dr. ${medecin.prenom || ''} ${medecin.nom || ''}`
+                                });
+                        }
+                    }
+                    showToast(`💊 ${traitementsList.length} traitement(s) ajouté(s)`, 'success');
+                }
+                
+                // ========== AJOUT DES DOCUMENTS ==========
+                if (fichiersList.length > 0) {
+                    try {
+                        const uploadedFiles = await uploadFiles(patientIdInserted);
+                        for (const f of uploadedFiles) {
+                            await supabaseClient
+                                .from('documents_patient')
+                                .insert({
+                                    id_patient: patientIdInserted,
+                                    nom_fichier: f.nom,
+                                    url_fichier: f.url,
+                                    type_fichier: f.type,
+                                    taille_fichier: f.taille,
+                                    telecharge_par: medecinId,
+                                    date_upload: new Date().toISOString()
+                                });
+                        }
+                        showToast(`📎 ${uploadedFiles.length} document(s) ajouté(s)`, 'success');
+                    } catch (uploadError) {
+                        console.error(uploadError);
+                        showToast('⚠️ Patient créé mais certains documents non sauvegardés', 'error');
+                    }
+                }
+                
+                // ========== REDIRECTION ==========
+                if (isAjoutMode) {
+                    showToast('✅ Données ajoutées au dossier patient !', 'success');
+                    setTimeout(() => {
+                        window.location.href = `medecin-dossier.html?id=${patientIdInserted}`;
+                    }, 1500);
+                } else {
+                    showToast('✅ Patient enregistré avec succès !', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'medecin-patients.html';
+                    }, 1500);
+                }
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                showToast('❌ Erreur: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> ' + (isAjoutMode ? 'Ajouter au dossier' : 'Enregistrer le patient');
+            } finally {
+                hideLoading();
+            }
         });
+        
+        document.getElementById('idNational').value = genererIdNational();
+        afficherAntecedents();
+        afficherTraitements();
+        afficherFichiers();
     </script>
 </body>
 </html>

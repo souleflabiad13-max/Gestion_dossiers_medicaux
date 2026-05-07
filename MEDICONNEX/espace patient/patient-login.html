@@ -4,22 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion Patient - MédiConnex</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --patient: #00ff88;
+            --patient-glow: rgba(0, 255, 136, 0.4);
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
         body {
             margin: 0;
             padding: 0;
+            min-height: 100vh;
             background-image: url('https://images.pexels.com/photos/7579831/pexels-photo-7579831.jpeg?auto=compress&cs=tinysrgb&w=1600');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
+        /* Overlay */
         body::before {
             content: '';
             position: fixed;
@@ -27,50 +41,338 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: -1;
+            background: linear-gradient(135deg, rgba(5, 7, 15, 0.8), rgba(0, 255, 136, 0.1));
+            z-index: 0;
         }
-        .error-message {
-            color: #ff4444;
+
+        /* Effet de brillance */
+        .glow-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .glow-effect .glow-1 {
+            position: absolute;
+            top: 20%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12), transparent);
+            border-radius: 50%;
+            animation: floatGlow 20s infinite ease-in-out;
+        }
+        .glow-effect .glow-2 {
+            position: absolute;
+            bottom: 10%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 100, 255, 0.08), transparent);
+            border-radius: 50%;
+            animation: floatGlow 25s infinite ease-in-out reverse;
+        }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(50px, -50px) scale(1.1); }
+            66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        /* ========== AUTH WRAPPER ========== */
+        .auth-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 560px;
+            background: rgba(26, 26, 46, 0.55);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            overflow: hidden;
+            border: 2px solid var(--patient);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.25);
+            display: flex;
+            transition: all 0.4s ease;
+        }
+
+        .auth-wrapper:hover {
+            box-shadow: 0 0 70px rgba(0, 255, 136, 0.4);
+        }
+
+        /* ========== PANEL CREDENTIALS ========== */
+        .credentials-panel {
+            flex: 1;
+            padding: 50px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .credentials-panel h2 {
+            font-size: 32px;
             text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-            background: rgba(255,68,68,0.1);
-            padding: 10px;
-            border-radius: 10px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--patient), #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: titlePulse 3s ease-in-out infinite;
         }
-        .success-message {
-            color: #00ff88;
+
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 5px rgba(0,255,136,0.3); }
+            50% { text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+        }
+
+        .subtitle {
             text-align: center;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-            background: rgba(0,255,136,0.1);
-            padding: 10px;
-            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            margin-bottom: 35px;
         }
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 15px;
-            color: var(--patient);
-        }
-        .forgot-password {
-            text-align: right;
-            margin-top: 8px;
+
+        /* ========== CHAMPS DE FORMULAIRE ========== */
+        .field-wrapper {
+            position: relative;
+            width: 100%;
+            margin-top: 25px;
             margin-bottom: 5px;
         }
+
+        .field-wrapper input {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 255, 136, 0.25);
+            border-radius: 18px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .field-wrapper input:focus {
+            outline: none;
+            border-color: var(--patient);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.25);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .field-wrapper input:focus ~ label,
+        .field-wrapper input:not(:placeholder-shown) ~ label {
+            top: -12px;
+            left: 15px;
+            font-size: 11px;
+            padding: 0 8px;
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 20px;
+            color: var(--patient);
+        }
+
+        .field-wrapper label {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .field-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: var(--patient);
+            transition: all 0.3s ease;
+        }
+
+        .field-wrapper input:focus ~ i {
+            text-shadow: 0 0 10px var(--patient);
+        }
+
+        /* ========== MOT DE PASSE OUBLIÉ ========== */
+        .forgot-password {
+            text-align: right;
+            margin: 15px 0 25px;
+        }
+
         .forgot-password a {
             color: var(--patient);
             text-decoration: none;
             font-size: 12px;
             opacity: 0.8;
+            transition: 0.3s;
         }
+
         .forgot-password a:hover {
             opacity: 1;
             text-decoration: underline;
         }
+
+        /* ========== BOUTON ========== */
+        .submit-button {
+            position: relative;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--patient), #00cc6a);
+            border: none;
+            border-radius: 50px;
+            color: #0a0c10;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .submit-button:hover::before {
+            left: 100%;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.4);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        /* ========== LIEN INSCRIPTION ========== */
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 255, 136, 0.15);
+        }
+
+        .register-link p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        .register-link a {
+            color: var(--patient);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ========== SECTION WELCOME ========== */
+        .welcome-section {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(0, 0, 0, 0.3));
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding: 50px 40px;
+            border-left: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .welcome-section i {
+            font-size: 80px;
+            color: var(--patient);
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.5));
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .welcome-section h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: var(--patient);
+        }
+
+        .welcome-section p {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+        }
+
+        .welcome-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--patient);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ========== MESSAGES ========== */
+        .error-message, .success-message, .loading {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            padding: 10px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border-left: 3px solid #ef4444;
+        }
+
+        .success-message {
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--patient);
+            border-left: 3px solid var(--patient);
+        }
+
+        .loading {
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--patient);
+        }
+
+        /* ========== MODAL ========== */
         .modal {
             display: none;
             position: fixed;
@@ -78,151 +380,276 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
             justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .modal-content {
-            background: #1a1a2e;
-            border-radius: 20px;
-            padding: 30px;
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            border: 2px solid var(--patient);
+            border-radius: 30px;
+            padding: 35px;
             width: 90%;
-            max-width: 400px;
-            border: 1px solid var(--patient);
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+            max-width: 450px;
+            animation: modalPop 0.3s ease;
         }
-        .modal-content h3 {
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
             color: var(--patient);
+            font-size: 1.5rem;
+        }
+
+        .close-modal {
+            color: #aaa;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #ef4444;
+            transform: rotate(90deg);
+        }
+
+        .modal-field {
             margin-bottom: 20px;
-            text-align: center;
         }
-        .modal-content input {
+
+        .modal-field label {
+            display: block;
+            color: var(--patient);
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .modal-field input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-bottom: 2px solid #333;
-            padding: 12px;
-            color: white;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            color: #fff;
             font-size: 14px;
+        }
+
+        .modal-field input:focus {
             outline: none;
+            border-color: var(--patient);
         }
-        .modal-content input:focus {
-            border-bottom-color: var(--patient);
-        }
+
         .modal-buttons {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
         }
-        .modal-buttons button {
+
+        .modal-btn {
             flex: 1;
             padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
+            border-radius: 40px;
             font-weight: 600;
-        }
-        .modal-btn-confirm {
-            background: var(--patient);
-            border: none;
-            color: #1a1a2e;
-        }
-        .modal-btn-cancel {
-            background: transparent;
-            border: 1px solid #ff4444;
-            color: #ff4444;
-        }
-        .close-modal {
-            float: right;
-            font-size: 24px;
             cursor: pointer;
-            color: white;
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--patient), #00cc6a);
+            border: none;
+            color: #0a0c10;
+        }
+
+        .modal-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .modal-btn.cancel {
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .modal-btn.cancel:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .modal-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 850px) {
+            .auth-wrapper {
+                flex-direction: column;
+                margin: 20px;
+                max-width: 500px;
+            }
+            .welcome-section {
+                border-left: none;
+                border-top: 1px solid rgba(0, 255, 136, 0.2);
+                padding: 35px;
+            }
+            .credentials-panel {
+                padding: 40px 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .credentials-panel {
+                padding: 30px 25px;
+            }
+            .credentials-panel h2 {
+                font-size: 26px;
+            }
+            .welcome-section h2 {
+                font-size: 24px;
+            }
+            .welcome-section i {
+                font-size: 60px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="auth-wrapper">
-        <div class="background-shape"></div>
-        <div class="secondary-shape"></div>
 
-        <div class="credentials-panel signin">
-            <h2 class="slide-element">Connexion Patient</h2>
+    <div class="glow-effect">
+        <div class="glow-1"></div>
+        <div class="glow-2"></div>
+    </div>
+
+    <div class="auth-wrapper">
+        <div class="credentials-panel">
+            <h2>Connexion Patient</h2>
+            <div class="subtitle">Accès à votre espace santé</div>
 
             <form id="loginForm">
-                <div class="field-wrapper slide-element">
-                    <input type="email" id="email" required>
+                <div class="field-wrapper">
+                    <input type="email" id="email" placeholder=" " required>
                     <label>Adresse email</label>
                     <i class="fa-solid fa-envelope"></i>
                 </div>
 
-                <div class="field-wrapper slide-element">
-                    <input type="password" id="motDePasse" required>
+                <div class="field-wrapper">
+                    <input type="password" id="motDePasse" placeholder=" " required>
                     <label>Mot de passe</label>
                     <i class="fa-solid fa-lock"></i>
                 </div>
-                
-                <div class="forgot-password slide-element">
+
+                <div class="forgot-password">
                     <a href="javascript:void(0)" onclick="openResetModal()">Mot de passe oublié ?</a>
                 </div>
 
-                <div class="field-wrapper slide-element">
-                    <button class="submit-button" type="submit">Se connecter</button>
+                <button type="submit" class="submit-button" id="submitBtn">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter
+                </button>
+
+                <div class="loading" id="loadingMsg">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Connexion en cours...
                 </div>
-                
-                <div class="error-message" id="errorMessage"></div>
-                <div class="success-message" id="successMessage"></div>
-                <div class="loading" id="loading">Connexion en cours...</div>
+                <div class="error-message" id="errorMsg"></div>
+                <div class="success-message" id="successMsg"></div>
             </form>
-            
-            <div class="register-link" style="text-align: center; margin-top: 20px;">
-                <p>Pas encore de compte ? <a href="patient-inscription.html" style="color: var(--patient);">S'inscrire</a></p>
+
+            <div class="register-link">
+                <p>Pas encore de compte ? <a href="patient-inscription.html">S'inscrire</a></p>
             </div>
         </div>
 
-        <div class="welcome-section signin">
-            <h2 class="slide-element">ESPACE PATIENT</h2>
-            <p class="slide-element">Accès à votre dossier médical</p>
+        <div class="welcome-section">
+            <i class="fa-solid fa-heartbeat"></i>
+            <h2>ESPACE PATIENT</h2>
+            <p>Accès sécurisé à votre dossier médical, vos rendez-vous et vos prescriptions.</p>
+            <div class="welcome-stats">
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Accès permanent</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Sécurisé</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">📱</div>
+                    <div class="stat-label">Mobile friendly</div>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <!-- MODAL : Mot de passe oublié -->
+
+    <!-- MODAL MOT DE PASSE OUBLIÉ -->
     <div id="resetModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeResetModal()">&times;</span>
-            <h3><i class="fa-solid fa-key"></i> Réinitialisation</h3>
-            <div class="field-wrapper">
-                <input type="email" id="resetEmail" placeholder="Entrez votre email">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-key"></i> Réinitialisation</h2>
+                <span class="close-modal" onclick="closeResetModal()">&times;</span>
+            </div>
+            <div class="modal-field">
                 <label>Email du compte</label>
+                <input type="email" id="resetEmail" placeholder="ex: patient@email.com">
             </div>
-            <div class="field-wrapper">
-                <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+            <div class="modal-field">
                 <label>Nouveau mot de passe</label>
+                <input type="password" id="newPassword" placeholder="Min. 4 caractères">
             </div>
-            <div class="field-wrapper">
-                <input type="password" id="confirmPassword" placeholder="Confirmer le mot de passe">
-                <label>Confirmer</label>
+            <div class="modal-field">
+                <label>Confirmer le mot de passe</label>
+                <input type="password" id="confirmPassword" placeholder="Retapez le mot de passe">
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn-confirm" onclick="resetPassword()">Réinitialiser</button>
-                <button class="modal-btn-cancel" onclick="closeResetModal()">Annuler</button>
+                <button class="modal-btn confirm" onclick="resetPassword()">Réinitialiser</button>
+                <button class="modal-btn cancel" onclick="closeResetModal()">Annuler</button>
             </div>
-            <div id="resetMessage" style="color: #00ff88; text-align: center; margin-top: 15px; font-size: 12px; display: none;"></div>
-            <div id="resetError" style="color: #ff4444; text-align: center; margin-top: 15px; font-size: 12px; display: none;"></div>
+            <div id="resetMessage" class="modal-message"></div>
+            <div id="resetError" class="modal-message"></div>
         </div>
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // ========== FONCTIONS HASH ==========
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            return hashHex;
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
         async function verifyPassword(password, hashedPassword) {
@@ -235,28 +662,33 @@
             window.location.href = 'patient-dashboard.html';
         }
 
+        // ========== CONNEXION ==========
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const email = document.getElementById('email').value.trim().toLowerCase();
             const motDePasse = document.getElementById('motDePasse').value;
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+            const loadingDiv = document.getElementById('loadingMsg');
+            const submitBtn = document.getElementById('submitBtn');
             
             loadingDiv.style.display = 'block';
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connexion...';
             
             if (!email || !motDePasse) {
                 errorDiv.textContent = "❌ Veuillez remplir tous les champs";
                 errorDiv.style.display = 'block';
                 loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
                 return;
             }
             
             try {
-                // 1️⃣ D'abord, vérifier dans la table patients (comptes créés par médecin)
                 const url = `${SUPABASE_URL}/rest/v1/patients?select=*&email=eq.${encodeURIComponent(email)}`;
                 const response = await fetch(url, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -283,78 +715,28 @@
                     }
                 }
                 
-                // 2️⃣ Sinon, vérifier dans Supabase Auth (comptes créés par inscription)
-                const { data, error: authError } = await supabaseClient.auth.signInWithPassword({
-                    email: email,
-                    password: motDePasse
-                });
-                
-                if (authError) throw authError;
-                
-                if (data && data.user) {
-                    // Récupérer les infos du patient dans la table
-                    const { data: patientData } = await supabaseClient
-                        .from('patients')
-                        .select('*')
-                        .eq('email', email)
-                        .single();
-                    
-                    if (patientData) {
-                        localStorage.setItem('patient', JSON.stringify({
-                            id_patient: patientData.id_patient,
-                            nom: patientData.nom,
-                            prenom: patientData.prenom,
-                            email: patientData.email,
-                            telephone: patientData.telephone
-                        }));
-                    } else {
-                        // Si le patient n'existe pas dans la table, créer une entrée basique
-                        const { data: newPatient } = await supabaseClient
-                            .from('patients')
-                            .insert([{
-                                email: email,
-                                nom: data.user.user_metadata?.nom || 'Patient',
-                                prenom: data.user.user_metadata?.prenom || '',
-                                mot_de_passe: await hashPassword(motDePasse),
-                                date_creation: new Date().toISOString()
-                            }])
-                            .select()
-                            .single();
-                        
-                        if (newPatient) {
-                            localStorage.setItem('patient', JSON.stringify({
-                                id_patient: newPatient.id_patient,
-                                nom: newPatient.nom,
-                                prenom: newPatient.prenom,
-                                email: newPatient.email,
-                                telephone: newPatient.telephone
-                            }));
-                        }
-                    }
-                    
-                    successDiv.textContent = "✅ Connexion réussie ! Redirection...";
-                    successDiv.style.display = 'block';
-                    setTimeout(() => { window.location.href = 'patient-dashboard.html'; }, 1000);
-                    return;
-                }
-                
                 errorDiv.textContent = "❌ Email ou mot de passe incorrect";
                 errorDiv.style.display = 'block';
-                loadingDiv.style.display = 'none';
                 
             } catch (error) {
                 console.error(error);
-                errorDiv.textContent = "❌ Email ou mot de passe incorrect";
+                errorDiv.textContent = "❌ Erreur de connexion";
                 errorDiv.style.display = 'block';
+            } finally {
                 loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
             }
         });
 
+        // ========== MODAL MOT DE PASSE OUBLIÉ ==========
         function openResetModal() {
             document.getElementById('resetModal').style.display = 'flex';
             document.getElementById('resetEmail').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmPassword').value = '';
+            document.getElementById('resetMessage').style.display = 'none';
+            document.getElementById('resetError').style.display = 'none';
         }
 
         function closeResetModal() {
@@ -372,25 +754,24 @@
             resetError.style.display = 'none';
             
             if (!email) {
-                resetError.innerHTML = 'Veuillez entrer votre email';
+                resetError.innerHTML = '❌ Veuillez entrer votre email';
                 resetError.style.display = 'block';
                 return;
             }
             
             if (!newPassword || newPassword.length < 4) {
-                resetError.innerHTML = 'Le mot de passe doit contenir au moins 4 caractères';
+                resetError.innerHTML = '❌ Le mot de passe doit contenir au moins 4 caractères';
                 resetError.style.display = 'block';
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                resetError.innerHTML = 'Les mots de passe ne correspondent pas';
+                resetError.innerHTML = '❌ Les mots de passe ne correspondent pas';
                 resetError.style.display = 'block';
                 return;
             }
             
             try {
-                // Chercher le patient dans la table
                 const url = `${SUPABASE_URL}/rest/v1/patients?select=id_patient&email=eq.${encodeURIComponent(email)}`;
                 const response = await fetch(url, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -416,17 +797,15 @@
                     resetMessage.innerHTML = '✅ Mot de passe modifié avec succès !';
                     resetMessage.style.display = 'block';
                 } else {
-                    // Essayer avec Supabase Auth
-                    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
-                    if (error) throw error;
-                    resetMessage.innerHTML = '📧 Un email de réinitialisation a été envoyé !';
-                    resetMessage.style.display = 'block';
+                    resetError.innerHTML = '❌ Aucun compte trouvé avec cet email';
+                    resetError.style.display = 'block';
+                    return;
                 }
                 
                 setTimeout(() => { closeResetModal(); }, 3000);
                 
             } catch (error) {
-                resetError.innerHTML = 'Erreur: ' + error.message;
+                resetError.innerHTML = '❌ Erreur: ' + error.message;
                 resetError.style.display = 'block';
             }
         }

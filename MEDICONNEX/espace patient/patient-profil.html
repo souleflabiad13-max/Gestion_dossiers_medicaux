@@ -284,13 +284,27 @@
     </nav>
     <div class="sidebar-footer"><a onclick="logout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></div>
   </div>
-
+       
   <div class="main-content">
     <div class="top-bar">
       <div class="greeting"><h1>Mon profil</h1><p>Vos informations personnelles</p></div>
       <button class="btn-back" onclick="window.location.href='patient-dashboard.html'"><i class="fas fa-arrow-left"></i> Retour</button>
     </div>
-
+       <!-- QR CODE -->
+<div style="background: rgba(0, 255, 136, 0.05); border-radius: 20px; padding: 25px; text-align: center; margin-top: 20px; border: 1px solid rgba(0, 255, 136, 0.2);">
+    <h3 style="color: #00ff88; margin-bottom: 15px;">
+        <i class="fas fa-qrcode"></i> Mon QR code médical
+    </h3>
+    <div id="qrCodeContainer">
+        <div style="text-align:center; padding:20px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 30px; color: #00ff88;"></i>
+            <p style="margin-top: 10px; color: #94a3b8;">Chargement du QR code...</p>
+        </div>
+    </div>
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 15px;">
+        <i class="fas fa-info-circle"></i> Présentez ce code à votre médecin pour un accès rapide à votre dossier
+    </p>
+</div>
     <div class="section-card">
       <div class="section-header"><h3><i class="fas fa-id-card"></i> Informations personnelles</h3></div>
       <div class="info-grid" id="profileInfo"></div>
@@ -327,6 +341,44 @@
     
     document.addEventListener('DOMContentLoaded', loadProfil);
     document.getElementById('menuToggle')?.addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+      
+  // Génération du QR code patient
+    function genererQRCodePatient() {
+        const patient = JSON.parse(localStorage.getItem('patient') || '{}');
+        const patientId = patient.id_patient;
+        
+        if (!patientId) {
+            console.error('Patient non connecté');
+            document.getElementById('qrCodeContainer').innerHTML = `
+                <div style="color: #ef4444;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Erreur : Patient non identifié</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Format du QR code
+        const qrData = `mediconnex://patient/${patientId}`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&margin=10`;
+        
+        const container = document.getElementById('qrCodeContainer');
+        if (container) {
+            container.innerHTML = `
+                <div style="background: white; padding: 15px; border-radius: 20px; display: inline-block; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);">
+                    <img src="${qrUrl}" width="140" height="140" style="border-radius: 10px;" alt="QR Code Patient">
+                    <p style="margin-top: 10px; font-size: 11px; color: #00ff88;">
+                        <i class="fas fa-id-card"></i> ID: ${patientId}
+                    </p>
+                </div>
+            `;
+        }
+    }
+    
+    // Lancer la génération quand la page est chargée
+    document.addEventListener('DOMContentLoaded', function() {
+        genererQRCodePatient();
+    });
   </script>
 </body>
 </html>

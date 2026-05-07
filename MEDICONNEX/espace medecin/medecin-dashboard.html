@@ -234,11 +234,6 @@
             overflow: hidden;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         }
-        .doctor-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
         .doctor-info h3 { font-size: 1rem; color: var(--primary); }
         .doctor-info p { font-size: 0.75rem; color: #94a3b8; }
 
@@ -491,18 +486,23 @@
             </div>
             <div class="doctor-profile" onclick="window.location.href='medecin-profil.html'">
                 <div class="doctor-avatar">
-                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Dr">
+                    <i class="fa-solid fa-user-md" style="font-size: 1.5rem;"></i>
                 </div>
                 <div class="doctor-info">
                     <h3 id="doctorName">Dr. Ahmed Benali</h3>
                     <p id="doctorSpecialite">Cardiologue</p>
                 </div>
             </div>
-            <div class="search-bar">
-                <input type="text" id="searchPatient" placeholder="Nom, ID ou téléphone...">
-                <button onclick="rechercherPatient()"><i class="fas fa-search"></i></button>
-            </div>
-        </div>
+          <div class="search-bar">
+    <div class="search-wrapper">
+        <i class="fa-solid fa-search"></i>
+        <input type="text" id="searchPatient" placeholder="Nom, ID ou téléphone...">
+    </div>
+    <button class="btn-qr" onclick="scannerQRCode()" style="background:rgba(0,212,255,0.1); border:1px solid #00d4ff; border-radius:40px; padding:10px 20px; color:#00d4ff; cursor:pointer;">
+        <i class="fas fa-qrcode"></i> Scanner QR
+    </button>
+    <button class="search-btn" onclick="rechercherPatient()">Rechercher</button>
+</div>
 
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-icon"><i class="fa-solid fa-users"></i></div><div class="stat-number" id="totalPatients">0</div><div class="stat-label">Patients</div></div>
@@ -540,58 +540,104 @@
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // ========== VÉRIFICATION SESSION ==========
         const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
         const medecinId = medecin.id_medecin || 1;
 
-        if (!localStorage.getItem('medecin')) window.location.href = 'medecin-login.html';
+        if (!localStorage.getItem('medecin')) {
+            window.location.href = 'medecin-login.html';
+        }
 
-        function logout() { localStorage.removeItem('medecin'); window.location.href = 'medecin-login.html'; }
+        // ========== DÉCONNEXION CORRIGÉE ==========
+        function logout() { 
+            localStorage.removeItem('medecin'); 
+            // ✅ CHEMIN CORRIGÉ - Retour à la page d'accueil principale
+            window.location.href = '../index.html'; 
+        }
 
+        // ========== AFFICHAGE DATE ==========
         const today = new Date();
-        document.getElementById('currentDate').innerHTML = today.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('currentDate').innerHTML = today.toLocaleDateString('fr-FR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
 
+        // ========== INFOS MÉDECIN ==========
         document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
         document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
 
+        // ========== VARIABLES GLOBALES ==========
         let allPatients = [];
         let rdvDates = [];
         let currentDate = new Date();
         let consultationsChart = null;
+        let isLoading = false;
 
+        // ========== CHARGEMENT DES STATISTIQUES (OPTIMISÉ) ==========
         async function chargerStats() {
-            const { data: patients } = await supabaseClient.from('patients').select('*');
-            allPatients = patients || [];
-            document.getElementById('totalPatients').innerText = allPatients.length;
+            if (isLoading) return;
+            isLoading = true;
             
-            const { data: consultations } = await supabaseClient.from('consultations').select('*').eq('id_medecin', medecinId);
-            document.getElementById('totalConsultations').innerText = consultations?.length || 0;
-            
-            const todayStr = new Date().toISOString().split('T')[0];
-            const { data: rdvsToday } = await supabaseClient.from('rendez_vous').select('*').eq('date_rdv', todayStr).eq('id_medecin', medecinId);
-            document.getElementById('todayRdv').innerText = rdvsToday?.length || 0;
-            
-            const startOfWeek = new Date();
-            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(endOfWeek.getDate() + 7);
-            const { data: rdvsWeek } = await supabaseClient.from('rendez_vous').select('*').gte('date_rdv', startOfWeek.toISOString().split('T')[0]).lte('date_rdv', endOfWeek.toISOString().split('T')[0]).eq('id_medecin', medecinId);
-            document.getElementById('weekRdv').innerText = rdvsWeek?.length || 0;
-            
-            await chargerRdvDates();
-            genererCalendrier();
-            await chargerGraphique();
-            afficherDerniersPatients(allPatients.slice(0, 6));
+            try {
+                // Requêtes parallèles pour meilleure performance
+                const [patientsRes, consultationsRes, rdvsTodayRes, rdvsWeekRes] = await Promise.all([
+                    supabaseClient.from('patients').select('*'),
+                    supabaseClient.from('consultations').select('*').eq('id_medecin', medecinId),
+                    supabaseClient.from('rendez_vous').select('*').eq('id_medecin', medecinId).eq('date_rdv', new Date().toISOString().split('T')[0]),
+                    (async () => {
+                        const startOfWeek = new Date();
+                        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(endOfWeek.getDate() + 7);
+                        return supabaseClient.from('rendez_vous').select('*')
+                            .gte('date_rdv', startOfWeek.toISOString().split('T')[0])
+                            .lte('date_rdv', endOfWeek.toISOString().split('T')[0])
+                            .eq('id_medecin', medecinId);
+                    })()
+                ]);
+                
+                allPatients = patientsRes.data || [];
+                document.getElementById('totalPatients').innerText = allPatients.length;
+                document.getElementById('totalConsultations').innerText = consultationsRes.data?.length || 0;
+                document.getElementById('todayRdv').innerText = rdvsTodayRes.data?.length || 0;
+                document.getElementById('weekRdv').innerText = rdvsWeekRes.data?.length || 0;
+                
+                await chargerRdvDates();
+                genererCalendrier();
+                await chargerGraphique();
+                // ✅ OPTIMISÉ : Plus besoin de recharger tous les patients, on utilise allPatients déjà chargé
+                afficherDerniersPatients(allPatients.slice(0, 6));
+                
+            } catch (err) {
+                console.error('Erreur chargement stats:', err);
+                showToast('Erreur de chargement des données', 'error');
+            } finally {
+                isLoading = false;
+            }
         }
 
+        // ========== CHARGEMENT DATES RDV ==========
         async function chargerRdvDates() {
-            const { data } = await supabaseClient.from('rendez_vous').select('date_rdv').eq('id_medecin', medecinId);
-            rdvDates = data?.map(rdv => rdv.date_rdv?.split('T')[0]) || [];
+            try {
+                const { data } = await supabaseClient
+                    .from('rendez_vous')
+                    .select('date_rdv')
+                    .eq('id_medecin', medecinId);
+                rdvDates = data?.map(rdv => rdv.date_rdv?.split('T')[0]) || [];
+            } catch (err) {
+                console.error('Erreur chargement RDV:', err);
+                rdvDates = [];
+            }
         }
 
+        // ========== GÉNÉRATION CALENDRIER ==========
         function genererCalendrier() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -605,7 +651,9 @@
             const jours = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
             calendarHTML += jours.map(j => `<div style="text-align:center; color:var(--primary); font-size:0.7rem; padding:5px;">${j}</div>`).join('');
             
-            for (let i = 0; i < startDay; i++) calendarHTML += '<div class="calendar-day empty"></div>';
+            for (let i = 0; i < startDay; i++) {
+                calendarHTML += '<div class="calendar-day empty"></div>';
+            }
             
             const todayStr = new Date().toISOString().split('T')[0];
             
@@ -617,65 +665,216 @@
             }
             
             document.getElementById('calendarGrid').innerHTML = calendarHTML;
-            document.getElementById('monthYear').innerHTML = currentDate.toLocaleString('fr', { month: 'long', year: 'numeric' }).toUpperCase();
+            document.getElementById('monthYear').innerHTML = currentDate.toLocaleString('fr', { 
+                month: 'long', 
+                year: 'numeric' 
+            }).toUpperCase();
         }
 
+        // ========== VOIR RDV D'UN JOUR ==========
         window.voirRdvJour = async function(date) {
-            const { data } = await supabaseClient.from('rendez_vous').select('*, patients(nom, prenom)').eq('date_rdv', date).eq('id_medecin', medecinId);
-            if (data && data.length > 0) {
-                let msg = `📅 Rendez-vous le ${date}:\n`;
-                data.forEach(rdv => { msg += `- ${rdv.patients?.prenom} ${rdv.patients?.nom} - ${rdv.motif || 'Consultation'}\n`; });
-                alert(msg);
-            } else {
-                alert(`✅ Aucun rendez-vous le ${date}`);
+            try {
+                const { data } = await supabaseClient
+                    .from('rendez_vous')
+                    .select('*, patients(nom, prenom)')
+                    .eq('date_rdv', date)
+                    .eq('id_medecin', medecinId);
+                
+                if (data && data.length > 0) {
+                    let msg = `📅 Rendez-vous le ${date}:\n\n`;
+                    data.forEach(rdv => { 
+                        msg += `👨‍⚕️ ${rdv.patients?.prenom} ${rdv.patients?.nom}\n`;
+                        msg += `📝 Motif: ${rdv.motif || 'Consultation'}\n`;
+                        msg += `⏰ Statut: ${rdv.statut || 'En attente'}\n\n`;
+                    });
+                    alert(msg);
+                } else {
+                    alert(`✅ Aucun rendez-vous le ${date}`);
+                }
+            } catch (err) {
+                console.error('Erreur:', err);
+                alert('Erreur lors du chargement des rendez-vous');
             }
         };
 
+        // ========== CHARGEMENT GRAPHIQUE ==========
         async function chargerGraphique() {
-            const { data } = await supabaseClient.from('consultations').select('date_consultation').eq('id_medecin', medecinId);
-            const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-            const consultationsParJour = [0, 0, 0, 0, 0, 0, 0];
-            
-            data?.forEach(c => {
-                if (c.date_consultation) {
-                    let jour = new Date(c.date_consultation).getDay();
-                    let index = jour === 0 ? 6 : jour - 1;
-                    consultationsParJour[index]++;
-                }
-            });
-            
-            const ctx = document.getElementById('consultationsChart').getContext('2d');
-            if (consultationsChart) consultationsChart.destroy();
-            consultationsChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: jours, datasets: [{ label: 'Consultations', data: consultationsParJour, backgroundColor: '#00d4ff', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } }, scales: { y: { ticks: { color: '#94a3b8', stepSize: 1 } }, x: { ticks: { color: '#94a3b8', font: { size: 10 } } } } }
-            });
+            try {
+                const { data } = await supabaseClient
+                    .from('consultations')
+                    .select('date_consultation')
+                    .eq('id_medecin', medecinId);
+                
+                const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+                const consultationsParJour = [0, 0, 0, 0, 0, 0, 0];
+                
+                data?.forEach(c => {
+                    if (c.date_consultation) {
+                        let jour = new Date(c.date_consultation).getDay();
+                        let index = jour === 0 ? 6 : jour - 1;
+                        consultationsParJour[index]++;
+                    }
+                });
+                
+                const ctx = document.getElementById('consultationsChart').getContext('2d');
+                if (consultationsChart) consultationsChart.destroy();
+                consultationsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { 
+                        labels: jours, 
+                        datasets: [{ 
+                            label: 'Consultations', 
+                            data: consultationsParJour, 
+                            backgroundColor: '#00d4ff', 
+                            borderRadius: 8,
+                            barPercentage: 0.7
+                        }] 
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: true, 
+                        plugins: { 
+                            legend: { 
+                                labels: { 
+                                    color: '#94a3b8', 
+                                    font: { size: 10 } 
+                                } 
+                            } 
+                        }, 
+                        scales: { 
+                            y: { 
+                                ticks: { 
+                                    color: '#94a3b8', 
+                                    stepSize: 1 
+                                },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            }, 
+                            x: { 
+                                ticks: { 
+                                    color: '#94a3b8', 
+                                    font: { size: 10 } 
+                                },
+                                grid: { display: false }
+                            } 
+                        } 
+                    }
+                });
+            } catch (err) {
+                console.error('Erreur graphique:', err);
+            }
         }
 
+        // ========== AFFICHAGE DERNIERS PATIENTS ==========
         function afficherDerniersPatients(patients) {
             const container = document.getElementById('recentPatients');
-            if (!patients.length) { container.innerHTML = '<p style="color:#94a3b8;">Aucun patient</p>'; return; }
+            if (!patients || patients.length === 0) { 
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">Aucun patient</div>'; 
+                return; 
+            }
             container.innerHTML = patients.map(p => `
                 <div class="patient-card" onclick="window.location.href='medecin-dossier.html?id=${p.id_patient}'">
-                    <h4>${p.prenom} ${p.nom}</h4>
-                    <p><i class="fa-solid fa-id-card"></i> ${p.id_national || p.id_patient}</p>
+                    <h4>${escapeHtml(p.prenom || '')} ${escapeHtml(p.nom || '')}</h4>
+                    <p><i class="fa-solid fa-id-card"></i> ${escapeHtml(p.id_national || p.id_patient)}</p>
                     <p><i class="fa-solid fa-cake-candles"></i> ${p.age || '?'} ans</p>
                 </div>
             `).join('');
         }
 
-        async function rechercherPatient() {
-            const search = document.getElementById('searchPatient').value.trim().toLowerCase();
-            if (!search) { chargerStats(); return; }
-            const filtered = allPatients.filter(p => (p.nom?.toLowerCase().includes(search)) || (p.prenom?.toLowerCase().includes(search)) || (p.id_national?.toLowerCase().includes(search)) || (p.telephone?.includes(search)));
-            afficherDerniersPatients(filtered.slice(0, 6));
+        // ========== FONCTION ESCAPE HTML (SÉCURITÉ) ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        document.getElementById('prevMonth').onclick = () => { currentDate.setMonth(currentDate.getMonth() - 1); genererCalendrier(); };
-        document.getElementById('nextMonth').onclick = () => { currentDate.setMonth(currentDate.getMonth() + 1); genererCalendrier(); };
+        // ========== RECHERCHE PATIENT ==========
+        async function rechercherPatient() {
+            const search = document.getElementById('searchPatient').value.trim().toLowerCase();
+            if (!search) { 
+                afficherDerniersPatients(allPatients.slice(0, 6));
+                return; 
+            }
+            
+            const filtered = allPatients.filter(p => 
+                (p.nom?.toLowerCase().includes(search)) || 
+                (p.prenom?.toLowerCase().includes(search)) || 
+                (p.id_national?.toLowerCase().includes(search)) || 
+                (p.telephone?.includes(search))
+            );
+            afficherDerniersPatients(filtered.slice(0, 6));
+            
+            if (filtered.length === 0) {
+                showToast('Aucun patient trouvé', 'info');
+            }
+        }
 
+        // ========== TOAST NOTIFICATION ==========
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ========== NAVIGATION CALENDRIER ==========
+        document.getElementById('prevMonth').onclick = () => { 
+            currentDate.setMonth(currentDate.getMonth() - 1); 
+            genererCalendrier(); 
+        };
+        document.getElementById('nextMonth').onclick = () => { 
+            currentDate.setMonth(currentDate.getMonth() + 1); 
+            genererCalendrier(); 
+        };
+
+        // ========== INITIALISATION ==========
         chargerStats();
+        
+        // ✅ Rafraîchissement automatique toutes les 30 secondes (optionnel)
+        setInterval(() => {
+            chargerStats();
+        }, 30000);
+
+        // ========== SCANNER QR CODE ==========
+function scannerQRCode() {
+    // Boîte de dialogue pour saisir l'ID ou le QR
+    const input = prompt("🔍 Scanner QR code patient\n\nOption 1 : Scannez le QR code\nOption 2 : Entrez l'ID patient\n\nFormat attendu: mediconnex://patient/123\nou simplement l'ID: 123");
+    
+    if (!input) return;
+    
+    let patientId = null;
+    
+    // Extraire l'ID du format QR
+    if (input.includes('mediconnex://patient/')) {
+        patientId = input.split('patient/')[1];
+    } 
+    // Sinon, si c'est juste un nombre
+    else if (!isNaN(parseInt(input))) {
+        patientId = parseInt(input);
+    }
+    
+    if (patientId) {
+        // Rediriger vers le dossier patient
+        window.location.href = `medecin-dossier.html?id=${patientId}`;
+        showToast(`✅ Accès direct au dossier patient #${patientId}`, 'success');
+    } else {
+        showToast('❌ Format invalide. Veuillez scanner un QR code valide.', 'error');
+    }
+}
+
+// Fonction showToast si elle n'existe pas déjà
+function showToast(message, type = 'success') {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
     </script>
 </body>
 </html>

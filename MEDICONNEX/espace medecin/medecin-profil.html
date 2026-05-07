@@ -2,24 +2,28 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon profil - MédiConnex</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
 
         body {
             background-image: url('https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=1600');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            color: #fff;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 30px;
             position: relative;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -28,8 +32,9 @@
             width: 100%;
             height: 100%;
             background: rgba(5, 7, 15, 0.75);
-            z-index: 0;
+            z-index: -1;
         }
+
         .bg-glow {
             position: fixed;
             top: 0;
@@ -66,82 +71,450 @@
             66% { transform: translate(-30px, 40px) scale(0.9); }
         }
 
-        .card {
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            width: 280px;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 30px 20px;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .sidebar-logo i {
+            font-size: 2rem;
+            color: #00d4ff;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.4));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.4)); }
+            50% { filter: drop-shadow(0 0 15px rgba(0, 212, 255, 0.6)); }
+        }
+
+        .sidebar-logo span {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .sidebar-menu a i { width: 22px; font-size: 1.1rem; color: #00d4ff; }
+        .sidebar-menu a:hover, .sidebar-menu .active a {
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            transform: translateX(5px);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ff3366;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .sidebar-footer a:hover {
+            background: rgba(255, 51, 102, 0.1);
+            transform: translateX(5px);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
             position: relative;
             z-index: 1;
-            max-width: 700px;
-            width: 100%;
+            flex: 1;
+            margin-left: 280px;
+            padding: 25px 35px;
+            min-height: 100vh;
+        }
+
+        /* ========== HEADER ========== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 15px 25px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        .page-header h1 {
+            color: #00d4ff;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .doctor-info-mini {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .doctor-avatar-mini {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .doctor-avatar-mini i { font-size: 1.3rem; color: #0a0c10; }
+        .doctor-text-mini h3 { font-size: 0.9rem; color: #00d4ff; }
+        .doctor-text-mini p { font-size: 0.7rem; color: #94a3b8; }
+
+        /* ========== CARTE PROFIL ========== */
+        .profile-card {
             background: rgba(15, 23, 42, 0.5);
             backdrop-filter: blur(15px);
             border-radius: 32px;
             padding: 35px;
             border: 1px solid rgba(0, 212, 255, 0.3);
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        h1 { color: #00d4ff; display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 1.6rem; }
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-avatar i {
+            font-size: 5rem;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            padding: 20px;
+            border-radius: 50%;
+            border: 3px solid #00d4ff;
+        }
 
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,212,255,0.15); align-items: center; flex-wrap: wrap; gap: 10px; }
-        .label { color: #94a3b8; font-weight: 500; min-width: 140px; }
-        .value { color: #fff; flex: 1; }
-        .edit-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(0,212,255,0.3); border-radius: 10px; padding: 8px 12px; color: #fff; width: 200px; display: none; }
-        .edit-input:focus { outline: none; border-color: #00d4ff; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0,212,255,0.15);
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .label {
+            color: #94a3b8;
+            font-weight: 500;
+            min-width: 140px;
+            font-size: 0.85rem;
+        }
+        .value {
+            color: #fff;
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        .edit-input {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            width: 250px;
+            display: none;
+            font-size: 0.85rem;
+        }
+        .edit-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        /* Style pour les selects en mode édition */
+        .edit-select {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 10px;
+            padding: 8px 12px;
+            color: #fff;
+            width: 250px;
+            display: none;
+            font-size: 0.85rem;
+        }
+        .edit-select:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .edit-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
 
-        .btn { background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 40px; padding: 12px 25px; color: #00d4ff; font-weight: bold; cursor: pointer; margin-top: 20px; width: 100%; transition: 0.3s; }
-        .btn:hover { background: #00d4ff; color: #0a0c10; transform: translateY(-2px); }
-        .btn-danger { border-color: #ef4444; color: #ef4444; }
-        .btn-danger:hover { background: #ef4444; color: #fff; }
+        .btn {
+            background: rgba(0,212,255,0.1);
+            border: 1px solid #00d4ff;
+            border-radius: 40px;
+            padding: 12px 25px;
+            color: #00d4ff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background: #00d4ff;
+            color: #0a0c10;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #ef4444;
+            color: #fff;
+        }
 
-        .back-link { color: #94a3b8; text-decoration: none; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
-        .back-link:hover { color: #00d4ff; }
-
-        .password-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,212,255,0.15); }
-        .password-section h3 { color: #00d4ff; margin-bottom: 15px; font-size: 1rem; }
+        .password-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0,212,255,0.15);
+        }
+        .password-section h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
 
         .edit-mode .value { display: none; }
         .edit-mode .edit-input { display: inline-block; }
+        .edit-mode .edit-select { display: inline-block; }
 
-        .toast { position: fixed; bottom: 30px; right: 30px; padding: 12px 20px; background: rgba(15,23,42,0.95); border-left: 4px solid #00ff88; border-radius: 12px; z-index: 1100; animation: slideIn 0.3s ease; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 20px;
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #00ff88;
+            border-radius: 12px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+        }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        @media (max-width: 600px) { .card { padding: 25px; } .info-row { flex-direction: column; align-items: flex-start; } .edit-input { width: 100%; } }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; }
+            .sidebar span, .sidebar-footer span { display: none; }
+            .main-content { margin-left: 80px; padding: 15px; }
+            .profile-card { padding: 25px; margin: 0 10px; }
+            .info-row { flex-direction: column; align-items: flex-start; }
+            .edit-input, .edit-select { width: 100%; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-glow"><div class="glow-1"></div><div class="glow-2"></div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loading-spinner"></div></div>
 
-    <div class="card" id="profilCard">
-        <a href="medecin-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Retour</a>
-        <h1><i class="fas fa-user-md"></i> Mon profil</h1>
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fa-solid fa-staff-snake"></i>
+            <span>MédiConnex</span>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="medecin-dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+            <li><a href="medecin-patients.html"><i class="fa-solid fa-users"></i> Patients</a></li>
+            <li><a href="medecin-ajout-patient.html"><i class="fa-solid fa-user-plus"></i> Ajouter patient</a></li>
+            <li><a href="medecin-consultation.html"><i class="fa-solid fa-stethoscope"></i> Consultations</a></li>
+            <li><a href="medecin-rendezvous.html"><i class="fa-solid fa-calendar-check"></i> Rendez-vous</a></li>
+            <li><a href="medecin-messagerie.html"><i class="fa-solid fa-comments"></i> Messagerie</a></li>
+            <li class="active"><a href="medecin-profil.html"><i class="fa-solid fa-user-md"></i> Profil</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Déconnexion</a>
+        </div>
+    </div>
 
-        <div id="profilInfo">
-            <div class="info-row"><span class="label">Code médecin</span><span class="value" id="code"></span><input class="edit-input" id="codeInput" readonly></div>
-            <div class="info-row"><span class="label">Nom</span><span class="value" id="nom"></span><input class="edit-input" id="nomInput"></div>
-            <div class="info-row"><span class="label">Prénom</span><span class="value" id="prenom"></span><input class="edit-input" id="prenomInput"></div>
-            <div class="info-row"><span class="label">Email</span><span class="value" id="email"></span><input class="edit-input" id="emailInput" type="email"></div>
-            <div class="info-row"><span class="label">Téléphone</span><span class="value" id="tel"></span><input class="edit-input" id="telInput"></div>
-            <div class="info-row"><span class="label">Spécialité</span><span class="value" id="specialite"></span><input class="edit-input" id="specialiteInput"></div>
-            <div class="info-row"><span class="label">Hôpital</span><span class="value" id="hopital"></span><input class="edit-input" id="hopitalInput"></div>
-            <div class="info-row"><span class="label">Wilaya</span><span class="value" id="wilaya"></span><input class="edit-input" id="wilayaInput"></div>
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1><i class="fa-solid fa-user-md"></i> Mon profil</h1>
+            <div class="doctor-info-mini">
+                <div class="doctor-avatar-mini">
+                    <i class="fa-solid fa-user-md"></i>
+                </div>
+                <div class="doctor-text-mini">
+                    <h3 id="doctorName">Dr. Chargement...</h3>
+                    <p id="doctorSpecialite">Médecin</p>
+                </div>
+            </div>
         </div>
 
-        <div class="password-section">
-            <h3><i class="fas fa-lock"></i> Changer le mot de passe</h3>
-            <div class="info-row"><span class="label">Ancien mot de passe</span><input type="password" id="oldPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Ancien mot de passe"></div>
-            <div class="info-row"><span class="label">Nouveau mot de passe</span><input type="password" id="newPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Nouveau mot de passe"></div>
-            <div class="info-row"><span class="label">Confirmer</span><input type="password" id="confirmPassword" class="edit-input" style="display: inline-block; width: 200px;" placeholder="Confirmer"></div>
-            <button id="changePasswordBtn" class="btn btn-danger"><i class="fas fa-key"></i> Changer le mot de passe</button>
-        </div>
+        <div class="profile-card" id="profilCard">
+            <div class="profile-avatar">
+                <i class="fa-solid fa-user-md"></i>
+            </div>
 
-        <button id="editBtn" class="btn"><i class="fas fa-pen"></i> Modifier les informations</button>
-        <button id="saveBtn" class="btn" style="display:none;"><i class="fas fa-save"></i> Enregistrer</button>
+            <div id="profilInfo">
+                <div class="info-row">
+                    <span class="label">Code médecin</span>
+                    <span class="value" id="code"></span>
+                    <input class="edit-input" id="codeInput" readonly>
+                </div>
+                <div class="info-row">
+                    <span class="label">Nom</span>
+                    <span class="value" id="nom"></span>
+                    <input class="edit-input" id="nomInput">
+                </div>
+                <div class="info-row">
+                    <span class="label">Prénom</span>
+                    <span class="value" id="prenom"></span>
+                    <input class="edit-input" id="prenomInput">
+                </div>
+                <div class="info-row">
+                    <span class="label">Email</span>
+                    <span class="value" id="email"></span>
+                    <input class="edit-input" id="emailInput" type="email">
+                </div>
+                <div class="info-row">
+                    <span class="label">Téléphone</span>
+                    <span class="value" id="tel"></span>
+                    <input class="edit-input" id="telInput">
+                </div>
+                <div class="info-row">
+                    <span class="label">Spécialité</span>
+                    <span class="value" id="specialite"></span>
+                    <select class="edit-select" id="specialiteSelect">
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <span class="label">Hôpital</span>
+                    <span class="value" id="hopital"></span>
+                    <select class="edit-select" id="hopitalSelect">
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+                <div class="info-row">
+                    <span class="label">Wilaya</span>
+                    <span class="value" id="wilaya"></span>
+                    <select class="edit-select" id="wilayaSelect">
+                        <option value="">-- Sélectionner --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="password-section">
+                <h3><i class="fas fa-lock"></i> Changer le mot de passe</h3>
+                <div class="info-row">
+                    <span class="label">Ancien mot de passe</span>
+                    <input type="password" id="oldPassword" class="edit-input" style="display: inline-block; width: 250px;" placeholder="Ancien mot de passe">
+                </div>
+                <div class="info-row">
+                    <span class="label">Nouveau mot de passe</span>
+                    <input type="password" id="newPassword" class="edit-input" style="display: inline-block; width: 250px;" placeholder="Nouveau mot de passe">
+                </div>
+                <div class="info-row">
+                    <span class="label">Confirmer</span>
+                    <input type="password" id="confirmPassword" class="edit-input" style="display: inline-block; width: 250px;" placeholder="Confirmer">
+                </div>
+                <button id="changePasswordBtn" class="btn btn-danger"><i class="fas fa-key"></i> Changer le mot de passe</button>
+            </div>
+
+            <button id="editBtn" class="btn"><i class="fas fa-pen"></i> Modifier les informations</button>
+            <button id="saveBtn" class="btn" style="display:none;"><i class="fas fa-save"></i> Enregistrer</button>
+        </div>
     </div>
 
     <script>
+        // ========== CONFIGURATION ==========
         const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        function showToast(msg, type) {
+        // ========== VÉRIFICATION SESSION ==========
+        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
+        const medecinId = medecin.id_medecin;
+        if (!medecinId) window.location.href = 'medecin-login.html';
+
+        // ========== VARIABLES POUR LES LISTES ==========
+        let specialitesList = [];
+        let hopitauxList = [];
+        let wilayasList = [];
+
+        // ========== AFFICHAGE INFOS MÉDECIN ==========
+        document.getElementById('doctorName').innerHTML = `Dr. ${medecin.prenom || ''} ${medecin.nom || 'Médecin'}`;
+        document.getElementById('doctorSpecialite').innerHTML = medecin.specialite || 'Médecin généraliste';
+
+        // ========== DÉCONNEXION ==========
+        function logout() { 
+            localStorage.removeItem('medecin'); 
+            window.location.href = '../index.html'; 
+        }
+
+        // ========== TOAST ==========
+        function showToast(msg, type = 'success') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
             const toast = document.createElement('div');
@@ -151,73 +524,271 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // ========== LOADING OVERLAY ==========
+        function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        // ========== ESCAPE HTML ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== HASHAGE MOT DE PASSE ==========
         async function hashPassword(pwd) {
             const encoder = new TextEncoder();
             const data = encoder.encode(pwd);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
-        async function verifyPassword(pwd, hashed) { return await hashPassword(pwd) === hashed; }
-
-        const medecin = JSON.parse(localStorage.getItem('medecin') || '{}');
-        const medecinId = medecin.id_medecin;
-        if (!medecinId) window.location.href = 'medecin-login.html';
-
-        async function chargerProfil() {
-            const { data, error } = await supabaseClient.from('medecins').select('*').eq('id_medecin', medecinId).single();
-            if (error) return;
-            const m = data;
-            document.getElementById('code').innerText = m.code_medecin;
-            document.getElementById('codeInput').value = m.code_medecin;
-            document.getElementById('nom').innerText = m.nom;
-            document.getElementById('nomInput').value = m.nom;
-            document.getElementById('prenom').innerText = m.prenom;
-            document.getElementById('prenomInput').value = m.prenom;
-            document.getElementById('email').innerText = m.email;
-            document.getElementById('emailInput').value = m.email;
-            document.getElementById('tel').innerText = m.telephone;
-            document.getElementById('telInput').value = m.telephone;
-            document.getElementById('specialite').innerText = m.specialite;
-            document.getElementById('specialiteInput').value = m.specialite;
-            document.getElementById('hopital').innerText = m.hopital;
-            document.getElementById('hopitalInput').value = m.hopital;
-            document.getElementById('wilaya').innerText = m.wilaya;
-            document.getElementById('wilayaInput').value = m.wilaya;
+        
+        async function verifyPassword(pwd, hashed) { 
+            return await hashPassword(pwd) === hashed; 
         }
 
+        // ========== CHARGEMENT DES LISTES ==========
+        async function chargerListes() {
+            try {
+                // Charger les spécialités
+                const { data: specialites } = await supabaseClient
+                    .from('specialites')
+                    .select('id_specialite, nom_specialite')
+                    .order('nom_specialite');
+                specialitesList = specialites || [];
+                
+                // Charger les hôpitaux
+                const { data: hopitaux } = await supabaseClient
+                    .from('hopitaux')
+                    .select('id_hopital, nom_hopital')
+                    .order('nom_hopital');
+                hopitauxList = hopitaux || [];
+                
+                // Charger les wilayas
+                const { data: wilayas } = await supabaseClient
+                    .from('wilayas')
+                    .select('id_wilaya, nom_wilaya')
+                    .order('nom_wilaya');
+                wilayasList = wilayas || [];
+                
+                // Remplir les selects
+                const specialiteSelect = document.getElementById('specialiteSelect');
+                const hopitalSelect = document.getElementById('hopitalSelect');
+                const wilayaSelect = document.getElementById('wilayaSelect');
+                
+                specialiteSelect.innerHTML = '<option value="">-- Sélectionner --</option>';
+                specialitesList.forEach(s => {
+                    specialiteSelect.innerHTML += `<option value="${s.id_specialite}">${escapeHtml(s.nom_specialite)}</option>`;
+                });
+                
+                hopitalSelect.innerHTML = '<option value="">-- Sélectionner --</option>';
+                hopitauxList.forEach(h => {
+                    hopitalSelect.innerHTML += `<option value="${h.id_hopital}">${escapeHtml(h.nom_hopital)}</option>`;
+                });
+                
+                wilayaSelect.innerHTML = '<option value="">-- Sélectionner --</option>';
+                wilayasList.forEach(w => {
+                    wilayaSelect.innerHTML += `<option value="${w.id_wilaya}">${escapeHtml(w.nom_wilaya)}</option>`;
+                });
+                
+            } catch (err) {
+                console.error('Erreur chargement listes:', err);
+            }
+        }
+
+        // ========== OBTENIR NOM PAR ID ==========
+        function getSpecialiteNom(id) {
+            const spec = specialitesList.find(s => s.id_specialite == id);
+            return spec ? spec.nom_specialite : 'Non définie';
+        }
+        
+        function getHopitalNom(id) {
+            const hop = hopitauxList.find(h => h.id_hopital == id);
+            return hop ? hop.nom_hopital : 'Non défini';
+        }
+        
+        function getWilayaNom(id) {
+            const wil = wilayasList.find(w => w.id_wilaya == id);
+            return wil ? wil.nom_wilaya : 'Non définie';
+        }
+
+        // ========== CHARGEMENT PROFIL ==========
+        async function chargerProfil() {
+            showLoading();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('medecins')
+                    .select('*')
+                    .eq('id_medecin', medecinId)
+                    .single();
+                    
+                if (error) throw error;
+                
+                const m = data;
+                document.getElementById('code').innerText = escapeHtml(m.code_medecin);
+                document.getElementById('codeInput').value = m.code_medecin;
+                document.getElementById('nom').innerText = escapeHtml(m.nom);
+                document.getElementById('nomInput').value = m.nom;
+                document.getElementById('prenom').innerText = escapeHtml(m.prenom);
+                document.getElementById('prenomInput').value = m.prenom;
+                document.getElementById('email').innerText = escapeHtml(m.email);
+                document.getElementById('emailInput').value = m.email;
+                document.getElementById('tel').innerText = escapeHtml(m.telephone);
+                document.getElementById('telInput').value = m.telephone;
+                
+                // ✅ AFFICHAGE DES NOMS POUR SPÉCIALITÉ, HÔPITAL, WILAYA
+                document.getElementById('specialite').innerText = getSpecialiteNom(m.id_specialite);
+                document.getElementById('specialiteSelect').value = m.id_specialite || '';
+                
+                document.getElementById('hopital').innerText = getHopitalNom(m.id_hopital);
+                document.getElementById('hopitalSelect').value = m.id_hopital || '';
+                
+                document.getElementById('wilaya').innerText = getWilayaNom(m.id_wilaya);
+                document.getElementById('wilayaSelect').value = m.id_wilaya || '';
+                
+            } catch (err) {
+                console.error(err);
+                showToast('Erreur de chargement du profil', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // ========== ÉDITION PROFIL ==========
         document.getElementById('editBtn').onclick = () => {
             document.getElementById('profilCard').classList.add('edit-mode');
             document.getElementById('editBtn').style.display = 'none';
             document.getElementById('saveBtn').style.display = 'block';
         };
+        
         document.getElementById('saveBtn').onclick = async () => {
-            const updated = {
-                nom: document.getElementById('nomInput').value,
-                prenom: document.getElementById('prenomInput').value,
-                email: document.getElementById('emailInput').value,
-                telephone: document.getElementById('telInput').value,
-                specialite: document.getElementById('specialiteInput').value,
-                hopital: document.getElementById('hopitalInput').value,
-                wilaya: document.getElementById('wilayaInput').value
-            };
-            const { error } = await supabaseClient.from('medecins').update(updated).eq('id_medecin', medecinId);
-            if (error) showToast('❌ Erreur', 'error');
-            else { showToast('✅ Profil mis à jour', 'success'); localStorage.setItem('medecin', JSON.stringify({ ...medecin, ...updated })); setTimeout(() => location.reload(), 1000); }
+            showLoading();
+            try {
+                const updated = {
+                    nom: document.getElementById('nomInput').value,
+                    prenom: document.getElementById('prenomInput').value,
+                    email: document.getElementById('emailInput').value,
+                    telephone: document.getElementById('telInput').value,
+                    id_specialite: parseInt(document.getElementById('specialiteSelect').value) || null,
+                    id_hopital: parseInt(document.getElementById('hopitalSelect').value) || null,
+                    id_wilaya: parseInt(document.getElementById('wilayaSelect').value) || null
+                };
+                
+                // Ajouter les noms dénormalisés (optionnel)
+                if (updated.id_specialite) {
+                    updated.specialite = getSpecialiteNom(updated.id_specialite);
+                }
+                if (updated.id_hopital) {
+                    updated.hopital = getHopitalNom(updated.id_hopital);
+                }
+                if (updated.id_wilaya) {
+                    updated.wilaya = getWilayaNom(updated.id_wilaya);
+                }
+                
+                const { error } = await supabaseClient
+                    .from('medecins')
+                    .update(updated)
+                    .eq('id_medecin', medecinId);
+                
+                if (error) throw error;
+                
+                // Mettre à jour localStorage
+                const updatedMedecin = { 
+                    ...medecin, 
+                    ...updated,
+                    specialite: updated.specialite || medecin.specialite,
+                    hopital: updated.hopital || medecin.hopital,
+                    wilaya: updated.wilaya || medecin.wilaya
+                };
+                localStorage.setItem('medecin', JSON.stringify(updatedMedecin));
+                
+                // Mettre à jour l'affichage du header
+                document.getElementById('doctorName').innerHTML = `Dr. ${updated.prenom || ''} ${updated.nom || 'Médecin'}`;
+                document.getElementById('doctorSpecialite').innerHTML = updated.specialite || 'Médecin généraliste';
+                
+                showToast('✅ Profil mis à jour avec succès', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (err) {
+                console.error(err);
+                showToast('❌ Erreur: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
         };
 
+        // ========== CHANGEMENT MOT DE PASSE ==========
         document.getElementById('changePasswordBtn').onclick = async () => {
-            const oldPass = document.getElementById('oldPassword').value, newPass = document.getElementById('newPassword').value, confirmPass = document.getElementById('confirmPassword').value;
-            if (!oldPass || !newPass || !confirmPass) return showToast('❌ Tous les champs requis', 'error');
-            if (newPass !== confirmPass) return showToast('❌ Les mots de passe ne correspondent pas', 'error');
-            if (newPass.length < 4) return showToast('❌ Minimum 4 caractères', 'error');
-            const { data: medData } = await supabaseClient.from('medecins').select('mot_de_passe').eq('id_medecin', medecinId).single();
-            if (!await verifyPassword(oldPass, medData.mot_de_passe)) return showToast('❌ Ancien mot de passe incorrect', 'error');
-            const hashedNew = await hashPassword(newPass);
-            const { error } = await supabaseClient.from('medecins').update({ mot_de_passe: hashedNew }).eq('id_medecin', medecinId);
-            if (error) showToast('❌ Erreur', 'error');
-            else showToast('✅ Mot de passe modifié', 'success');
+            const oldPass = document.getElementById('oldPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            
+            if (!oldPass || !newPass || !confirmPass) {
+                showToast('❌ Tous les champs sont requis', 'error');
+                return;
+            }
+            
+            if (newPass !== confirmPass) {
+                showToast('❌ Les mots de passe ne correspondent pas', 'error');
+                return;
+            }
+            
+            if (newPass.length < 4) {
+                showToast('❌ Le mot de passe doit contenir au moins 4 caractères', 'error');
+                return;
+            }
+            
+            if (oldPass === newPass) {
+                showToast('❌ Le nouveau mot de passe doit être différent', 'error');
+                return;
+            }
+            
+            showLoading();
+            try {
+                const { data: medData, error: fetchError } = await supabaseClient
+                    .from('medecins')
+                    .select('mot_de_passe')
+                    .eq('id_medecin', medecinId)
+                    .single();
+                    
+                if (fetchError) throw fetchError;
+                
+                const isValid = await verifyPassword(oldPass, medData.mot_de_passe);
+                if (!isValid) {
+                    showToast('❌ Ancien mot de passe incorrect', 'error');
+                    hideLoading();
+                    return;
+                }
+                
+                const hashedNew = await hashPassword(newPass);
+                const { error: updateError } = await supabaseClient
+                    .from('medecins')
+                    .update({ mot_de_passe: hashedNew })
+                    .eq('id_medecin', medecinId);
+                    
+                if (updateError) throw updateError;
+                
+                showToast('✅ Mot de passe modifié avec succès', 'success');
+                
+                document.getElementById('oldPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                
+            } catch (err) {
+                console.error(err);
+                showToast('❌ Erreur: ' + err.message, 'error');
+            } finally {
+                hideLoading();
+            }
         };
-        chargerProfil();
+
+        // ========== INITIALISATION ==========
+        async function init() {
+            await chargerListes();
+            await chargerProfil();
+        }
+        
+        init();
     </script>
 </body>
 </html>
