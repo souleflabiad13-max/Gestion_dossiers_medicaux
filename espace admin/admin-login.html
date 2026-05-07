@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Admin - MédiConnex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --admin: #ffaa33;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: url('https://images.pexels.com/photos/4386464/pexels-photo-4386464.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Overlay sombre comme la page patient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            z-index: 0;
+        }
+
+        .error-message {
+            color: #ff4444;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            background: rgba(255,68,68,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .success-message {
+            color: #00ff88;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            background: rgba(0,255,136,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--admin);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 8px;
+            margin-bottom: 5px;
+        }
+
+        .forgot-password a {
+            color: var(--admin);
+            text-decoration: none;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .forgot-password a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* AUTH WRAPPER - MEME STRUCTURE QUE PATIENT */
+        .auth-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(26, 26, 46, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            overflow: hidden;
+            border: 2px solid var(--admin);
+            box-shadow: 0 0 40px rgba(255, 170, 51, 0.2);
+            display: flex;
+            min-height: 550px;
+        }
+
+        .credentials-panel {
+            flex: 1;
+            padding: 50px 40px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .credentials-panel h2 {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--admin), #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            margin-bottom: 35px;
+        }
+
+        .field-wrapper {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .field-wrapper label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .field-wrapper input {
+            width: 100%;
+            padding: 14px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 170, 51, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .field-wrapper input:focus {
+            outline: none;
+            border-color: var(--admin);
+            box-shadow: 0 0 15px rgba(255, 170, 51, 0.2);
+            background: rgba(255, 170, 51, 0.05);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--admin), #cc8800);
+            border: none;
+            border-radius: 50px;
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 170, 51, 0.3);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .welcome-section {
+            flex: 1;
+            background: linear-gradient(135deg, rgba(255, 170, 51, 0.1), rgba(0, 0, 0, 0.5));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            padding: 50px 40px;
+        }
+
+        .welcome-section h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: var(--admin);
+        }
+
+        .welcome-section p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .welcome-section i {
+            font-size: 80px;
+            color: var(--admin);
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-wrapper {
+                flex-direction: column;
+                margin: 20px;
+                max-width: 500px;
+            }
+            .welcome-section {
+                padding: 40px;
+            }
+            .credentials-panel {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="credentials-panel">
+            <h2>Connexion Administrateur</h2>
+            <div class="subtitle">Accès réservé au personnel autorisé</div>
+
+            <form id="adminLoginForm">
+                <div class="field-wrapper">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" id="username" placeholder="Entrez votre nom d'utilisateur" required>
+                </div>
+
+                <div class="field-wrapper">
+                    <label>Mot de passe</label>
+                    <input type="password" id="password" placeholder="Entrez votre mot de passe" required>
+                </div>
+
+                <div class="forgot-password">
+                    <a href="#">Mot de passe oublié ?</a>
+                </div>
+
+                <button type="submit" class="submit-button" id="submitBtn">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter
+                </button>
+
+                <div class="loading" id="loadingMsg">
+                    <i class="fa-solid fa-spinner fa-spin"></i> Connexion en cours...
+                </div>
+                <div class="error-message" id="errorMsg"></div>
+                <div class="success-message" id="successMsg"></div>
+            </form>
+        </div>
+
+        <div class="welcome-section">
+            <i class="fa-solid fa-building-shield"></i>
+            <h2>ESPACE ADMINISTRATEUR</h2>
+            <p>Gestion complète du système médical, des médecins et des patients.</p>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://uuhdpvtnfaycqemhrelo.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_C-QCOapZ_QY92foN_Q-VRw_3WSoCos7';
+
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function verifyPassword(password, hashedPassword) {
+            const hash = await hashPassword(password);
+            return hash === hashedPassword;
+        }
+
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+            const loadingDiv = document.getElementById('loadingMsg');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connexion...';
+
+            if (!username || !password) {
+                errorDiv.innerHTML = '❌ Veuillez remplir tous les champs';
+                errorDiv.style.display = 'block';
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
+                return;
+            }
+
+            try {
+                const url = `${SUPABASE_URL}/rest/v1/admins?select=*&nom_utilisateur=eq.${encodeURIComponent(username)}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erreur réseau');
+
+                const admins = await response.json();
+
+                if (admins.length > 0) {
+                    const isValid = await verifyPassword(password, admins[0].mot_de_passe);
+                    
+                    if (isValid) {
+                        localStorage.setItem('admin', JSON.stringify({
+                            id_admin: admins[0].id_admin,
+                            nom_utilisateur: admins[0].nom_utilisateur,
+                            email: admins[0].email
+                        }));
+                        successDiv.innerHTML = '✅ Connexion réussie ! Redirection...';
+                        successDiv.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = 'admin-dashboard.html';
+                        }, 1000);
+                    } else {
+                        errorDiv.innerHTML = '❌ Identifiants incorrects';
+                        errorDiv.style.display = 'block';
+                    }
+                } else {
+                    errorDiv.innerHTML = '❌ Identifiants incorrects';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                errorDiv.innerHTML = '❌ Erreur de connexion: ' + err.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Se connecter';
+            }
+        });
+    </script>
+</body>
+</html>
